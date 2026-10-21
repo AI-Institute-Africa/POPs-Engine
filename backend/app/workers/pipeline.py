@@ -18,6 +18,7 @@ from app.extraction.service import extract
 from app.intake.files import phash_distance, prepare
 from app.intake.storage import get_storage
 from app.models import (
+    ApprovalTier,
     Claim,
     ClaimState,
     ConsumedReference,
@@ -113,13 +114,9 @@ def _reference_duplicates(
 def _hold_others(session: Session, ids: set[uuid.UUID], reason: str) -> None:
     for other in session.scalars(select(Claim).where(Claim.claim_id.in_(ids)).with_for_update()):
         if other.state in REVIEWABLE and other.state != ClaimState.DUPLICATE_HOLD:
-            transition(
-                session,
-                other,
-                ClaimState.DUPLICATE_HOLD,
-                actor=ACTOR,
-                reasons=sorted({*other.reason_codes, reason}),
-            )
+            reasons = sorted({*other.reason_codes, reason} - {"AWAITING_CREDIT"})
+            other.approval_tier = ApprovalTier.RED
+            transition(session, other, ClaimState.DUPLICATE_HOLD, actor=ACTOR, reasons=reasons)
 
 
 def process_claim(
@@ -229,6 +226,7 @@ def process_claim(
     reasons = sorted(set(reasons), key=reasons.index)
     if DUPLICATE.intersection(reasons):
         target = ClaimState.DUPLICATE_HOLD
+        claim.evidence_tier = EvidenceTier.E1 if ev else EvidenceTier.E0
         _hold_others(
             session,
             dup_others,
