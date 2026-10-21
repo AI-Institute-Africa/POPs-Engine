@@ -227,3 +227,4 @@ frontend/dist/
 .hypothesis/
 .mypy_cache/
 .ruff_cache/
+*.tsbuildinfo
