@@ -48,10 +48,13 @@ def run_pipeline(claim_id: uuid.UUID) -> bool:
 
 
 def run_rematch(org_id: uuid.UUID) -> int:
-    from app.workers.pipeline import rematch_awaiting
+    """Credit-first matching, then flag claims whose money should have arrived by now."""
+    from app.workers.pipeline import rematch_awaiting, scan_missing_credits
 
     with session_scope() as session:
-        return rematch_awaiting(session, org_id)
+        matched = rematch_awaiting(session, org_id)
+        scan_missing_credits(session, org_id)
+        return matched
 
 
 def sweep_stuck() -> int:

@@ -41,6 +41,16 @@ with sync_playwright() as p:
     page.get_by_label("Email").fill("admin@cognify.dev")
     page.get_by_label("Role").select_option("admin")
     page.get_by_role("button", name="Sign in").click()
+    # suspected fakes: the edited receipt and the reused screenshot are flagged for the admin
+    page.get_by_role("link", name="Suspected fakes").click()
+    expect(page.locator(".alert").first).to_be_visible()
+    expect(page.locator(".alert", has_text="amount edit suspected")).to_be_visible()
+    page.screenshot(path=f"{out}/6-suspected-fakes.png", full_page=True)
+    edited = page.locator(".alert", has_text="amount edit suspected").first
+    edited.get_by_placeholder("What did you check?").fill("bank shows 40.00; receipt altered")
+    edited.get_by_role("button", name="Confirm fake & reject").click()
+    expect(page.locator(".alert", has_text="amount edit suspected")).to_have_count(0)
+
     page.get_by_role("link", name="Guardrails & policies").click()
     expect(page.get_by_role("heading", name="Locked guardrails")).to_be_visible()
     kill = page.locator(".rule", has_text="AI kill switch").first

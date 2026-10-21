@@ -25,6 +25,7 @@ PIPELINE_SECONDS = Histogram("pops_pipeline_seconds", "Pipeline duration per cla
 PIPELINE_FAILURES = Counter("pops_pipeline_failures_total", "Pipeline exceptions")
 READER_FAILURES = Counter("pops_reader_failures_total", "Reader errors", ["reader"])
 GUARDRAIL_HITS = Counter("pops_guardrail_hits_total", "Guardrail rule hits", ["effect"])
+FRAUD_ALERTS = Counter("pops_fraud_alerts_total", "Suspected-fake alerts raised", ["level"])
 UPLOADS_REJECTED = Counter("pops_uploads_rejected_total", "Rejected uploads", ["reason"])
 STUCK_CLAIMS = Gauge("pops_stuck_claims", "Claims stuck in RECEIVED/PROCESSING")
 OUTBOX_PENDING = Gauge("pops_outbox_pending", "Undelivered Cognify events")

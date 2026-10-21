@@ -150,6 +150,10 @@ class Claim(Base):
     approval_tier: Mapped[str | None] = mapped_column(String(5))
     reason_codes: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     candidate_credit_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("credits.credit_id"))
+    # fraud risk (app/fraud): a flag for humans, never an approval input
+    risk_score: Mapped[int | None] = mapped_column(Integer)
+    risk_level: Mapped[str | None] = mapped_column(String(10))
+    risk_signals: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
     pipeline_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_pipeline_error: Mapped[str | None] = mapped_column(Text)
     correlation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=_uuid)
@@ -169,6 +173,7 @@ class Evidence(Base):
     org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
     object_key: Mapped[str] = mapped_column(String(300), nullable=False)
     preview_key: Mapped[str | None] = mapped_column(String(300))  # rendered PNG for viewer
+    forensics_key: Mapped[str | None] = mapped_column(String(300))  # ELA heatmap for admins
     content_type: Mapped[str] = mapped_column(String(80), nullable=False)
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -374,3 +379,36 @@ class GuardrailRule(Base):
     removed_by: Mapped[str | None] = mapped_column(String(80))
     removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = (Index("ix_guardrails_org_active", "org_id", "removed_at"),)
+
+
+class FraudAlert(Base):
+    """A claim the risk engine thinks may be fake, escalated to an admin.
+
+    One alert per claim; re-assessment updates it. While a high-risk alert is open the claim
+    cannot be confirmed. Admins resolve it as confirmed_fake (claim rejected) or false_positive
+    (claim returns to normal review); resolutions are labelled data for a future fraud model.
+    """
+
+    __tablename__ = "fraud_alerts"
+    alert_id: Mapped[uuid.UUID] = _pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    claim_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("claims.claim_id"), nullable=False, unique=True
+    )
+    level: Mapped[str] = mapped_column(String(10), nullable=False)
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+    signals: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="open")
+    resolved_by: Mapped[str | None] = mapped_column(String(80))
+    resolution_note: Mapped[str | None] = mapped_column(Text)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    __table_args__ = (
+        CheckConstraint(
+            "status in ('open','confirmed_fake','false_positive')", name="fraud_alert_status"
+        ),
+        Index("ix_fraud_alerts_org_status", "org_id", "status"),
+    )

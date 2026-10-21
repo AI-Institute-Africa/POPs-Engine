@@ -9,11 +9,28 @@ import ClaimReview from "./pages/ClaimReview";
 import Credits from "./pages/Credits";
 import Obligations from "./pages/Obligations";
 import Guardrails from "./pages/Guardrails";
+import Fraud from "./pages/Fraud";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "./api";
 import AuthCallback from "./pages/AuthCallback";
 import { oidcEnabled, restoreOidcSession, userManager } from "./oidc";
 import "./styles.css";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } } });
+
+function FraudLink() {
+  const q = useQuery({
+    queryKey: ["fraud-summary"],
+    queryFn: () => api<{ open_high: number; open_medium: number }>("/fraud/alerts/summary"),
+    refetchInterval: 30000,
+  });
+  const n = q.data?.open_high ?? 0;
+  return (
+    <NavLink to="/fraud">
+      Suspected fakes{n > 0 && <span className="count">{n}</span>}
+    </NavLink>
+  );
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   const nav = useNavigate();
@@ -23,6 +40,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <strong>POPs Review</strong>
         <nav>
           <NavLink to="/queue">Queue</NavLink>
+          <FraudLink />
           <NavLink to="/credits">Credits</NavLink>
           <NavLink to="/obligations">Obligations</NavLink>
           <NavLink to="/guardrails">Guardrails &amp; policies</NavLink>
@@ -59,6 +77,7 @@ void ready.then(() => ReactDOM.createRoot(document.getElementById("root")!).rend
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/guardrails" element={<Authed><Guardrails /></Authed>} />
+          <Route path="/fraud" element={<Authed><Fraud /></Authed>} />
           <Route path="/queue" element={<Authed><Queue /></Authed>} />
           <Route path="/claims/:id" element={<Authed><ClaimReview /></Authed>} />
           <Route path="/credits" element={<Authed><Credits /></Authed>} />

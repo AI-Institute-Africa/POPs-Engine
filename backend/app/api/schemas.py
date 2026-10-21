@@ -70,6 +70,10 @@ class ClaimOut(Out):
     reason_codes: list[str]
     messages: list[str]
     candidate_credit_id: uuid.UUID | None
+    # fraud risk: filled only for reviewers and admins
+    risk_score: int | None = None
+    risk_level: str | None = None
+    risk_signals: list[dict[str, Any]] = []
     created_at: datetime
     updated_at: datetime
 
@@ -134,6 +138,7 @@ class EvidenceOut(BaseModel):
     sha256: str
     preview_url: str
     original_url: str
+    forensics_url: str | None = None  # ELA heatmap (JPEG uploads)
     meta: dict[str, Any]
     received_at: datetime
 

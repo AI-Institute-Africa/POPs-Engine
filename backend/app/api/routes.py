@@ -84,14 +84,24 @@ Approver = Annotated[Principal, Depends(require(Role.APPROVER))]
 Admin = Annotated[Principal, Depends(require(Role.ADMIN))]
 
 
-def claim_out(c: Claim) -> ClaimOut:
-    return ClaimOut.model_validate(
+# never shown to submitters (Cognify, and through it payers): no accusation from a score
+INTERNAL_REASONS = {"SUSPECTED_FAKE"}
+
+
+def claim_out(c: Claim, internal: bool = False) -> ClaimOut:
+    out = ClaimOut.model_validate(
         {
             **{k: getattr(c, k) for k in ClaimOut.model_fields if hasattr(c, k)},
             "outcome": OUTCOME[ClaimState(c.state)],
             "messages": explain(c.reason_codes),
         }
     )
+    if not internal:
+        out.risk_score = None
+        out.risk_level = None
+        out.risk_signals = []
+        out.reason_codes = [r for r in out.reason_codes if r not in INTERNAL_REASONS]
+    return out
 
 
 def _balance_out(b: ledger.Balance) -> BalanceOut:
@@ -291,7 +301,7 @@ async def submit_claim(
     db.commit()
     dispatch_pipeline(claim.claim_id)
     db.expire_all()
-    return claim_out(_claim(db, p, claim.claim_id))
+    return claim_out(_claim(db, p, claim.claim_id), p.at_least(Role.REVIEWER))
 
 
 @router.get("/claims", response_model=list[ClaimOut], tags=["claims"])
@@ -307,12 +317,15 @@ def list_claims(
         q = q.where(Claim.obligation_id == obligation_id)
     if claimant_ref:
         q = q.where(Claim.claimant_ref == claimant_ref)
-    return [claim_out(c) for c in db.scalars(q.order_by(Claim.created_at.desc()).limit(limit))]
+    internal = p.at_least(Role.REVIEWER)
+    return [
+        claim_out(c, internal) for c in db.scalars(q.order_by(Claim.created_at.desc()).limit(limit))
+    ]
 
 
 @router.get("/claims/{claim_id}", response_model=ClaimOut, tags=["claims"])
 def get_claim(claim_id: uuid.UUID, db: DB, p: Any_) -> ClaimOut:
-    return claim_out(_claim(db, p, claim_id))
+    return claim_out(_claim(db, p, claim_id), p.at_least(Role.REVIEWER))
 
 
 @router.post("/claims/{claim_id}/evidence", response_model=ClaimOut, tags=["claims"])
@@ -341,7 +354,7 @@ async def add_evidence(
     db.commit()
     dispatch_pipeline(claim.claim_id)
     db.expire_all()
-    return claim_out(_claim(db, p, claim_id))
+    return claim_out(_claim(db, p, claim_id), p.at_least(Role.REVIEWER))
 
 
 @router.get("/evidence/{evidence_id}/content", tags=["claims"])
@@ -349,7 +362,7 @@ def evidence_content(
     evidence_id: uuid.UUID,
     sig: str,
     db: DB,
-    variant: str = Query("preview", pattern="^(preview|original)$"),
+    variant: str = Query("preview", pattern="^(preview|original|forensics)$"),
 ) -> Response:
     """Short-lived signed URL; usable from <img> tags without a bearer token."""
     if not verify_evidence_signature(evidence_id, sig):
@@ -357,11 +370,12 @@ def evidence_content(
     ev = db.get(Evidence, evidence_id)
     if ev is None:
         raise HTTPException(404)
-    key, ctype = (
-        (ev.preview_key, "image/png")
-        if variant == "preview" and ev.preview_key
-        else (ev.object_key, ev.content_type)
-    )
+    if variant == "forensics" and ev.forensics_key:
+        key, ctype = ev.forensics_key, "image/png"
+    elif variant == "preview" and ev.preview_key:
+        key, ctype = ev.preview_key, "image/png"
+    else:
+        key, ctype = ev.object_key, ev.content_type
     return Response(
         get_storage().get(key),
         media_type=ctype,
@@ -542,7 +556,7 @@ def review_queue(
     if channel:
         q = q.where(Claim.channel == channel)
     # oldest first: the queue is worked against an SLA
-    return [claim_out(c) for c in db.scalars(q.order_by(Claim.created_at).limit(limit))]
+    return [claim_out(c, True) for c in db.scalars(q.order_by(Claim.created_at).limit(limit))]
 
 
 @router.get("/review/claims/{claim_id}", response_model=ReviewDetailOut, tags=["review"])
@@ -583,7 +597,7 @@ def review_detail(claim_id: uuid.UUID, db: DB, p: Reviewer) -> ReviewDetailOut:
         ).all()
     )
     return ReviewDetailOut(
-        claim=claim_out(claim),
+        claim=claim_out(claim, True),
         obligation=ObligationOut.model_validate(obligation),
         balance=_balance_out(ledger.balance(db, obligation)),
         evidence=[
@@ -595,6 +609,12 @@ def review_detail(claim_id: uuid.UUID, db: DB, p: Reviewer) -> ReviewDetailOut:
                 received_at=e.received_at,
                 preview_url=f"/evidence/{e.evidence_id}/content?variant=preview&sig={sign_evidence(e.evidence_id)}",
                 original_url=f"/evidence/{e.evidence_id}/content?variant=original&sig={sign_evidence(e.evidence_id)}",
+                forensics_url=(
+                    f"/evidence/{e.evidence_id}/content?variant=forensics"
+                    f"&sig={sign_evidence(e.evidence_id)}"
+                    if e.forensics_key
+                    else None
+                ),
             )
             for e in evidence
         ],
@@ -628,7 +648,7 @@ def confirm_claim(claim_id: uuid.UUID, body: ConfirmIn, db: DB, p: Reviewer) -> 
         raise HTTPException(409, {"code": exc.code, "message": str(exc)}) from exc
     db.commit()
     return ConfirmOut(
-        claim=claim_out(result.claim),
+        claim=claim_out(result.claim, True),
         allocation=AllocationOut.model_validate(result.allocation) if result.allocation else None,
         needs_second_approval=result.needs_second_approval,
     )
@@ -642,7 +662,7 @@ def reject_claim(claim_id: uuid.UUID, body: RejectIn, db: DB, p: Reviewer) -> Cl
         db.rollback()
         raise _review_error(exc) from exc
     db.commit()
-    return claim_out(claim)
+    return claim_out(claim, True)
 
 
 @router.post("/review/claims/{claim_id}/request-info", response_model=ClaimOut, tags=["review"])
@@ -653,7 +673,7 @@ def request_info(claim_id: uuid.UUID, body: RequestInfoIn, db: DB, p: Reviewer) 
         db.rollback()
         raise _review_error(exc) from exc
     db.commit()
-    return claim_out(claim)
+    return claim_out(claim, True)
 
 
 @router.post("/review/claims/{claim_id}/fields", response_model=FieldOut, tags=["review"])

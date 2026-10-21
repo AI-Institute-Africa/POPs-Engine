@@ -17,6 +17,7 @@ def make_receipt(
     size: tuple[int, int] = (720, 1280),
     blur: float = 0.0,
     seed: int | None = None,
+    meta: dict[str, str] | None = None,
 ) -> bytes:
     """Synthetic receipt PNG. Readers' 'ground truth' rides in tEXt chunks (see FakeVLMReader)."""
     rnd = random.Random(seed if seed is not None else uuid.uuid4().int)  # noqa: S311
@@ -32,6 +33,8 @@ def make_receipt(
     if blur:
         img = img.filter(ImageFilter.GaussianBlur(blur))
     info = PngInfo()
+    for key, value in (meta or {}).items():
+        info.add_text(key, value)  # e.g. {"Software": "Adobe Photoshop"} to simulate an editor
     if vlm is not None:
         info.add_text("pops-vlm", json.dumps(vlm))
     if ocr is not None:

@@ -7,6 +7,7 @@ approver to record an attested manual credit, which a *different* person then co
 
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -18,6 +19,7 @@ from app.core.audit import audit
 from app.core.security import Principal, Role
 from app.entitlements.outbox import enqueue_entitlement
 from app.extraction.agreement import normalise_field
+from app.fraud import risk
 from app.ledger import service as ledger
 from app.models import (
     Allocation,
@@ -27,6 +29,7 @@ from app.models import (
     Credit,
     Decision,
     ExtractedField,
+    FraudAlert,
     Obligation,
 )
 from app.policy.engine import evidence_tier_for_source, load_policy
@@ -92,6 +95,13 @@ def confirm(
     claim = _load(session, p, claim_id)
     if claim.state not in REVIEWABLE:
         raise ReviewError("NOT_REVIEWABLE", f"claim is {claim.state}")
+    if risk.open_high_alert(session, claim.claim_id):
+        raise ReviewError(
+            "SUSPECTED_FAKE",
+            "an admin must review the suspected-fake alert on this claim before it can be "
+            "confirmed",
+            423,
+        )
     credit = session.scalars(
         select(Credit).where(Credit.credit_id == credit_id, Credit.org_id == p.org_id)
     ).first()
@@ -218,6 +228,12 @@ def reject(session: Session, p: Principal, claim_id: uuid.UUID, reason: str, not
         snapshot={"reason_codes": claim.reason_codes},
         note=note,
     )
+    if reason in ("TAMPERED_DOCUMENT", "DUPLICATE_CONFIRMED", "PAYMENT_NOT_RECEIVED"):
+        alert = session.scalars(
+            select(FraudAlert).where(FraudAlert.claim_id == claim.claim_id)
+        ).first()
+        if alert and alert.status == "open":
+            resolve_alert(session, p, alert, "confirmed_fake", note or reason, reject=False)
     return claim
 
 
@@ -350,3 +366,78 @@ def reverse_allocation(session: Session, p: Principal, allocation_id: uuid.UUID,
 
 def _allowed(claim: Claim) -> set[ClaimState]:
     return TRANSITIONS[ClaimState(claim.state)]
+
+
+def resolve_alert(
+    session: Session,
+    p: Principal,
+    alert: FraudAlert,
+    resolution: str,
+    note: str,
+    reject: bool = True,
+) -> FraudAlert:
+    """Admin decision on a suspected fake.
+
+    confirmed_fake: the claim is rejected as TAMPERED_DOCUMENT (if it can still be rejected).
+    false_positive: the alert closes and the claim returns to normal review.
+    Either way the outcome is kept as a labelled example for a future fraud model.
+    """
+    if resolution not in ("confirmed_fake", "false_positive"):
+        raise ReviewError(
+            "BAD_RESOLUTION", "resolution must be confirmed_fake or false_positive", 422
+        )
+    if alert.status != "open":
+        raise ReviewError("ALREADY_RESOLVED", f"alert is {alert.status}")
+    claim = session.scalars(
+        select(Claim).where(Claim.claim_id == alert.claim_id).with_for_update()
+    ).one()
+    alert.status = resolution
+    alert.resolved_by = p.actor
+    alert.resolution_note = note
+    alert.resolved_at = datetime.now(UTC)
+    audit(
+        session,
+        actor=p.actor,
+        action=f"fraud.{resolution}",
+        entity_type="claim",
+        entity_id=claim.claim_id,
+        org_id=claim.org_id,
+        after={"alert_id": str(alert.alert_id), "score": alert.score, "note": note},
+        correlation_id=claim.correlation_id,
+    )
+    if resolution == "false_positive":
+        claim.reason_codes = [r for r in claim.reason_codes if r != risk.SUSPECTED_FAKE]
+        claim.approval_tier = "AMBER" if claim.approval_tier == "RED" else claim.approval_tier
+        policy = load_policy(session, claim.org_id)
+        record_decision(
+            session,
+            claim,
+            outcome="FRAUD_CLEARED",
+            reasons=[],
+            policy_version=policy.version,
+            actor_type="reviewer",
+            actor_id=p.actor,
+            snapshot={"alert_id": str(alert.alert_id), "signals": alert.signals},
+            note=note,
+        )
+    elif reject and ClaimState.REJECTED in _allowed(claim):
+        policy = load_policy(session, claim.org_id)
+        transition(
+            session,
+            claim,
+            ClaimState.REJECTED,
+            actor=p.actor,
+            reasons=[*claim.reason_codes, "TAMPERED_DOCUMENT"],
+        )
+        record_decision(
+            session,
+            claim,
+            outcome=ClaimState.REJECTED,
+            reasons=["TAMPERED_DOCUMENT"],
+            policy_version=policy.version,
+            actor_type="reviewer",
+            actor_id=p.actor,
+            snapshot={"alert_id": str(alert.alert_id), "signals": alert.signals},
+            note=note,
+        )
+    return alert

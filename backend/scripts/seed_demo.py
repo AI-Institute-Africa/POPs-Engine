@@ -77,6 +77,23 @@ claim(
     ),
 )
 claim(d, receipt(ecocash_fields("PP251021.1611.C40022", status="Pending")))
+# an edited receipt: the bank shows USD 40.00 for this reference, the screenshot says 400.00
+g = obligation("gift.k", 40000)
+claim(
+    g,
+    make_receipt(
+        ecocash_fields("PP251021.1450.E55501", amount="400.00"),
+        meta={"Software": "Adobe Photoshop 25.1"},
+        lines=[
+            "EcoCash",
+            "Payment Successful",
+            "Txn ID: PP251021.1450.E55501",
+            "Amount: USD 400.00",
+            "Paid to: COGNIFY MAIN",
+            "21/10/2026 14:50",
+        ],
+    ),
+)
 dup = receipt(ecocash_fields("PP251021.1702.D99120"))
 claim(e, dup)
 claim(e, dup)
@@ -105,6 +122,12 @@ r = c.post(
                         "date": "21/10/2026 16:00",
                         "narrative": f"school fees {d['payment_code']}",
                         "reference": "FT2629400012",
+                        "credit": "40.00",
+                    },
+                    {
+                        "date": "21/10/2026 14:51",
+                        "narrative": "EcoCash merchant credit",
+                        "reference": "PP251021.1450.E55501",
                         "credit": "40.00",
                     },
                 ]
