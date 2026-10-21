@@ -1,0 +1,51 @@
+[project]
+name = "pops-engine"
+version = "0.1.0"
+description = "Proof-of-payment verification and billing engine for Cognify"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "sqlalchemy>=2.0",
+  "psycopg[binary]>=3.2",
+  "alembic>=1.13",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "pyjwt>=2.8",
+  "python-multipart>=0.0.9",
+  "httpx>=0.27",
+  "pillow>=10.4",
+  "imagehash>=4.3",
+  "opencv-python-headless>=4.10",
+  "pymupdf>=1.24",
+  "pytesseract>=0.3.10",
+  "celery>=5.4",
+  "redis>=5.0",
+  "boto3>=1.34",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "hypothesis>=6.100", "ruff>=0.5", "mypy>=1.10"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+"migrations/*" = ["E501", "S608"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

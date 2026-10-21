@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# POPs Engine
+var/
+.env
+node_modules/
+frontend/dist/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
