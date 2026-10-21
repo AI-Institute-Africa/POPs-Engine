@@ -56,8 +56,8 @@ cp .env.example .env          # add your Ollama Cloud key, or set POPS_VLM_BACKE
 docker compose up --build     # includes ClamAV; its first start downloads signatures
 ```
 
-Console at http://localhost:5173, API docs at http://localhost:8000/docs, MinIO at
-http://localhost:9001.
+Console at http://localhost:5173, API docs at http://localhost:8000/docs. Evidence sits on a
+Docker volume in this stack; production uses S3-compatible storage (`POPS_STORAGE_BACKEND=s3`).
 
 ### Local development
 

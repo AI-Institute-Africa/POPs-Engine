@@ -108,7 +108,7 @@ jobs:
           docker compose build
       - name: Boot the stack and check health
         run: |
-          POPS_CLAMAV_HOST= docker compose up -d postgres redis minio minio-init api worker console
+          POPS_CLAMAV_HOST= docker compose up -d postgres redis api worker console
           for i in $(seq 60); do curl -sf localhost:8000/health && break; sleep 2; done
           curl -sf localhost:8000/health
           curl -sf localhost:5173/api/health

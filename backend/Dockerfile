@@ -8,7 +8,8 @@ WORKDIR /app
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir .
 COPY . .
-RUN pip install --no-cache-dir --no-deps . && useradd -r -u 1001 pops && mkdir -p var && chown pops var
+RUN pip install --no-cache-dir --no-deps . && useradd -r -u 1001 pops \
+    && mkdir -p var /data/evidence && chown pops var /data/evidence
 USER pops
 
 EXPOSE 8000
