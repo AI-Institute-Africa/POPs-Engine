@@ -110,3 +110,9 @@ def prepare(data: bytes, max_bytes: int) -> PreparedFile:
 
 def phash_distance(a: str, b: str) -> int:
     return imagehash.hex_to_hash(a) - imagehash.hex_to_hash(b)
+
+
+def phash_to_int(hex_hash: str) -> int:
+    """64-bit perceptual hash as a signed BIGINT (same bits as Postgres ('x'||hex)::bit(64))."""
+    n = int(hex_hash, 16)
+    return n - (1 << 64) if n >= 1 << 63 else n

@@ -31,6 +31,7 @@ from app.models import (
 )
 from app.policy.engine import evidence_tier_for_source, load_policy
 from app.reconcile.matching import GATE_REASON, evaluate
+from app.workers.pipeline import refresh
 
 REJECT_REASONS = {
     "DUPLICATE_CONFIRMED",
@@ -130,7 +131,7 @@ def confirm(
     }
 
     # second approver above the policy limit (blueprint 4.7, reviewer misuse)
-    if authorised > policy.config.second_approver_above_minor:
+    if policy.config.needs_second_approver(authorised, credit.currency):
         first = _first_approval(session, claim, credit_id)
         if first is None or first.actor_id == p.actor:
             if first is not None:
@@ -298,6 +299,9 @@ def correct_field(
         after={"name": name, "value": normalised, "reason": reason},
         correlation_id=claim.correlation_id,
     )
+    session.flush()
+    # the correction may resolve (or create) mismatches: recompute reasons and the credit match
+    refresh(session, claim, p.actor)
     return row
 
 

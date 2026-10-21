@@ -111,7 +111,7 @@ class ImportOut(BaseModel):
     duplicates: int
     errors: list[str]
     control_totals: dict[str, int]
-    rematched_claims: int
+    rematched_claims: int | None
 
 
 class FieldOut(Out):

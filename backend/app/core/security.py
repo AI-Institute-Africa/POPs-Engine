@@ -6,6 +6,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from enum import StrEnum
+from functools import lru_cache
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -56,21 +57,68 @@ def issue_token(user_id: uuid.UUID, org_id: uuid.UUID, role: Role, email: str) -
 _bearer = HTTPBearer(auto_error=False)
 
 
+@lru_cache
+def _jwks_client(url: str) -> jwt.PyJWKClient:
+    return jwt.PyJWKClient(url, cache_keys=True, lifespan=3600)
+
+
+def _from_internal(token: str) -> Principal:
+    data = jwt.decode(token, get_settings().jwt_secret, algorithms=["HS256"])
+    return Principal(
+        user_id=uuid.UUID(data["sub"]),
+        org_id=uuid.UUID(data["org"]),
+        role=Role(data["role"]),
+        email=data.get("email", ""),
+    )
+
+
+def _from_oidc(token: str) -> Principal:
+    """Cognify identity tokens (RS256/ES256). Role and organisation come from custom claims."""
+    s = get_settings()
+    assert s.oidc_jwks_url and s.oidc_issuer
+    key = _jwks_client(s.oidc_jwks_url).get_signing_key_from_jwt(token)
+    data = jwt.decode(
+        token,
+        key.key,
+        algorithms=["RS256", "ES256"],
+        issuer=s.oidc_issuer,
+        audience=s.oidc_audience,
+        options={"require": ["exp", "iss", "sub"]},
+    )
+    role = Role(data[s.oidc_role_claim])
+    amr = data.get("amr") or []
+    if s.oidc_require_mfa_for_finance and ROLE_RANK[role] >= ROLE_RANK[Role.REVIEWER]:
+        if "mfa" not in amr and "otp" not in amr:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "finance roles must sign in with MFA")
+    sub = data["sub"]
+    try:
+        user_id = uuid.UUID(sub)
+    except ValueError:
+        user_id = uuid.uuid5(uuid.NAMESPACE_URL, f"{s.oidc_issuer}#{sub}")
+    return Principal(
+        user_id=user_id,
+        org_id=uuid.UUID(data[s.oidc_org_claim]),
+        role=role,
+        email=data.get("email", ""),
+    )
+
+
 def current_principal(
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> Principal:
     if creds is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing bearer token")
+    token = creds.credentials
+    s = get_settings()
     try:
-        data = jwt.decode(creds.credentials, get_settings().jwt_secret, algorithms=["HS256"])
-        return Principal(
-            user_id=uuid.UUID(data["sub"]),
-            org_id=uuid.UUID(data["org"]),
-            role=Role(data["role"]),
-            email=data.get("email", ""),
-        )
+        alg = jwt.get_unverified_header(token).get("alg")
+        if alg == "HS256":
+            return _from_internal(token)
+        if s.oidc_jwks_url and s.oidc_issuer:
+            return _from_oidc(token)
     except (jwt.PyJWTError, KeyError, ValueError) as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid token") from exc
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid token")
 
 
 def require(role: Role):

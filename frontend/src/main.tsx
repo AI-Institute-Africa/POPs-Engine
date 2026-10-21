@@ -8,6 +8,9 @@ import Queue from "./pages/Queue";
 import ClaimReview from "./pages/ClaimReview";
 import Credits from "./pages/Credits";
 import Obligations from "./pages/Obligations";
+import Guardrails from "./pages/Guardrails";
+import AuthCallback from "./pages/AuthCallback";
+import { oidcEnabled, restoreOidcSession, userManager } from "./oidc";
 import "./styles.css";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } } });
@@ -22,13 +25,15 @@ function Shell({ children }: { children: React.ReactNode }) {
           <NavLink to="/queue">Queue</NavLink>
           <NavLink to="/credits">Credits</NavLink>
           <NavLink to="/obligations">Obligations</NavLink>
+          <NavLink to="/guardrails">Guardrails &amp; policies</NavLink>
         </nav>
         <span className="muted">{currentRole()}</span>
         <button
           className="ghost"
           onClick={() => {
             setSession(null);
-            nav("/login");
+            if (userManager) void userManager.signoutRedirect();
+            else nav("/login");
           }}
         >
           Sign out
@@ -43,12 +48,17 @@ function Authed({ children }: { children: React.ReactNode }) {
   return currentRole() ? <Shell>{children}</Shell> : <Navigate to="/login" replace />;
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+// with OIDC, pick up an existing identity session before rendering
+const ready = oidcEnabled ? restoreOidcSession().catch(() => false) : Promise.resolve(false);
+
+void ready.then(() => ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={qc}>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/guardrails" element={<Authed><Guardrails /></Authed>} />
           <Route path="/queue" element={<Authed><Queue /></Authed>} />
           <Route path="/claims/:id" element={<Authed><ClaimReview /></Authed>} />
           <Route path="/credits" element={<Authed><Credits /></Authed>} />
@@ -58,4 +68,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,
-);
+));

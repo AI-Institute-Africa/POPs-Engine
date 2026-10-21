@@ -7,7 +7,7 @@ The defaults below seed the platform policy row; organisations may override with
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -25,7 +25,13 @@ class PolicyConfig(BaseModel):
     phash_duplicate_distance: int = 6
     min_image_side_px: int = 300
     min_sharpness: float = 40.0  # variance of Laplacian
-    second_approver_above_minor: int = 50_000  # USD 500.00
+    # per currency, in minor units. A currency with no limit always needs a second approver
+    # (fail closed): finance must set e.g. a ZWG limit explicitly.
+    second_approver_above_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 50_000})
+    # who may record attested manual credits
+    manual_credit_min_role: str = "approver"
+    # pilot scoping: claims on other channels go to review with CHANNEL_NOT_IN_PILOT (None = all)
+    enabled_channels: list[str] | None = None
     critical_fields: list[str] = Field(
         default_factory=lambda: ["amount", "transaction_id", "date", "beneficiary"]
     )
@@ -33,6 +39,22 @@ class PolicyConfig(BaseModel):
     ranking_weights: dict[str, float] = Field(
         default_factory=lambda: {"R": 0.35, "A": 0.25, "B": 0.20, "T": 0.10, "P": 0.10}
     )
+
+    @field_validator("second_approver_above_minor", mode="before")
+    @classmethod
+    def _legacy_single_limit(cls, v: Any) -> Any:
+        return {"USD": v} if isinstance(v, int) else v
+
+    @field_validator("manual_credit_min_role")
+    @classmethod
+    def _known_role(cls, v: str) -> str:
+        if v not in ("reviewer", "approver", "admin"):
+            raise ValueError("manual_credit_min_role must be reviewer, approver or admin")
+        return v
+
+    def needs_second_approver(self, amount_minor: int, currency: str | None) -> bool:
+        limit = self.second_approver_above_minor.get(currency or "")
+        return limit is None or amount_minor > limit
 
 
 class Policy(BaseModel):

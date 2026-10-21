@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -26,7 +26,6 @@ from app.api.schemas import (
     ImportOut,
     ObligationIn,
     ObligationOut,
-    PolicyIn,
     RejectIn,
     RequestInfoIn,
     ReverseIn,
@@ -36,6 +35,8 @@ from app.api.schemas import (
 from app.claims.facts import build_facts
 from app.claims.service import explain
 from app.claims.states import OUTCOME, REVIEWABLE
+from app.core import observability as obs
+from app.core import ratelimit
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.db import get_session
@@ -49,8 +50,9 @@ from app.core.security import (
     sign_evidence,
     verify_evidence_signature,
 )
-from app.credits.statements import PROFILES, ImportError_, import_statement
+from app.credits.statements import ImportError_, import_statement, profiles
 from app.intake.files import RejectedFile
+from app.intake.scan import ScannerUnavailable
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
 from app.ledger import service as ledger
@@ -65,12 +67,11 @@ from app.models import (
     ExtractedField,
     Obligation,
     Organisation,
-    PaymentPolicy,
     User,
 )
 from app.normalise.fields import normalise_reference
 from app.payment_codes.codes import find_codes, new_code
-from app.policy.engine import PolicyConfig, load_policy, policy_snapshot
+from app.policy.engine import load_policy
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
@@ -128,13 +129,32 @@ def _review_error(exc: review.ReviewError) -> HTTPException:
     return HTTPException(exc.status, {"code": exc.code, "message": str(exc)})
 
 
+def _limit_uploads(p: Principal, claimant_ref: str) -> None:
+    s = get_settings()
+    try:
+        ratelimit.check("uploads", str(p.user_id), s.rate_limit_uploads_per_minute, 60)
+        ratelimit.check(
+            "claimant",
+            f"{p.org_id}:{claimant_ref}",
+            s.rate_limit_claims_per_claimant_per_day,
+            86400,
+        )
+    except ratelimit.RateLimited as exc:
+        obs.UPLOADS_REJECTED.labels(f"RATE_LIMIT_{exc.scope.upper()}").inc()
+        raise HTTPException(
+            429,
+            {"code": "RATE_LIMITED", "message": "too many uploads; slow down"},
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
+
+
 # --- auth -------------------------------------------------------------------------------------
 
 
 @router.post("/auth/dev-login", response_model=TokenOut, tags=["auth"])
 def dev_login(body: DevLoginIn, db: DB) -> TokenOut:
     """Development only: issue a token for a user, creating the org/user if needed."""
-    if get_settings().env == "prod":
+    if not get_settings().is_dev:
         raise HTTPException(404)
     role = Role(body.role)
     user = db.scalars(select(User).where(User.email == body.email)).first()
@@ -232,6 +252,7 @@ async def submit_claim(
     declared_reference: Annotated[str | None, Form()] = None,
 ) -> ClaimOut:
     obligation = _obligation(db, p, obligation_id)
+    _limit_uploads(p, claimant_ref)
     currency = normalise_currency(declared_currency) if declared_currency else obligation.currency
     if currency is None:
         raise HTTPException(422, "unsupported currency")
@@ -255,7 +276,18 @@ async def submit_claim(
             declared_reference=declared_reference,
         )
     except RejectedFile as exc:
+        obs.UPLOADS_REJECTED.labels(exc.code).inc()
         raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
+    except ScannerUnavailable as exc:
+        obs.UPLOADS_REJECTED.labels("SCANNER_UNAVAILABLE").inc()
+        raise HTTPException(
+            503,
+            {
+                "code": "SCANNER_UNAVAILABLE",
+                "message": "upload could not be scanned; try again shortly",
+            },
+            headers={"Retry-After": "30"},
+        ) from exc
     db.commit()
     dispatch_pipeline(claim.claim_id)
     db.expire_all()
@@ -290,11 +322,22 @@ async def add_evidence(
     claim = _claim(db, p, claim_id)
     if claim.state != ClaimState.NEEDS_INFORMATION:
         raise HTTPException(409, "evidence can only be added when information was requested")
+    _limit_uploads(p, claim.claimant_ref)
     data = await file.read(get_settings().max_upload_bytes + 1)
     try:
         resubmit(db, p, claim, data)
     except RejectedFile as exc:
+        obs.UPLOADS_REJECTED.labels(exc.code).inc()
         raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
+    except ScannerUnavailable as exc:
+        raise HTTPException(
+            503,
+            {
+                "code": "SCANNER_UNAVAILABLE",
+                "message": "upload could not be scanned; try again shortly",
+            },
+            headers={"Retry-After": "30"},
+        ) from exc
     db.commit()
     dispatch_pipeline(claim.claim_id)
     db.expire_all()
@@ -347,9 +390,9 @@ async def import_credits(
     account_alias: Annotated[str, Form()],
     profile: Annotated[str, Form()] = "generic",
 ) -> ImportOut:
-    prof = PROFILES.get(profile)
+    prof = profiles().get(profile)
     if prof is None:
-        raise HTTPException(422, f"unknown profile; use one of {sorted(PROFILES)}")
+        raise HTTPException(422, f"unknown profile; use one of {sorted(profiles())}")
     data = await file.read(20 * 1024 * 1024)
     try:
         result = import_statement(
@@ -361,7 +404,7 @@ async def import_credits(
         ) from exc
     db.commit()
     before = _confirmed_count(db, p.org_id)
-    dispatch_rematch(p.org_id)
+    ran_now = dispatch_rematch(p.org_id)
     db.expire_all()
     imp = result.statement_import
     return ImportOut(
@@ -371,7 +414,8 @@ async def import_credits(
         duplicates=result.duplicates,
         errors=result.errors,
         control_totals=imp.control_totals,
-        rematched_claims=_confirmed_count(db, p.org_id) - before,
+        # with background workers the re-match is queued, so the count is not known yet
+        rematched_claims=_confirmed_count(db, p.org_id) - before if ran_now else None,
     )
 
 
@@ -386,7 +430,10 @@ def _confirmed_count(db: Session, org_id: uuid.UUID) -> int:
 
 
 @router.post("/credits", response_model=CreditOut, status_code=201, tags=["credits"])
-def manual_credit(body: CreditIn, db: DB, p: Approver) -> CreditOut:
+def manual_credit(body: CreditIn, db: DB, p: Reviewer) -> CreditOut:
+    min_role = Role(load_policy(db, p.org_id).config.manual_credit_min_role)
+    if not p.at_least(min_role):
+        raise HTTPException(403, f"recording manual credits requires role {min_role.value}")
     currency = normalise_currency(body.currency)
     if currency is None:
         raise HTTPException(422, "unsupported currency")
@@ -658,31 +705,19 @@ def audit_trail(db: DB, p: Reviewer, entity_id: str, limit: int = Query(200, le=
     ]
 
 
-@router.get("/admin/policy", tags=["admin"])
-def current_policy(db: DB, p: Reviewer) -> dict:
-    return policy_snapshot(load_policy(db, p.org_id))
+@router.get("/ops/stuck", tags=["ops"])
+def ops_stuck(db: DB, p: Admin) -> list[dict]:
+    """Claims the pipeline has not finished; the sweeper retries them every minute."""
+    from app.workers.pipeline import stuck_claims
 
-
-@router.post("/admin/policy", status_code=status.HTTP_201_CREATED, tags=["admin"])
-def set_policy(body: PolicyIn, db: DB, p: Admin) -> dict:
-    cfg = PolicyConfig.model_validate(body.config)
-    if cfg.auto_approve_enabled:
-        raise HTTPException(422, "auto-approval is not available in this release")
-    row = PaymentPolicy(
-        org_id=p.org_id, version=body.version, config=cfg.model_dump(), created_by=p.actor
-    )
-    db.add(row)
-    audit(
-        db,
-        actor=p.actor,
-        action="policy.published",
-        entity_type="policy",
-        entity_id=body.version,
-        org_id=p.org_id,
-        after=cfg.model_dump(),
-    )
-    try:
-        db.commit()
-    except IntegrityError as exc:
-        raise HTTPException(409, "policy version already exists") from exc
-    return policy_snapshot(load_policy(db, p.org_id))
+    return [
+        {
+            "claim_id": c.claim_id,
+            "org_id": c.org_id,
+            "attempts": c.pipeline_attempts,
+            "last_error": c.last_pipeline_error,
+            "updated_at": c.updated_at,
+        }
+        for c in stuck_claims(db)
+        if c.org_id == p.org_id
+    ]

@@ -98,34 +98,49 @@ export class ApiError extends Error {
   }
 }
 
-function token(): string | null {
+// Tokens live in sessionStorage (cleared when the tab closes), never localStorage.
+// With OIDC configured, oidc-client-ts manages the session and we read its access token.
+function store(): Storage | null {
   try {
-    return localStorage.getItem("pops-token");
+    return window.sessionStorage;
   } catch {
     return null;
   }
+}
+
+let oidcToken: string | null = null;
+export function setOidcToken(t: string | null) {
+  oidcToken = t;
+}
+
+function token(): string | null {
+  return oidcToken ?? store()?.getItem("pops-token") ?? null;
 }
 
 export function setSession(tok: string | null, role?: string) {
-  try {
-    if (tok) {
-      localStorage.setItem("pops-token", tok);
-      if (role) localStorage.setItem("pops-role", role);
-    } else {
-      localStorage.removeItem("pops-token");
-      localStorage.removeItem("pops-role");
-    }
-  } catch {
-    /* storage unavailable: session lasts for this page only */
+  const s = store();
+  if (!s) return;
+  if (tok) {
+    s.setItem("pops-token", tok);
+    if (role) s.setItem("pops-role", role);
+  } else {
+    s.removeItem("pops-token");
+    s.removeItem("pops-role");
+    oidcToken = null;
   }
 }
 
+export function setRole(role: string) {
+  store()?.setItem("pops-role", role);
+}
+
 export function currentRole(): string | null {
-  try {
-    return localStorage.getItem("pops-role");
-  } catch {
-    return null;
-  }
+  return store()?.getItem("pops-role") ?? null;
+}
+
+const RANK: Record<string, number> = { submitter: 0, reviewer: 1, approver: 2, admin: 3 };
+export function hasRole(min: string): boolean {
+  return (RANK[currentRole() ?? ""] ?? -1) >= RANK[min];
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -151,6 +166,9 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 export const post = <T,>(path: string, body: unknown) =>
   api<T>(path, { method: "POST", body: body instanceof FormData ? body : JSON.stringify(body) });
+
+export const del = <T,>(path: string, body: unknown) =>
+  api<T>(path, { method: "DELETE", body: JSON.stringify(body) });
 
 export function money(minor: number | null | undefined, currency?: string | null): string {
   if (minor === null || minor === undefined) return "—";

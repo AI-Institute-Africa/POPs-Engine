@@ -27,6 +27,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      # real OCR path is tested, so the second reader must be present
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr fonts-dejavu-core
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
@@ -47,3 +49,68 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: pops
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      POPS_ENV: dev
+      POPS_DATABASE_URL: postgresql+psycopg://postgres@127.0.0.1:5432/pops
+      POPS_PIPELINE_MODE: inline
+      POPS_VLM_BACKEND: fake
+      POPS_OLLAMA_URL: http://ollama:11434
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -e "./backend[dev]" && python -m playwright install --with-deps chromium
+      - run: cd frontend && npm ci
+      - name: Start API and console
+        run: |
+          cd backend && alembic upgrade head
+          nohup uvicorn app.main:app --port 8000 > ../api.log 2>&1 &
+          cd ../frontend && nohup npx vite --port 5173 --host 127.0.0.1 > ../vite.log 2>&1 &
+          for i in $(seq 30); do curl -sf localhost:8000/health && curl -sf localhost:5173 >/dev/null && break; sleep 1; done
+      - run: cd backend && PYTHONPATH=. python scripts/seed_demo.py
+      - run: cd frontend && python e2e/smoke.py http://127.0.0.1:5173 shots
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: |
+            frontend/shots
+            api.log
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          cp .env.example .env
+          sed -i 's/^POPS_VLM_BACKEND=.*/POPS_VLM_BACKEND=fake/; s/^POPS_CLAMAV_HOST=.*/POPS_CLAMAV_HOST=/' .env
+          docker compose build
+      - name: Boot the stack and check health
+        run: |
+          POPS_CLAMAV_HOST= docker compose up -d postgres redis minio minio-init api worker console
+          for i in $(seq 60); do curl -sf localhost:8000/health && break; sleep 2; done
+          curl -sf localhost:8000/health
+          curl -sf localhost:5173/api/health
+      - if: failure()
+        run: docker compose logs --no-color

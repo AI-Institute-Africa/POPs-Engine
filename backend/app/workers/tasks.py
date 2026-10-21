@@ -4,7 +4,9 @@ import logging
 import uuid
 
 from celery import Celery
+from sqlalchemy import func, select
 
+from app.core import observability as obs
 from app.core.config import get_settings
 from app.core.db import session_scope
 
@@ -17,15 +19,32 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     beat_schedule={
         "deliver-outbox": {"task": "pops.deliver_outbox", "schedule": 30.0},
+        "sweep-stuck-claims": {"task": "pops.sweep_stuck", "schedule": 60.0},
     },
 )
 
 
-def run_pipeline(claim_id: uuid.UUID) -> None:
-    from app.workers.pipeline import process_claim
+class PipelineFailed(Exception):
+    pass
 
-    with session_scope() as session:
-        process_claim(session, claim_id)
+
+def run_pipeline(claim_id: uuid.UUID) -> bool:
+    """Process one claim. On error, record the attempt in its own transaction.
+
+    Returns True when the claim was processed; False when it failed (the sweeper or Celery
+    retries it; after the attempt limit the claim goes to a reviewer as PIPELINE_FAILED).
+    """
+    from app.workers.pipeline import process_claim, record_failure
+
+    try:
+        with session_scope() as session:
+            process_claim(session, claim_id)
+        return True
+    except Exception as exc:  # noqa: BLE001 - any failure must be recorded, never lost
+        log.exception("pipeline failed for claim %s", claim_id)
+        with session_scope() as session:
+            record_failure(session, claim_id, f"{type(exc).__name__}: {exc}")
+        return False
 
 
 def run_rematch(org_id: uuid.UUID) -> int:
@@ -35,11 +54,29 @@ def run_rematch(org_id: uuid.UUID) -> int:
         return rematch_awaiting(session, org_id)
 
 
-@celery_app.task(
-    name="pops.process_claim", autoretry_for=(Exception,), max_retries=3, retry_backoff=True
-)
-def process_claim_task(claim_id: str) -> None:
-    run_pipeline(uuid.UUID(claim_id))
+def sweep_stuck() -> int:
+    """Re-dispatch claims whose pipeline task was lost or failed; update the stuck gauge."""
+    from app.models import OutboxEvent
+    from app.workers.pipeline import stuck_claims
+
+    with session_scope() as session:
+        stuck = [c.claim_id for c in stuck_claims(session)]
+        pending = session.scalar(
+            select(func.count()).select_from(OutboxEvent).where(OutboxEvent.status == "pending")
+        )
+    obs.STUCK_CLAIMS.set(len(stuck))
+    obs.OUTBOX_PENDING.set(pending or 0)
+    if stuck:
+        log.warning("re-dispatching %d stuck claims", len(stuck))
+    for claim_id in stuck:
+        dispatch_pipeline(claim_id)
+    return len(stuck)
+
+
+@celery_app.task(name="pops.process_claim", bind=True, max_retries=3)
+def process_claim_task(self, claim_id: str) -> None:
+    if not run_pipeline(uuid.UUID(claim_id)):
+        raise self.retry(countdown=30 * (self.request.retries + 1))
 
 
 @celery_app.task(name="pops.rematch", autoretry_for=(Exception,), max_retries=3)
@@ -55,15 +92,25 @@ def deliver_outbox_task() -> int:
         return deliver_pending(session)
 
 
+@celery_app.task(name="pops.sweep_stuck")
+def sweep_stuck_task() -> int:
+    return sweep_stuck()
+
+
 def dispatch_pipeline(claim_id: uuid.UUID) -> None:
     if get_settings().pipeline_mode == "celery":
-        process_claim_task.delay(str(claim_id))
+        try:
+            process_claim_task.delay(str(claim_id))
+        except Exception:  # noqa: BLE001 - broker down: the sweeper picks the claim up later
+            log.exception("could not enqueue claim %s; sweeper will retry", claim_id)
     else:
         run_pipeline(claim_id)
 
 
-def dispatch_rematch(org_id: uuid.UUID) -> None:
+def dispatch_rematch(org_id: uuid.UUID) -> bool:
+    """Returns True when the rematch ran synchronously (its result is visible now)."""
     if get_settings().pipeline_mode == "celery":
         rematch_task.delay(str(org_id))
-    else:
-        run_rematch(org_id)
+        return False
+    run_rematch(org_id)
+    return True

@@ -14,15 +14,16 @@ from app.extraction.schema import FieldReading
 log = logging.getLogger(__name__)
 
 
-def build_readers() -> list[Reader]:
+def build_readers(vlm_allowed: bool = True, hints: list[str] | None = None) -> list[Reader]:
+    """Readers for one claim. Guardrails may switch the VLM off or add reading hints."""
     s = get_settings()
     readers: list[Reader] = []
-    if s.vlm_backend == "fake":
+    if vlm_allowed and s.vlm_backend == "fake":
         readers.append(FakeVLMReader())
-    else:
+    elif vlm_allowed:
         from app.extraction.readers.ollama_vlm import OllamaVLMReader
 
-        readers.append(OllamaVLMReader())
+        readers.append(OllamaVLMReader(hints=hints))
     if s.vlm_backend == "fake":
         readers.append(FakeOCRReader())
     elif s.ocr_backend == "tesseract":

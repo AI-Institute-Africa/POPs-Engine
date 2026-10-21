@@ -4,8 +4,13 @@ Patterns are deliberately conservative. They are an independent second reader fo
 missed field is fine (it goes to review); a wrong field is not.
 """
 
+import json
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
+from pathlib import Path
+
+from app.core.config import get_settings
 
 
 @dataclass
@@ -14,6 +19,7 @@ class ProviderTemplate:
     document_type: str
     keywords: list[str]
     txn_patterns: list[str] = field(default_factory=list)
+    date_order: str = "DMY"  # how this provider prints numeric dates: DMY or MDY
 
 
 GENERIC_TXN = [
@@ -21,7 +27,7 @@ GENERIC_TXN = [
     r"(?:ref(?:erence)?|approval\s*code)\s*(?:no\.?|number)?\s*[:#]?\s*([A-Z0-9][A-Z0-9.\-]{5,30})",
 ]
 
-TEMPLATES: list[ProviderTemplate] = [
+BUILTIN_TEMPLATES: list[ProviderTemplate] = [
     ProviderTemplate(
         "ECOCASH",
         "mobile_money_receipt",
@@ -42,9 +48,31 @@ TEMPLATES: list[ProviderTemplate] = [
     ProviderTemplate("PAYNOW", "gateway_receipt", ["paynow"]),
 ]
 
-PROVIDER_ALIASES = {t.provider.lower(): t.provider for t in TEMPLATES} | {
-    k: t.provider for t in TEMPLATES for k in t.keywords
-}
+
+@lru_cache
+def templates() -> list[ProviderTemplate]:
+    """Built-in layouts, extended or overridden by POPS_PROVIDER_TEMPLATES_FILE (JSON list)."""
+    by_provider = {t.provider: t for t in BUILTIN_TEMPLATES}
+    path = get_settings().provider_templates_file
+    if path:
+        for item in json.loads(Path(path).read_text()):
+            tpl = ProviderTemplate(**item)
+            for p in tpl.txn_patterns:
+                re.compile(p)  # fail fast on a bad pattern at startup
+            by_provider[tpl.provider] = tpl
+    return list(by_provider.values())
+
+
+def template_for(provider: str | None) -> ProviderTemplate | None:
+    return next((t for t in templates() if t.provider == provider), None)
+
+
+def _aliases() -> dict[str, str]:
+    ts = templates()
+    return {t.provider.lower(): t.provider for t in ts} | {
+        k: t.provider for t in ts for k in t.keywords
+    }
+
 
 AMOUNT_RE = re.compile(
     r"(?:amount|amt|total|paid|sent|transfer(?:red)?)\s*[:\-]?\s*"
@@ -72,7 +100,7 @@ def normalise_provider(raw: str | None) -> str | None:
     if not raw:
         return None
     low = raw.strip().lower()
-    for key, provider in PROVIDER_ALIASES.items():
+    for key, provider in _aliases().items():
         if key in low:
             return provider
     return raw.strip().upper()
@@ -80,7 +108,7 @@ def normalise_provider(raw: str | None) -> str | None:
 
 def classify(text: str) -> ProviderTemplate | None:
     low = text.lower()
-    for tpl in TEMPLATES:
+    for tpl in templates():
         if any(k in low for k in tpl.keywords):
             return tpl
     return None

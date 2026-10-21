@@ -6,13 +6,20 @@ from app.claims.service import transition
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.security import Principal
-from app.intake.files import prepare
+from app.intake.files import RejectedFile, phash_to_int, prepare
+from app.intake.scan import InfectedFile, scan
 from app.intake.storage import get_storage
 from app.models import Claim, ClaimState, Evidence
 
 
 def store_evidence(session: Session, claim: Claim, data: bytes, source_type: str) -> Evidence:
     prepared = prepare(data, get_settings().max_upload_bytes)
+    # scan before anything touches storage; ScannerUnavailable propagates (fail closed)
+    try:
+        scan_result = scan(data)
+    except InfectedFile as exc:
+        raise RejectedFile("MALWARE_DETECTED", "the file failed the malware scan") from exc
+    prepared.meta["malware_scan"] = scan_result
     ext = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf"}[
         prepared.content_type
     ]
@@ -31,6 +38,7 @@ def store_evidence(session: Session, claim: Claim, data: bytes, source_type: str
         size_bytes=len(data),
         sha256=prepared.sha256,
         phash=prepared.phash,
+        phash_int=phash_to_int(prepared.phash),
         meta=prepared.meta,
         source_type=source_type,
     )

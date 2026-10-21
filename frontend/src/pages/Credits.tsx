@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api, Credit, money, Obligation, post } from "../api";
 
-type ImportResult = { rows: number; created: number; duplicates: number; errors: string[]; control_totals: Record<string, number>; rematched_claims: number };
+type ImportResult = { rows: number; created: number; duplicates: number; errors: string[]; control_totals: Record<string, number>; rematched_claims: number | null };
 type Unclaimed = { credit: Credit; suggested_obligations: Obligation[] };
 
 export default function Credits() {
@@ -45,7 +45,7 @@ export default function Credits() {
         {imp.error && <p className="error">{(imp.error as Error).message}</p>}
         {imp.data && (
           <p className="flash">
-            {imp.data.rows} rows · {imp.data.created} new credits · {imp.data.duplicates} duplicates · {imp.data.rematched_claims} claims matched ·
+            {imp.data.rows} rows · {imp.data.created} new credits · {imp.data.duplicates} duplicates · {imp.data.rematched_claims === null ? "claim matching queued" : `${imp.data.rematched_claims} claims matched`} ·
             totals {Object.entries(imp.data.control_totals).map(([c, v]) => money(v, c)).join(", ")}
             {imp.data.errors.length > 0 && <> · {imp.data.errors.length} errors: {imp.data.errors.slice(0, 3).join("; ")}</>}
           </p>

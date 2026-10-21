@@ -35,5 +35,20 @@ with sync_playwright() as p:
     page.goto(f"{base}/credits")
     expect(page.get_by_role("heading", name="Unclaimed credits")).to_be_visible()
     page.screenshot(path=f"{out}/4-credits.png", full_page=True)
+
+    # guardrails: sign in as admin, add a recommended rule, switch AI off, then remove it
+    page.get_by_role("button", name="Sign out").click()
+    page.get_by_label("Email").fill("admin@cognify.dev")
+    page.get_by_label("Role").select_option("admin")
+    page.get_by_role("button", name="Sign in").click()
+    page.get_by_role("link", name="Guardrails & policies").click()
+    expect(page.get_by_role("heading", name="Locked guardrails")).to_be_visible()
+    kill = page.locator(".rule", has_text="AI kill switch").first
+    kill.get_by_role("button", name="Add").click()
+    expect(page.locator(".reader")).to_contain_text("AI reader: off")
+    page.screenshot(path=f"{out}/5-guardrails.png", full_page=True)
+    page.on("dialog", lambda d: d.accept("smoke test cleanup"))
+    page.locator(".rule", has_text="AI kill switch").first.get_by_role("button", name="Remove").click()
+    expect(page.locator(".reader")).to_contain_text("AI reader: on")
     browser.close()
 print("smoke ok")

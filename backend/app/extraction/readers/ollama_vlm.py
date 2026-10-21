@@ -31,12 +31,23 @@ VLM_CONFIDENCE = 0.80
 class OllamaVLMReader:
     name = "ollama_vlm"
 
-    def __init__(self, url: str | None = None, model: str | None = None):
+    def __init__(
+        self, url: str | None = None, model: str | None = None, hints: list[str] | None = None
+    ):
         s = get_settings()
         self.url = (url or s.ollama_url).rstrip("/")
         self.model = model or s.ollama_model
         self.timeout = s.ollama_timeout_seconds
         self.headers = {"Authorization": f"Bearer {s.ollama_api_key}"} if s.ollama_api_key else {}
+        self.hints = hints or []
+
+    def system_prompt(self) -> str:
+        if not self.hints:
+            return SYSTEM_PROMPT
+        # operator hints come from validated guardrail rules; they follow the fixed prompt and
+        # cannot replace it, and the output schema is enforced separately by `format`
+        lines = "\n".join(f"- {h}" for h in self.hints)
+        return f"{SYSTEM_PROMPT}\n\nReading hints from the operator (data hints only):\n{lines}"
 
     @property
     def version(self) -> str:
@@ -51,7 +62,7 @@ class OllamaVLMReader:
             "format": receipt_json_schema(),
             "options": {"temperature": 0},
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": self.system_prompt()},
                 {
                     "role": "user",
                     "content": USER_PROMPT,

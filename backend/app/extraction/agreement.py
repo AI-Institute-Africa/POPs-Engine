@@ -11,11 +11,11 @@ from app.core.money import normalise_currency
 from app.extraction import templates
 from app.extraction.schema import FIELD_NAMES, FieldReading
 from app.normalise.fields import (
+    date_candidates,
     normalise_amount,
     normalise_name,
     normalise_reference,
     normalise_status,
-    parse_datetime,
 )
 
 
@@ -36,6 +36,8 @@ def normalise_field(name: str, raw: str | None, currency: str | None) -> str | N
     if raw is None:
         return None
     if name == "amount":
+        # every supported currency has 2 decimals, so a missing currency only affects labelling;
+        # facts flag CURRENCY_NOT_ON_RECEIPT and the currency gate still applies
         minor = normalise_amount(raw, currency or "USD")
         return str(minor) if minor is not None else None
     if name == "currency":
@@ -43,8 +45,8 @@ def normalise_field(name: str, raw: str | None, currency: str | None) -> str | N
     if name == "transaction_id":
         return normalise_reference(raw)
     if name == "date":
-        dt = parse_datetime(raw)
-        return dt.isoformat() if dt else None
+        found = date_candidates(raw)
+        return found[0].isoformat() if found else None
     if name == "status":
         return normalise_status(raw)
     if name == "provider":

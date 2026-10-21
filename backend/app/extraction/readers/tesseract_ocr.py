@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from PIL import Image
 
+from app.core.config import get_settings
 from app.extraction import preprocess, templates
 from app.extraction.readers.base import ReaderUnavailable
 from app.extraction.schema import FieldReading
@@ -38,7 +39,12 @@ class TesseractReader:
         import pytesseract
 
         prepared = preprocess.for_ocr(image)
-        data = pytesseract.image_to_data(prepared, output_type=pytesseract.Output.DICT)
+        data = pytesseract.image_to_data(
+            prepared,
+            lang=get_settings().ocr_languages,
+            config="--psm 6",
+            output_type=pytesseract.Output.DICT,
+        )
         words: list[Word] = []
         lines: dict[tuple[int, int, int], list[str]] = {}
         for i, text in enumerate(data["text"]):

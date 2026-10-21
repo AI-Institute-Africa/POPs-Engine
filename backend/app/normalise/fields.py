@@ -81,6 +81,34 @@ def parse_datetime(raw: str | None, fmt: str | None = None) -> datetime | None:
     return None
 
 
+_NUMERIC_DATE = re.compile(r"^\s*(\d{1,2})([/-])(\d{1,2})\2(\d{2,4})(.*)$")
+
+
+def date_candidates(raw: str | None, order: str = "DMY") -> list[datetime]:
+    """All plausible readings of a date, preferred order first.
+
+    04/05/2026 is 4 May (DMY) or 5 April (MDY). Zimbabwean apps print day-first, but some
+    international apps do not, so the matcher may accept either reading and flags the ambiguity.
+    """
+    if not raw:
+        return []
+    first = parse_datetime(raw)
+    m = _NUMERIC_DATE.match(raw)
+    if not m:
+        return [first] if first else []
+    a, sep, b, year, rest = m.groups()
+    if first is None:
+        # e.g. 10/21/2026: only valid month-first
+        swapped = parse_datetime(f"{b}{sep}{a}{sep}{year}{rest}")
+        return [swapped] if swapped else []
+    if int(a) > 12 or int(b) > 12 or a == b:
+        return [first]
+    swapped = parse_datetime(f"{b}{sep}{a}{sep}{year}{rest}")
+    if swapped is None or swapped == first:
+        return [first]
+    return [swapped, first] if order == "MDY" else [first, swapped]
+
+
 def normalise_amount(raw: str | None, currency: str | None) -> int | None:
     if not raw or not currency:
         return None

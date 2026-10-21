@@ -34,6 +34,11 @@ def _schema() -> None:
 
 @pytest.fixture(autouse=True)
 def _clean() -> Iterator[None]:
+    from app.core import ratelimit
+
+    backend = ratelimit.backend()
+    if isinstance(backend, ratelimit._Memory):
+        backend.reset()
     yield
     with get_engine().begin() as conn:
         tables = conn.execute(

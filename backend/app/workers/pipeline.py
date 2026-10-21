@@ -1,21 +1,29 @@
 """Claim verification pipeline (blueprint 4.1). Review-only: it never allocates money.
 
-Each run is recorded with pipeline, policy and extractor versions so the outcome can be replayed.
-Steps that fail or are unsure route the claim to a human (fail closed, blueprint 11.2).
+Each run is recorded with pipeline, policy, extractor and guardrail versions so the outcome can be
+replayed. Steps that fail or are unsure route the claim to a human (fail closed, blueprint 11.2).
 """
 
+import logging
+import time
 import uuid
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import BigInteger, func, literal, or_, select, type_coerce
+from sqlalchemy.dialects.postgresql import BIT
 from sqlalchemy.orm import Session
 
-from app.claims.facts import build_facts
+from app.claims.facts import FACT_FLAGS, build_facts, guardrail_fields
 from app.claims.service import record_decision, transition
-from app.claims.states import REVIEWABLE
+from app.claims.states import REVIEWABLE, TRANSITIONS
+from app.core import observability as obs
+from app.core.audit import audit
+from app.core.config import get_settings
 from app.extraction import preprocess
 from app.extraction.readers.base import Reader
-from app.extraction.service import extract
-from app.intake.files import phash_distance, prepare
+from app.extraction.service import build_readers, extract
+from app.guardrails.rules import active_rules, evaluate_fields, plan_readers
+from app.intake.files import prepare
 from app.intake.storage import get_storage
 from app.models import (
     ApprovalTier,
@@ -30,9 +38,11 @@ from app.models import (
     VerificationRun,
 )
 from app.policy.engine import Policy, approval_tier, evidence_tier_for_source, load_policy
-from app.reconcile.matching import find_candidates
+from app.reconcile.matching import Candidate, find_candidates
 
-PIPELINE_VERSION = "pipeline-1.0"
+log = logging.getLogger(__name__)
+
+PIPELINE_VERSION = "pipeline-1.1"
 ACTOR = "rule:pipeline"
 
 NEEDS_INFO = {"CAPTURE_TOO_SMALL", "CAPTURE_BLURRY", "UNREADABLE", "MISSING_AMOUNT"}
@@ -43,6 +53,14 @@ DUPLICATE = {
     "REFERENCE_ALREADY_CONSUMED",
 }
 TERMINAL_OR_DONE = {ClaimState.REJECTED, ClaimState.REVERSED_OR_REFUNDED}
+# reasons that do not, on their own, stop a readable claim from waiting for its credit
+SOFT = {"MISSING_REFERENCE"}
+
+
+def _hamming(a: object, b: int):
+    # bit_count over the XOR of two BIGINT hashes, computed inside Postgres (PG14+)
+    xor = type_coerce(a, BigInteger).op("#")(literal(b, BigInteger))
+    return func.bit_count(func.cast(xor, BIT(64)))
 
 
 def _file_duplicates(
@@ -59,21 +77,20 @@ def _file_duplicates(
     if exact:
         reasons.append("DUPLICATE_FILE")
         others.update(exact)
-    if ev.phash:
-        # MVP scan of recent evidence; move to a BK-tree or pg extension when volume demands it
-        recent = session.execute(
-            select(Evidence.claim_id, Evidence.phash)
-            .where(Evidence.claim_id != claim.claim_id, Evidence.phash.is_not(None))
-            .order_by(Evidence.received_at.desc())
-            .limit(5000)
-        ).all()
-        near = {
-            cid
-            for cid, ph in recent
-            if cid not in others
-            and ph
-            and phash_distance(ev.phash, ph) <= policy.config.phash_duplicate_distance
-        }
+    if ev.phash_int is not None:
+        near = (
+            set(
+                session.scalars(
+                    select(Evidence.claim_id).where(
+                        Evidence.claim_id != claim.claim_id,
+                        Evidence.phash_int.is_not(None),
+                        _hamming(Evidence.phash_int, ev.phash_int)
+                        <= policy.config.phash_duplicate_distance,
+                    )
+                ).all()
+            )
+            - others
+        )
         if near:
             reasons.append("DUPLICATE_NEAR_FILE")
             others.update(near)
@@ -123,12 +140,14 @@ def process_claim(
     session: Session, claim_id: uuid.UUID, readers: list[Reader] | None = None
 ) -> Claim:
     """Run the pipeline for a RECEIVED claim. The caller commits."""
+    started = time.perf_counter()
     claim = session.scalars(select(Claim).where(Claim.claim_id == claim_id).with_for_update()).one()
     if claim.state != ClaimState.RECEIVED:
         return claim  # idempotent: a retried task does nothing
     transition(session, claim, ClaimState.PROCESSING, actor=ACTOR)
     policy = load_policy(session, claim.org_id)
     cfg = policy.config
+    settings = get_settings()
     obligation = session.get(Obligation, claim.obligation_id)
     assert obligation is not None
     ev = session.scalars(
@@ -137,9 +156,13 @@ def process_claim(
         .order_by(Evidence.received_at.desc())
     ).first()
 
-    reasons: list[str] = []
+    rules = active_rules(session, claim.org_id)
+    plan = plan_readers(rules, settings.ollama_url, settings.ollama_model)
+    reasons: list[str] = list(plan.reasons)
     checks: list[dict] = []
+    guardrail_log = list(plan.applied)
     dup_others: set[uuid.UUID] = set()
+    needs_info_codes: set[str] = set()
     run = VerificationRun(
         claim_id=claim.claim_id,
         pipeline_version=PIPELINE_VERSION,
@@ -148,6 +171,9 @@ def process_claim(
     )
     session.add(run)
     session.flush()
+
+    if cfg.enabled_channels is not None and claim.channel not in cfg.enabled_channels:
+        reasons.append("CHANNEL_NOT_IN_PILOT")
 
     if ev is None:
         reasons.append("UNREADABLE")
@@ -171,8 +197,12 @@ def process_claim(
             }
         )
 
+        if readers is None:
+            readers = build_readers(vlm_allowed=plan.vlm_allowed, hints=plan.hints)
         result = extract(image, raw, cfg.critical_fields, cfg.single_reader_min_confidence, readers)
-        run.model_versions = result.versions
+        run.model_versions = {**result.versions, "guardrails": [r.name for r in rules]}
+        for name in result.failures:
+            obs.READER_FAILURES.labels(name).inc()
         if result.failures:
             reasons.append("READER_UNAVAILABLE")
         checks.append(
@@ -181,9 +211,18 @@ def process_claim(
                 "check": "extraction",
                 "readers": list(result.versions),
                 "failures": result.failures,
+                "vlm_allowed": plan.vlm_allowed,
             }
         )
+
+        verdict = evaluate_fields(
+            rules, result.fields, claim.declared_amount_minor, claim.declared_currency
+        )
+        reasons += verdict.review + verdict.needs_info
+        guardrail_log += verdict.applied
         for f in result.fields.values():
+            if f.name in verdict.distrusted:
+                f.agreed = False  # a guardrail may distrust a reading, never trust one
             session.add(
                 ExtractedField(
                     claim_id=claim.claim_id,
@@ -202,6 +241,10 @@ def process_claim(
         session.flush()
         if not result.fields and claim.declared_amount_minor is None:
             reasons.append("UNREADABLE")
+        needs_info_codes = set(verdict.needs_info)
+    checks.append({"layer": 6, "check": "guardrails", "applied": guardrail_log})
+    for g in guardrail_log:
+        obs.GUARDRAIL_HITS.labels(g["effect"]).inc()
 
     facts, flags = build_facts(session, claim, obligation)
     reasons += flags
@@ -234,16 +277,13 @@ def process_claim(
             if "DUPLICATE_FILE" in reasons
             else next(r for r in reasons if r in DUPLICATE),
         )
-    elif NEEDS_INFO.intersection(reasons):
+    elif NEEDS_INFO.intersection(reasons) or needs_info_codes.intersection(reasons):
         target = ClaimState.NEEDS_INFORMATION
     elif best is not None:
-        credit = session.get(Credit, best.credit_id)
-        assert credit is not None
-        claim.candidate_credit_id = credit.credit_id
-        claim.evidence_tier = evidence_tier_for_source(credit.source)
+        _attach_credit(session, claim, best)
         transition(session, claim, ClaimState.DOCUMENT_VERIFIED, actor=ACTOR)
         target = ClaimState.FINANCIALLY_CONFIRMED
-    elif not reasons or reasons == ["MISSING_REFERENCE"]:
+    elif set(reasons) <= SOFT:
         claim.evidence_tier = EvidenceTier.E1
         transition(session, claim, ClaimState.DOCUMENT_VERIFIED, actor=ACTOR)
         reasons.append("AWAITING_CREDIT")
@@ -271,6 +311,7 @@ def process_claim(
         snapshot={
             "run_id": str(run.run_id),
             "evidence_sha256": ev.sha256 if ev else None,
+            "guardrails": guardrail_log,
             "facts": {
                 "amount_minor": facts.amount_minor,
                 "currency": facts.currency,
@@ -279,7 +320,16 @@ def process_claim(
             },
         },
     )
+    obs.CLAIM_OUTCOMES.labels(target).inc()
+    obs.PIPELINE_SECONDS.observe(time.perf_counter() - started)
     return claim
+
+
+def _attach_credit(session: Session, claim: Claim, best: Candidate) -> None:
+    credit = session.get(Credit, best.credit_id)
+    assert credit is not None
+    claim.candidate_credit_id = credit.credit_id
+    claim.evidence_tier = evidence_tier_for_source(credit.source)
 
 
 def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
@@ -287,15 +337,12 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
     policy = load_policy(session, claim.org_id)
     obligation = session.get(Obligation, claim.obligation_id)
     assert obligation is not None
-    facts, flags = build_facts(session, claim, obligation)
+    facts, _ = build_facts(session, claim, obligation)
     candidates = find_candidates(session, facts, obligation, policy.config)
     best = next((c for c in candidates if c.passed), None)
     if best is None:
         return claim
-    credit = session.get(Credit, best.credit_id)
-    assert credit is not None
-    claim.candidate_credit_id = credit.credit_id
-    claim.evidence_tier = evidence_tier_for_source(credit.source)
+    _attach_credit(session, claim, best)
     reasons = [r for r in claim.reason_codes if r != "AWAITING_CREDIT"]
     claim.approval_tier = approval_tier(reasons, EvidenceTier(claim.evidence_tier), True)
     transition(session, claim, ClaimState.FINANCIALLY_CONFIRMED, actor=actor, reasons=reasons)
@@ -307,9 +354,55 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
         policy_version=policy.version,
         actor_type="rule",
         actor_id=actor,
-        credit_id=credit.credit_id,
+        credit_id=best.credit_id,
         snapshot={"candidates": [c.as_dict() for c in candidates[:3]]},
     )
+    return claim
+
+
+def refresh(session: Session, claim: Claim, actor: str) -> Claim:
+    """Recompute reasons, guardrails and the matched credit after a reviewer correction.
+
+    Extraction-time facts (cross-checks, guardrail hits) are replaced; capture, duplicate and
+    channel reasons are kept. The claim only moves forward to FINANCIALLY_CONFIRMED when a credit
+    now passes every gate; otherwise it stays where it is with updated reasons.
+    """
+    policy = load_policy(session, claim.org_id)
+    obligation = session.get(Obligation, claim.obligation_id)
+    assert obligation is not None
+    facts, flags = build_facts(session, claim, obligation)
+    verdict = evaluate_fields(
+        active_rules(session, claim.org_id),
+        guardrail_fields(session, claim),
+        claim.declared_amount_minor,
+        claim.declared_currency,
+    )
+    kept = [r for r in claim.reason_codes if r not in FACT_FLAGS and not r.startswith("GUARDRAIL_")]
+    reasons = list(dict.fromkeys(kept + flags + verdict.review + verdict.needs_info))
+    candidates = find_candidates(session, facts, obligation, policy.config)
+    best = next((c for c in candidates if c.passed), None)
+    can_confirm = ClaimState.FINANCIALLY_CONFIRMED in TRANSITIONS[ClaimState(claim.state)]
+    if best is not None and can_confirm and not DUPLICATE.intersection(reasons):
+        _attach_credit(session, claim, best)
+        claim.approval_tier = approval_tier(reasons, EvidenceTier(claim.evidence_tier), True)
+        transition(session, claim, ClaimState.FINANCIALLY_CONFIRMED, actor=actor, reasons=reasons)
+    elif reasons != claim.reason_codes:
+        before = list(claim.reason_codes)
+        claim.reason_codes = reasons
+        claim.approval_tier = approval_tier(
+            reasons, EvidenceTier(claim.evidence_tier), claim.candidate_credit_id is not None
+        )
+        audit(
+            session,
+            actor=actor,
+            action="claim.reasons_refreshed",
+            entity_type="claim",
+            entity_id=claim.claim_id,
+            org_id=claim.org_id,
+            before={"reason_codes": before},
+            after={"reason_codes": reasons},
+            correlation_id=claim.correlation_id,
+        )
     return claim
 
 
@@ -327,3 +420,42 @@ def rematch_awaiting(session: Session, org_id: uuid.UUID) -> int:
     ).all()
     claims = [c for c in claims if not DUPLICATE.intersection(c.reason_codes)]
     return sum(1 for c in claims if rematch(session, c).state == ClaimState.FINANCIALLY_CONFIRMED)
+
+
+# --- resilience -------------------------------------------------------------------------------
+
+
+def record_failure(session: Session, claim_id: uuid.UUID, error: str) -> Claim | None:
+    """Count a failed pipeline attempt; after the limit, hand the claim to a human."""
+    claim = session.scalars(
+        select(Claim).where(Claim.claim_id == claim_id).with_for_update()
+    ).first()
+    if claim is None or claim.state != ClaimState.RECEIVED:
+        return claim
+    obs.PIPELINE_FAILURES.inc()
+    claim.pipeline_attempts += 1
+    claim.last_pipeline_error = error[:1000]
+    if claim.pipeline_attempts >= get_settings().pipeline_max_attempts:
+        transition(session, claim, ClaimState.PROCESSING, actor=ACTOR)
+        claim.evidence_tier = EvidenceTier.E0
+        claim.approval_tier = ApprovalTier.AMBER
+        transition(
+            session, claim, ClaimState.PENDING_REVIEW, actor=ACTOR, reasons=["PIPELINE_FAILED"]
+        )
+        log.error(
+            "claim %s handed to review after %s failed attempts", claim_id, claim.pipeline_attempts
+        )
+    return claim
+
+
+def stuck_claims(session: Session) -> list[Claim]:
+    """Claims still RECEIVED well after upload: the task was lost or keeps failing."""
+    cutoff = datetime.now(UTC) - timedelta(seconds=get_settings().stuck_after_seconds)
+    return list(
+        session.scalars(
+            select(Claim)
+            .where(Claim.state == ClaimState.RECEIVED, Claim.updated_at < cutoff)
+            .order_by(Claim.updated_at)
+            .limit(500)
+        )
+    )

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { post, setSession } from "../api";
+import { oidcEnabled, userManager } from "../oidc";
 
 // Development sign-in. Production uses Cognify identity (OIDC) with MFA for finance roles.
 export default function Login() {
@@ -18,6 +19,16 @@ export default function Login() {
     } catch (ex) {
       setErr((ex as Error).message);
     }
+  }
+
+  if (oidcEnabled) {
+    return (
+      <div className="login card">
+        <h1>POPs Review Console</h1>
+        <p className="muted">Sign in with your Cognify account. Finance roles need MFA.</p>
+        <button onClick={() => void userManager!.signinRedirect()}>Sign in</button>
+      </div>
+    );
   }
 
   return (

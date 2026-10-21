@@ -7,8 +7,11 @@ code. Only credit lines become credits; debits are counted in the control totals
 import csv
 import hashlib
 import io
+import json
 import uuid
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -16,6 +19,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.core.audit import audit
+from app.core.config import get_settings
 from app.core.money import MoneyError, normalise_currency, parse_minor
 from app.models import Credit, StatementImport
 from app.normalise.fields import normalise_reference, normalise_status, parse_datetime
@@ -38,7 +42,7 @@ class StatementProfile(BaseModel):
 
 
 # Starter profiles; add real bank layouts from Phase 0 samples as configuration.
-PROFILES: dict[str, StatementProfile] = {
+BUILTIN_PROFILES: dict[str, StatementProfile] = {
     "generic": StatementProfile(
         name="generic",
         provider="BANK",
@@ -61,6 +65,18 @@ PROFILES: dict[str, StatementProfile] = {
         status_col="Status",
     ),
 }
+
+
+@lru_cache
+def profiles() -> dict[str, StatementProfile]:
+    """Built-in layouts plus POPS_STATEMENT_PROFILES_FILE (JSON list of profiles)."""
+    out = dict(BUILTIN_PROFILES)
+    path = get_settings().statement_profiles_file
+    if path:
+        for item in json.loads(Path(path).read_text()):
+            prof = StatementProfile.model_validate(item)
+            out[prof.name] = prof
+    return out
 
 
 class ImportError_(Exception):

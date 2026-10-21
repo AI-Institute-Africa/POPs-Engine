@@ -94,3 +94,18 @@ form.inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; mar
 .history li { margin-bottom: 4px; }
 .login { max-width: 360px; margin: 12vh auto; display: flex; flex-direction: column; gap: 12px; }
 .login label { display: flex; flex-direction: column; gap: 4px; }
+
+.split.even { grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px) { .split.even { grid-template-columns: 1fr; } }
+textarea { width: 100%; font: 12px/1.5 ui-monospace, monospace; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); margin: 6px 0; }
+.rule-form > input { width: 100%; }
+.rule { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+.rule .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rule.disabled { opacity: 0.65; }
+.rule.removed { opacity: 0.5; text-decoration: line-through; }
+.rule .config { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); word-break: break-all; }
+.actions-right { margin-left: auto; display: flex; gap: 6px; }
+ul.locked { list-style: none; padding: 0; margin: 0; }
+ul.locked li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.reader { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.reader.off { border-color: var(--warn); background: var(--warn-bg); }

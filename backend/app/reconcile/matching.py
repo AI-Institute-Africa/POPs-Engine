@@ -32,6 +32,8 @@ class ClaimFacts:
     occurred_at: datetime | None
     sender: str | None
     payment_code: str  # the obligation's code
+    # other readings of an ambiguous numeric date (e.g. MDY for 04/05/2026)
+    occurred_alternatives: list[datetime] = field(default_factory=list)
 
 
 @dataclass
@@ -115,9 +117,14 @@ def evaluate(
     ]
     window = timedelta(hours=policy.date_window_hours)
     if facts.occurred_at is not None:
-        delta = abs(credit.occurred_at - facts.occurred_at)
-        gates.append(Gate("date_window", delta <= window, f"delta {delta}"))
-        t = max(0.0, 1 - delta / window)
+        readings = [facts.occurred_at, *facts.occurred_alternatives]
+        deltas = [abs(credit.occurred_at - d) for d in readings]
+        best = min(range(len(deltas)), key=deltas.__getitem__)
+        detail = f"delta {deltas[best]}"
+        if best > 0:
+            detail += " (matched the alternative reading of an ambiguous date)"
+        gates.append(Gate("date_window", deltas[best] <= window, detail))
+        t = max(0.0, 1 - deltas[best] / window)
     else:
         gates.append(Gate("date_window", False, "claim date unknown"))
         t = 0.0
@@ -161,7 +168,8 @@ def find_candidates(
     q = select(Credit).where(Credit.org_id == facts.org_id, or_(*conds))
     if facts.occurred_at is not None:
         span = timedelta(hours=policy.date_window_hours * 2)
-        q = q.where(Credit.occurred_at.between(facts.occurred_at - span, facts.occurred_at + span))
+        readings = [facts.occurred_at, *facts.occurred_alternatives]
+        q = q.where(or_(*[Credit.occurred_at.between(d - span, d + span) for d in readings]))
     credits = session.scalars(q.order_by(Credit.occurred_at.desc()).limit(200)).all()
     ranked = [evaluate(session, facts, obligation, c, policy) for c in credits]
     ranked.sort(key=lambda c: (c.passed, c.score), reverse=True)

@@ -150,6 +150,8 @@ class Claim(Base):
     approval_tier: Mapped[str | None] = mapped_column(String(5))
     reason_codes: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     candidate_credit_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("credits.credit_id"))
+    pipeline_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_pipeline_error: Mapped[str | None] = mapped_column(Text)
     correlation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=_uuid)
     created_at: Mapped[datetime] = _created()
     updated_at: Mapped[datetime] = mapped_column(
@@ -171,6 +173,8 @@ class Evidence(Base):
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     phash: Mapped[str | None] = mapped_column(String(32))
+    # same 64-bit hash as a signed integer so Hamming distance runs in SQL (bit_count)
+    phash_int: Mapped[int | None] = mapped_column(BigInteger)
     meta: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     source_type: Mapped[str] = mapped_column(String(20), nullable=False, default="upload")
     received_at: Mapped[datetime] = _created()
@@ -346,3 +350,27 @@ class OutboxEvent(Base):
     last_error: Mapped[str | None] = mapped_column(Text)
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _created()
+
+
+class GuardrailRule(Base):
+    """An admin-managed guardrail on the AI readers (see app/guardrails).
+
+    Guardrails can only make the pipeline stricter: every action escalates a claim to review or
+    asks for information; none can approve, allocate or relax a hard gate. Removal is a soft delete
+    so past verification runs stay explainable.
+    """
+
+    __tablename__ = "guardrail_rules"
+    rule_id: Mapped[uuid.UUID] = _pk()
+    org_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("organisations.org_id"))
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    kind: Mapped[str] = mapped_column(String(30), nullable=False)
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    action: Mapped[str] = mapped_column(String(20), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    enabled: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(80), nullable=False)
+    created_at: Mapped[datetime] = _created()
+    removed_by: Mapped[str | None] = mapped_column(String(80))
+    removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (Index("ix_guardrails_org_active", "org_id", "removed_at"),)
