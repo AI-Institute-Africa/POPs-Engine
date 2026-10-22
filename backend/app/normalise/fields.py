@@ -1,8 +1,12 @@
 """Normalisation of extracted and imported values (pipeline stage 4). Raw values are kept too."""
 
+import json
 import re
 from datetime import UTC, datetime, timedelta, timezone
+from functools import lru_cache
+from pathlib import Path
 
+from app.core.config import get_settings
 from app.core.money import MoneyError, normalise_currency, parse_minor
 
 # Zimbabwe uses CAT (UTC+2) year-round
@@ -31,6 +35,57 @@ STATUS_SYNONYMS = {
     "refunded": "reversed",
 }
 
+# Month names in Shona and isiNdebele, mapped to English before parsing. Receipts and SMS from
+# local banks are mostly English, but payers' own apps and typed messages are not always.
+# Have a first-language speaker review these; extend with POPS_STATUS_SYNONYMS_FILE for statuses.
+LOCAL_MONTHS = {
+    # Shona
+    "ndira": "January",
+    "kukadzi": "February",
+    "kurume": "March",
+    "kubvumbi": "April",
+    "chivabvu": "May",
+    "chikumi": "June",
+    "chikunguru": "July",
+    "nyamavhuvhu": "August",
+    "gunyana": "September",
+    "gumiguru": "October",
+    "mbudzi": "November",
+    "zvita": "December",
+    # isiNdebele
+    "uzibandlela": "January",
+    "unhlolanja": "February",
+    "umbimbitho": "March",
+    "umabasa": "April",
+    "unkwenkwezi": "May",
+    "unhlangula": "June",
+    "untulikazi": "July",
+    "uncwabakazi": "August",
+    "umpandula": "September",
+    "umfumfu": "October",
+    "ulwezi": "November",
+    "umpalakazi": "December",
+}
+_MONTH_WORD = re.compile(r"[A-Za-z]{4,}")
+
+
+def _english_months(text: str) -> str:
+    return _MONTH_WORD.sub(lambda m: LOCAL_MONTHS.get(m.group(0).lower(), m.group(0)), text)
+
+
+@lru_cache
+def status_synonyms() -> dict[str, str]:
+    """Built-in status words plus POPS_STATUS_SYNONYMS_FILE ({"word": "success", ...})."""
+    out = dict(STATUS_SYNONYMS)
+    path = get_settings().status_synonyms_file
+    if path:
+        for word, status in json.loads(Path(path).read_text(encoding="utf-8")).items():
+            if status not in ("success", "pending", "failed", "reversed"):
+                raise ValueError(f"status synonym {word!r} maps to unknown status {status!r}")
+            out[word.strip().lower()] = status
+    return out
+
+
 _DATE_FORMATS = [
     "%Y-%m-%dT%H:%M:%S%z",
     "%Y-%m-%dT%H:%M:%S",
@@ -54,7 +109,7 @@ _DATE_FORMATS = [
 def normalise_status(raw: str | None) -> str | None:
     if not raw:
         return None
-    return STATUS_SYNONYMS.get(raw.strip().lower())
+    return status_synonyms().get(raw.strip().lower())
 
 
 def normalise_reference(raw: str | None) -> str | None:
@@ -69,7 +124,7 @@ def parse_datetime(raw: str | None, fmt: str | None = None) -> datetime | None:
     """Parse a date; naive values are local Zimbabwe time. Day-first is assumed (local usage)."""
     if not raw:
         return None
-    text = raw.strip()
+    text = _english_months(raw.strip())
     for f in [fmt] if fmt else _DATE_FORMATS:
         try:
             dt = datetime.strptime(text, f)  # noqa: DTZ007

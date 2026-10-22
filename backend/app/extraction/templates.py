@@ -11,6 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from app.core.config import get_settings
+from app.normalise.fields import LOCAL_MONTHS
 
 
 @dataclass
@@ -83,7 +84,9 @@ CURRENCY_AMOUNT_RE = re.compile(r"(USD|US\$|ZWG|ZiG|ZAR|\$)\s*([0-9][0-9,]*\.[0-
 DATE_RE = re.compile(
     r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?"
     r"|\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?"
-    r"|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}"
+    r"|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|"
+    + "|".join(LOCAL_MONTHS)
+    + r")[a-z]*\s+\d{4}"
     r"(?:\s+\d{1,2}:\d{2})?)\b",
     re.IGNORECASE,
 )

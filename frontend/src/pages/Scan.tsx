@@ -185,7 +185,10 @@ function ResultCard({ claim, code }: { claim: Claim; code: string }) {
 export default function Scan() {
   const { t } = useI18n();
   const toast = useToast();
-  const [file, setFile] = useState<File | null>(null);
+  // several proofs for one payment (e.g. the bank-app screenshot and the SMS), up to 5
+  const [files, setFiles] = useState<File[]>([]);
+  const file = files[0] ?? null;
+  const [pasted, setPasted] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
   const [code, setCode] = useState("");
@@ -236,7 +239,8 @@ export default function Scan() {
       fd.set("obligation_id", obligation!.obligation_id);
       fd.set("claimant_ref", claimantRef.trim());
       fd.set("channel", "validate-web");
-      fd.set("file", file!);
+      files.forEach((f) => fd.append("file", f));
+      if (pasted.trim()) fd.set("text", pasted.trim());
       if (declaredAmount.trim()) fd.set("declared_amount", declaredAmount.trim());
       if (declaredReference.trim()) fd.set("declared_reference", declaredReference.trim());
       return post<Claim>("/claims", fd);
@@ -264,25 +268,30 @@ export default function Scan() {
     },
   });
 
-  const pick = (f: File | null | undefined) => {
+  const pick = (list: FileList | null | undefined) => {
     setFormError(null);
-    if (!f) return;
-    if (f.size > 20 * 1024 * 1024) {
+    const picked = Array.from(list ?? []);
+    if (!picked.length) return;
+    if (picked.some((f) => f.size > 20 * 1024 * 1024)) {
       setFormError("That file is over 20 MB. Please upload a smaller photo or PDF.");
       return;
     }
-    setFile(f);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(f.type.startsWith("image/") ? URL.createObjectURL(f) : null);
+    const next = [...files, ...picked].slice(0, 5);
+    if (files.length + picked.length > 5) setFormError("Up to 5 files per payment.");
+    setFiles(next);
+    if (!files.length) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(next[0].type.startsWith("image/") ? URL.createObjectURL(next[0]) : null);
+    }
   };
 
   const clearFile = () => {
-    setFile(null);
+    setFiles([]);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
   };
 
-  const canSubmit = !!file && !!obligation && claimantRef.trim().length >= 2 && !submit.isPending;
+  const canSubmit = (files.length > 0 || pasted.trim().length > 0) && !!obligation && claimantRef.trim().length >= 2 && !submit.isPending;
 
   return (
     <section className="scan">
@@ -304,7 +313,7 @@ export default function Scan() {
             onDrop={(e) => {
               e.preventDefault();
               setDrag(false);
-              pick(e.dataTransfer.files?.[0]);
+              pick(e.dataTransfer.files);
             }}
           >
             {file ? (
@@ -313,16 +322,24 @@ export default function Scan() {
                   <img src={previewUrl} alt="Selected receipt" className="thumb" />
                 ) : (
                   <span aria-hidden className="file-icon">
-                    PDF
+                    {(file.name.split(".").pop() ?? "file").slice(0, 4).toUpperCase()}
                   </span>
                 )}
                 <div className="grow">
                   <strong>{file.name}</strong>
+                  {files.length > 1 && <span className="muted small"> + {files.length - 1} more</span>}
                   <div className="muted small">
-                    {(file.size / 1024).toFixed(0)} KB · {t("drop.ready")}
+                    {(files.reduce((n, f) => n + f.size, 0) / 1024).toFixed(0)} KB · {t("drop.ready")}
                   </div>
                 </div>
-                <button type="button" className="ghost small" onClick={() => cameraRef.current?.click()}>
+                <button
+                  type="button"
+                  className="ghost small"
+                  onClick={() => {
+                    clearFile();
+                    cameraRef.current?.click();
+                  }}
+                >
                   ↻ Retake
                 </button>
                 <button type="button" className="ghost small" onClick={clearFile}>
@@ -364,9 +381,17 @@ export default function Scan() {
               accept="image/*"
               capture="environment"
               hidden
-              onChange={(e) => pick(e.target.files?.[0])}
+              onChange={(e) => pick(e.target.files)}
             />
-            <input ref={uploadRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => pick(e.target.files?.[0])} />
+            <input
+              ref={uploadRef}
+              type="file"
+              multiple
+              accept="image/*,.heic,.heif,application/pdf,.docx,.eml,message/rfc822,.txt,text/plain"
+              hidden
+              onChange={(e) => pick(e.target.files)}
+            />
+            <p className="muted small">Photos, screenshots, PDFs, Word files and forwarded emails (.eml). Add up to 5 files for one payment.</p>
           </div>
 
           <form
@@ -410,6 +435,17 @@ export default function Scan() {
                 </span>
               </div>
             )}
+
+            <label>
+              Or paste the payment SMS / message
+              <textarea
+                rows={3}
+                placeholder="e.g. the EcoCash confirmation SMS"
+                value={pasted}
+                maxLength={20000}
+                onChange={(e) => setPasted(e.target.value)}
+              />
+            </label>
 
             <label>
               {t("form.name")}

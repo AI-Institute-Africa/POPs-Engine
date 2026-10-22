@@ -197,3 +197,12 @@ def test_ollama_reader_fails_closed(monkeypatch):
     monkeypatch.setattr(ollama_vlm.httpx, "post", boom)
     with pytest.raises(ReaderUnavailable):
         ollama_vlm.OllamaVLMReader().read(Image.new("RGB", (10, 10)), b"")
+
+
+def test_shona_and_ndebele_month_names_parse():
+    from app.extraction.templates import parse_text
+    from app.normalise.fields import parse_datetime
+
+    assert parse_datetime("21 Gumiguru 2026 14:32") == parse_datetime("21 October 2026 14:32")
+    assert parse_datetime("3 uMabasa 2026") == parse_datetime("3 April 2026")
+    assert parse_text("Paid USD 40.00 on 21 Gumiguru 2026")["date"] == "21 Gumiguru 2026"

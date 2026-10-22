@@ -40,7 +40,9 @@ Both thresholds are set per organisation in the payment policy (`fraud_high_scor
 | `PROMPT_INJECTION_TEXT` | 30 | The receipt contains text aimed at the AI or the reviewer (needs the *Prompt-injection phrases* guardrail). |
 | `PDF_EDITED_AFTER_CREATION` | 30 | The PDF has incremental saves, or its modified date differs from its created date. |
 | `EDITABLE_DOCUMENT` | 30 | The proof is a Word document. Banks and mobile-money apps don't issue those, and they're easy to type up. |
+| `PROOFS_DISAGREE` | 35 | Two proofs sent for the same payment show different amounts, dates or references (each read by both readers). The field goes to a reviewer; the engine never picks one. |
 | `PAYER_HISTORY` | 30 | The same payer has earlier claims confirmed as fake, duplicate or never paid. |
+| `PASTED_TEXT` | 25 | The proof is pasted or forwarded text (an SMS copied into the form or sent on WhatsApp). Anyone can type it, so it is only as good as the bank record it matches. Dampened once the money is confirmed. |
 | `ELA_LOCAL_EDIT` | 25 | Image forensics (Error Level Analysis on JPEGs) found a region compressed differently from the rest, as happens when an amount is pasted in. The heatmap is shown to admins. |
 | `REFERENCE_FORMAT_INVALID` | 25 | The reference does not match the provider's known format. |
 | `AI_SUSPECTS_EDITING` | 15 | The vision model noticed visible signs of editing (mismatched fonts, misaligned digits). |
@@ -52,7 +54,7 @@ Both thresholds are set per organisation in the payment policy (`fraud_high_scor
 
 **Money confirmed dampens file-only doubts.** When a bank record independently confirms the
 payment, signals that are only about the file (editing software, ELA, model notes, reader
-disagreement, format) count half: someone may have cropped a genuine screenshot. Reuse and
+disagreement, format, pasted text) count half: someone may have cropped a genuine screenshot. Reuse and
 AI-generation markers are never dampened.
 
 **Every signal explains itself.** The admin sees a plain-language reason and the evidence behind

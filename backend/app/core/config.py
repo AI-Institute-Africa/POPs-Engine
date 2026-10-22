@@ -73,6 +73,8 @@ class Settings(BaseSettings):
     provider_templates_file: str | None = None
     statement_profiles_file: str | None = None
     alert_templates_file: str | None = None
+    # extra payment-status words, e.g. in Shona or isiNdebele: {"word": "success|pending|..."}
+    status_synonyms_file: str | None = None
 
     # recipient-side alerts: optional IMAP mailbox polled for bank/mobile-money credit emails
     alert_imap_host: str | None = None
@@ -82,6 +84,14 @@ class Settings(BaseSettings):
     alert_imap_source_id: str | None = None  # the registered email alert source it feeds
     alert_source_stale_minutes: int = 30  # forwarder heartbeat expected at least this often
     rate_limit_alerts_per_minute: int = 120
+
+    # WhatsApp Business (Cloud API): payers send their POP to the business number
+    whatsapp_verify_token: str | None = None  # the webhook "verify token" set in Meta's console
+    whatsapp_app_secret: str | None = None  # signs every webhook (X-Hub-Signature-256)
+    whatsapp_access_token: str | None = None  # downloads media and sends replies
+    whatsapp_phone_number_id: str | None = None
+    whatsapp_org_id: str | None = None  # optional: only accept payment codes of this org
+    whatsapp_graph_url: str = "https://graph.facebook.com/v21.0"
 
     cognify_webhook_url: str | None = None
     cognify_webhook_secret: str = DEV_WEBHOOK_SECRET
@@ -126,6 +136,12 @@ def validate_for_startup(s: Settings) -> None:
         problems.append("POPS_CLAMAV_HOST is required: uploads must be malware-scanned")
     if s.pipeline_mode == "inline":
         problems.append("POPS_PIPELINE_MODE=inline is for development only")
+    wa = [s.whatsapp_verify_token, s.whatsapp_app_secret, s.whatsapp_access_token]
+    if any(wa) and not all([*wa, s.whatsapp_phone_number_id]):
+        problems.append(
+            "WhatsApp intake needs POPS_WHATSAPP_VERIFY_TOKEN, _APP_SECRET, _ACCESS_TOKEN "
+            "and _PHONE_NUMBER_ID together"
+        )
     if problems:
         raise ConfigError("unsafe production configuration:\n- " + "\n- ".join(problems))
 

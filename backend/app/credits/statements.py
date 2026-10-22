@@ -1,7 +1,9 @@
-"""Authorised statement CSV import (pipeline stage 6) -> normalised credits.
+"""Authorised statement import (pipeline stage 6), CSV or PDF -> normalised credits.
 
 Column layouts differ per bank and export, so each layout is a configurable profile rather than
 code. Only credit lines become credits; debits are counted in the control totals and ignored.
+A PDF statement is read from its digital tables using the same profile column names; scanned
+(image-only) statements are refused rather than guessed at.
 """
 
 import csv
@@ -86,6 +88,83 @@ class ImportError_(Exception):
         self.code = code
 
 
+def _key(header: str) -> str:
+    return " ".join(header.split()).casefold()
+
+
+def _profile_columns(profile: StatementProfile) -> list[str]:
+    cols = [
+        profile.date_col,
+        profile.narrative_col,
+        profile.reference_col,
+        profile.credit_col,
+        profile.debit_col,
+        profile.amount_col,
+        profile.currency_col,
+        profile.payer_col,
+        profile.status_col,
+    ]
+    return [c for c in cols if c]
+
+
+def pdf_rows(data: bytes, profile: StatementProfile, max_pages: int = 200) -> list[dict[str, str]]:
+    """Rows of the statement tables in a digital PDF, keyed by the profile's column names.
+
+    A table is used when its header row names the profile's date and narrative columns (case
+    and spacing ignored). Tables that continue on the next page without a header reuse the last
+    one. Cell text is read from each cell's area, which keeps references and amounts exact.
+    """
+    import pymupdf
+
+    try:
+        doc = pymupdf.open(stream=data, filetype="pdf")
+    except Exception as exc:  # noqa: BLE001 - any parse failure is a bad file
+        raise ImportError_("BAD_PDF", "the PDF statement could not be opened") from exc
+    if doc.needs_pass:
+        raise ImportError_("ENCRYPTED_PDF", "remove the password from the PDF statement first")
+    wanted = {_key(c): c for c in _profile_columns(profile)}
+    required = {_key(profile.date_col), _key(profile.narrative_col)}
+    # the header's columns as x-ranges: continuation tables on later pages are often split into
+    # different cells, so each cell is placed under the header column its centre falls in
+    header: list[tuple[float, float, str]] | None = None
+    rows: list[dict[str, str]] = []
+    saw_text = False
+    for page_no in range(min(doc.page_count, max_pages)):
+        page = doc[page_no]
+        saw_text = saw_text or bool(page.get_text("text").strip())
+        for table in page.find_tables().tables:
+            for row in table.rows:
+                cells = [
+                    (c, " ".join(page.get_text("text", clip=c).split())) for c in row.cells if c
+                ]
+                keys = {_key(t) for _, t in cells}
+                if required <= keys:
+                    header = [(c[0], c[2], wanted[_key(t)]) for c, t in cells if _key(t) in wanted]
+                    continue
+                if header is None or not any(t for _, t in cells):
+                    continue
+                out: dict[str, str] = {}
+                for c, t in cells:
+                    mid = (c[0] + c[2]) / 2
+                    col = next((name for x0, x1, name in header if x0 <= mid <= x1), None)
+                    if col and t:
+                        out[col] = f"{out[col]} {t}" if col in out else t
+                rows.append(out)
+    if not rows:
+        if not saw_text:
+            raise ImportError_(
+                "SCANNED_PDF",
+                "this PDF is a scan with no digital text; download the statement as CSV "
+                "or a digital PDF from online banking",
+            )
+        raise ImportError_(
+            "NO_STATEMENT_TABLE",
+            f"no table with the columns {profile.date_col!r} and {profile.narrative_col!r} "
+            f"was found for profile {profile.name!r}",
+        )
+    return rows
+
+
 @dataclass
 class ImportResult:
     statement_import: StatementImport
@@ -112,11 +191,14 @@ def import_statement(
     ).first():
         raise ImportError_("DUPLICATE_IMPORT", "this statement file was already imported")
 
-    try:
-        text = data.decode("utf-8-sig")
-    except UnicodeDecodeError as exc:
-        raise ImportError_("BAD_ENCODING", "statement must be UTF-8 CSV") from exc
-    rows = list(csv.DictReader(io.StringIO(text)))
+    if data.startswith(b"%PDF-"):
+        rows = pdf_rows(data, profile)
+    else:
+        try:
+            text = data.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ImportError_("BAD_ENCODING", "statement must be a UTF-8 CSV or a PDF") from exc
+        rows = list(csv.DictReader(io.StringIO(text)))
     if not rows:
         raise ImportError_("EMPTY", "no rows in statement")
 

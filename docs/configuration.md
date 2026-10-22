@@ -36,7 +36,7 @@ Tokens are kept in `sessionStorage`, never `localStorage`.
 | `POPS_CLAMAV_HOST`, `POPS_CLAMAV_PORT` | –, 3310 | clamd INSTREAM scanning. If the scanner is unreachable, uploads get `503` + `Retry-After` (fail closed). |
 | `POPS_RATE_LIMIT_UPLOADS_PER_MINUTE` | 30 | Per authenticated caller. |
 | `POPS_RATE_LIMIT_CLAIMS_PER_CLAIMANT_PER_DAY` | 20 | Per learner/payer reference within an organisation. Limits are kept in Redis. |
-| `POPS_MAX_UPLOAD_BYTES` | 10 MB | |
+| `POPS_MAX_UPLOAD_BYTES` | 10 MB | Per file. A claim may carry up to 5 files (repeat the `file` form field) and/or a pasted `text` field of up to 20,000 characters. |
 
 ## Pipeline resilience
 
@@ -52,7 +52,8 @@ Tokens are kept in `sessionStorage`, never `localStorage`.
 | `POPS_VLM_BACKEND`, `POPS_OLLAMA_URL`, `POPS_OLLAMA_API_KEY`, `POPS_OLLAMA_MODEL` | Vision reader (see `docs/models.md`). |
 | `POPS_OCR_BACKEND`, `POPS_OCR_LANGUAGES` | Tesseract second reader (`eng` by default). |
 | `POPS_PROVIDER_TEMPLATES_FILE` | JSON list that adds or overrides provider layouts, without a code change. |
-| `POPS_STATEMENT_PROFILES_FILE` | JSON list that adds or overrides bank statement CSV layouts. |
+| `POPS_STATEMENT_PROFILES_FILE` | JSON list that adds or overrides bank statement layouts. The same profile reads a CSV or a digital PDF statement (column names matched case-insensitively in the PDF's table header). |
+| `POPS_STATUS_SYNONYMS_FILE` | JSON object of extra payment-status words, e.g. in Shona or isiNdebele: `{"word": "success"}` (values: `success`, `pending`, `failed`, `reversed`). |
 
 Provider template entry:
 
@@ -71,6 +72,20 @@ Statement profile entry (use `credit_col`/`debit_col` or a signed `amount_col`):
 
 Build both from the Phase 0 samples; `scripts/benchmark_reader.py` and
 `scripts/calibrate_phash.py` measure the effect.
+
+## Languages
+
+The vision reader is told that documents may be in English, Shona or isiNdebele and to copy
+values as printed. Shona and isiNdebele month names are understood in dates
+(`app/normalise/fields.py`, `LOCAL_MONTHS`; have a first-language speaker review them).
+Tesseract has no Shona or isiNdebele model; with `POPS_OCR_LANGUAGES=eng` it still reads the
+digits, amounts and references that matter, which is what the two-reader check compares.
+
+## WhatsApp
+
+See [`whatsapp.md`](whatsapp.md): `POPS_WHATSAPP_VERIFY_TOKEN`, `POPS_WHATSAPP_APP_SECRET`,
+`POPS_WHATSAPP_ACCESS_TOKEN`, `POPS_WHATSAPP_PHONE_NUMBER_ID` (all four together, or none),
+optional `POPS_WHATSAPP_ORG_ID` and `POPS_WHATSAPP_GRAPH_URL`.
 
 ## Alerts
 

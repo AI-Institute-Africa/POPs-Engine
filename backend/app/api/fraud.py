@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 from app.core.db import get_session
 from app.core.money import format_minor
 from app.core.security import Principal, Role, require, sign_evidence
-from app.models import Claim, Evidence, FraudAlert, Obligation
+from app.intake.service import submission_evidence
+from app.models import Claim, FraudAlert, Obligation
 from app.review import service as review
 
 router = APIRouter(prefix="/fraud", tags=["suspected fakes"])
@@ -50,11 +51,9 @@ def _out(db: Session, a: FraudAlert) -> AlertOut:
     claim = db.get(Claim, a.claim_id)
     assert claim is not None
     ob = db.get(Obligation, claim.obligation_id)
-    ev = db.scalars(
-        select(Evidence)
-        .where(Evidence.claim_id == claim.claim_id)
-        .order_by(Evidence.received_at.desc())
-    ).first()
+    evs = submission_evidence(db, claim.claim_id)
+    # of several proofs, show the one image forensics flagged
+    ev = next((e for e in evs if e.forensics_key), evs[0] if evs else None)
 
     def url(variant: str) -> str | None:
         if ev is None or (variant == "forensics" and not ev.forensics_key):

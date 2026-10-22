@@ -5,6 +5,7 @@ from app.api.alerts import router as alerts_router
 from app.api.fraud import router as fraud_router
 from app.api.guardrails import router as guardrails_router
 from app.api.routes import router
+from app.api.whatsapp import router as whatsapp_router
 from app.core import observability
 from app.core.config import get_settings, validate_for_startup
 
@@ -31,6 +32,7 @@ def create_app() -> FastAPI:
     app.include_router(guardrails_router)
     app.include_router(fraud_router)
     app.include_router(alerts_router)
+    app.include_router(whatsapp_router)
 
     @app.get("/health", tags=["ops"])
     def health() -> dict:

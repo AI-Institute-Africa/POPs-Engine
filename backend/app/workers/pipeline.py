@@ -20,12 +20,14 @@ from app.core import observability as obs
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.extraction import preprocess, tamper
+from app.extraction.agreement import FinalField
 from app.extraction.readers.base import Reader
-from app.extraction.service import build_readers, extract
+from app.extraction.service import ExtractionResult, build_readers, extract
 from app.fraud import risk
 from app.fraud.forensics import ela
 from app.guardrails.rules import active_rules, evaluate_fields, plan_readers
-from app.intake.files import prepare
+from app.intake.files import EML, TEXT, prepare
+from app.intake.service import submission_evidence
 from app.intake.storage import get_storage
 from app.models import (
     ApprovalTier,
@@ -157,11 +159,8 @@ def process_claim(
     settings = get_settings()
     obligation = session.get(Obligation, claim.obligation_id)
     assert obligation is not None
-    ev = session.scalars(
-        select(Evidence)
-        .where(Evidence.claim_id == claim.claim_id)
-        .order_by(Evidence.received_at.desc())
-    ).first()
+    evs = submission_evidence(session, claim.claim_id)
+    ev = evs[0] if evs else None
 
     rules = active_rules(session, claim.org_id)
     plan = plan_readers(rules, settings.ollama_url, settings.ollama_model)
@@ -186,89 +185,77 @@ def process_claim(
     if ev is None:
         reasons.append("UNREADABLE")
     else:
-        file_reasons, others = _file_duplicates(session, claim, ev, policy)
-        reasons += file_reasons
-        dup_others |= others
-        checks.append({"layer": 1, "check": "duplicate_file", "passed": not file_reasons})
-
-        raw = get_storage().get(ev.object_key)
-        prepared = prepare(raw, max_bytes=len(raw) + 1)
-        image = prepared.image
-        quality = preprocess.assess(image)
-        # digital documents (PDF text layer, Word) are read from their text, not their pixels
-        problems = (
-            []
-            if prepared.text.strip()
-            else quality.problems(cfg.min_image_side_px, cfg.min_sharpness)
-        )
-        if prepared.meta.get("pdf", {}).get("page_count", 1) > len(prepared.pages):
-            reasons.append("DOCUMENT_TRUNCATED")
-        reasons += problems
-        checks.append(
-            {
-                "layer": 1,
-                "check": "capture_quality",
-                "passed": not problems,
-                "sharpness": round(quality.sharpness, 1),
-            }
-        )
-
-        # tamper forensics (blueprint 8, layer 6): risk flag only, never a decision
-        if cfg.tamper_enabled and ev.content_type != "application/pdf":
-            forensic = tamper.analyse(image)
-            checks.append({"layer": 6, "check": "tamper", **forensic.as_dict()})
-            if forensic.score >= cfg.tamper_review_score:
-                reasons.append("TAMPER_SUSPECTED")
-                obs.TAMPER_FLAGS.inc()
-
-        if ev.content_type == "image/jpeg":
-            _forensics(session, ev, image)
-
         if readers is None:
             readers = build_readers(vlm_allowed=plan.vlm_allowed, hints=plan.hints)
-        result = extract(
-            prepared.pages,
-            raw,
-            cfg.critical_fields,
-            cfg.single_reader_min_confidence,
-            readers,
-            text=prepared.text,
-            layout=prepared.page_layout,
-        )
-        run.model_versions = {**result.versions, "guardrails": [r.name for r in rules]}
-        for name in result.failures:
+        per_file: list[tuple[Evidence, ExtractionResult]] = []
+        quality_problems: list[list[str]] = []
+        for e in evs:
+            file_reasons, others = _file_duplicates(session, claim, e, policy)
+            reasons += file_reasons
+            dup_others |= others
+            checks.append(
+                {
+                    "layer": 1,
+                    "check": "duplicate_file",
+                    "passed": not file_reasons,
+                    "evidence_id": str(e.evidence_id),
+                }
+            )
+            result, problems, file_reasons = _read_file(session, e, cfg, readers, checks)
+            reasons += file_reasons
+            quality_problems.append(problems)
+            per_file.append((e, result))
+        # one readable proof is enough: a blurry second photo does not send the claim back
+        if all(quality_problems):
+            reasons += quality_problems[0]
+
+        merged, conflicts = _merge_files(per_file)
+        if conflicts:
+            reasons.append("PROOFS_DISAGREE")
+        versions: dict[str, str] = {}
+        failures: dict[str, str] = {}
+        for _, r in per_file:
+            versions.update(r.versions)
+            failures.update(r.failures)
+        run.model_versions = {**versions, "guardrails": [r.name for r in rules]}
+        for name in failures:
             obs.READER_FAILURES.labels(name).inc()
-        if result.failures:
+        if failures:
             reasons.append("READER_UNAVAILABLE")
+        fields = {name: f for name, (_, f) in merged.items()}
         checks.append(
             {
                 "layer": 2,
                 "check": "extraction",
-                "readers": list(result.versions),
-                "failures": result.failures,
+                "readers": list(versions),
+                "failures": failures,
                 "vlm_allowed": plan.vlm_allowed,
                 # per-reader normalised readings of the fields that matter, for accuracy reports
                 "readings": {
                     name: f.readings
-                    for name, f in result.fields.items()
+                    for name, f in fields.items()
                     if name in ("amount", "transaction_id", "date", "currency")
                 },
-                "pages": len(prepared.pages),
+                "pages": sum(
+                    c.get("pages", 0) for c in checks if c.get("check") == "capture_quality"
+                ),
+                "files": len(evs),
+                "conflicts": conflicts,
             }
         )
 
         verdict = evaluate_fields(
-            rules, result.fields, claim.declared_amount_minor, claim.declared_currency
+            rules, fields, claim.declared_amount_minor, claim.declared_currency
         )
         reasons += verdict.review + verdict.needs_info
         guardrail_log += verdict.applied
-        for f in result.fields.values():
-            if f.name in verdict.distrusted:
+        for source, f in merged.values():
+            if f.name in verdict.distrusted or f.name in conflicts:
                 f.agreed = False  # a guardrail may distrust a reading, never trust one
             session.add(
                 ExtractedField(
                     claim_id=claim.claim_id,
-                    evidence_id=ev.evidence_id,
+                    evidence_id=source.evidence_id,
                     run_id=run.run_id,
                     name=f.name,
                     raw_value=f.raw,
@@ -281,10 +268,10 @@ def process_claim(
                 )
             )
         session.flush()
-        if not result.fields and claim.declared_amount_minor is None:
+        if not fields and claim.declared_amount_minor is None:
             reasons.append("UNREADABLE")
         needs_info_codes = set(verdict.needs_info)
-        final_fields = result.fields
+        final_fields = fields
     checks.append({"layer": 6, "check": "guardrails", "applied": guardrail_log})
     for g in guardrail_log:
         obs.GUARDRAIL_HITS.labels(g["effect"]).inc()
@@ -373,7 +360,7 @@ def process_claim(
         snapshot={
             "run_id": str(run.run_id),
             "risk": {"score": assessment.score, "level": assessment.level},
-            "evidence_sha256": ev.sha256 if ev else None,
+            "evidence_sha256": [e.sha256 for e in evs],
             "guardrails": guardrail_log,
             "facts": {
                 "amount_minor": facts.amount_minor,
@@ -386,6 +373,87 @@ def process_claim(
     obs.CLAIM_OUTCOMES.labels(target).inc()
     obs.PIPELINE_SECONDS.observe(time.perf_counter() - started)
     return claim
+
+
+# rendered by us from text, not captured by a camera: pixel forensics would mean nothing
+_RENDERED = {TEXT, EML}
+_CONFLICT_FIELDS = ("amount", "currency", "transaction_id", "date")
+
+
+def _read_file(
+    session: Session, ev: Evidence, cfg, readers: list[Reader], checks: list[dict]
+) -> tuple[ExtractionResult, list[str], list[str]]:
+    """Quality, forensics and extraction for one file of a submission."""
+    reasons: list[str] = []
+    raw = get_storage().get(ev.object_key)
+    prepared = prepare(raw, max_bytes=len(raw) + 1)
+    image = prepared.image
+    quality = preprocess.assess(image)
+    # digital documents (PDF text layer, Word, pasted text) are read from their text
+    problems = (
+        [] if prepared.text.strip() else quality.problems(cfg.min_image_side_px, cfg.min_sharpness)
+    )
+    if prepared.meta.get("pdf", {}).get("page_count", 1) > len(prepared.pages):
+        reasons.append("DOCUMENT_TRUNCATED")
+    checks.append(
+        {
+            "layer": 1,
+            "check": "capture_quality",
+            "passed": not problems,
+            "sharpness": round(quality.sharpness, 1),
+            "evidence_id": str(ev.evidence_id),
+            "pages": len(prepared.pages),
+        }
+    )
+    # tamper forensics (blueprint 8, layer 6): risk flag only, never a decision
+    if (
+        cfg.tamper_enabled
+        and ev.content_type != "application/pdf"
+        and ev.content_type not in _RENDERED
+    ):
+        forensic = tamper.analyse(image)
+        checks.append({"layer": 6, "check": "tamper", **forensic.as_dict()})
+        if forensic.score >= cfg.tamper_review_score:
+            reasons.append("TAMPER_SUSPECTED")
+            obs.TAMPER_FLAGS.inc()
+    if ev.content_type == "image/jpeg":
+        _forensics(session, ev, image)
+    result = extract(
+        prepared.pages,
+        raw,
+        cfg.critical_fields,
+        cfg.single_reader_min_confidence,
+        readers,
+        text=prepared.text,
+        layout=prepared.page_layout,
+    )
+    return result, problems, reasons
+
+
+def _merge_files(
+    per_file: list[tuple[Evidence, ExtractionResult]],
+) -> tuple[dict[str, tuple[Evidence, FinalField]], list[str]]:
+    """Combine the fields read from each proof of one payment.
+
+    Per field, an agreed reading beats a single-reader one, then higher confidence, then the
+    first file. Two proofs that agree-read different amounts or references are a conflict: the
+    field goes to a reviewer (and is a fraud signal), it is never silently resolved.
+    """
+    merged: dict[str, tuple[Evidence, FinalField]] = {}
+    agreed_values: dict[str, set[str]] = {}
+    for ev, result in per_file:
+        for name, f in result.fields.items():
+            if f.agreed and f.normalised:
+                agreed_values.setdefault(name, set()).add(f.normalised)
+            cur = merged.get(name)
+            better = cur is None or (
+                (f.agreed, f.normalised is not None, f.confidence)
+                > (cur[1].agreed, cur[1].normalised is not None, cur[1].confidence)
+            )
+            if better:
+                merged[name] = (ev, f)
+    conflicts = [n for n in _CONFLICT_FIELDS if len(agreed_values.get(n, ())) > 1]
+    return merged, conflicts
 
 
 def _forensics(session: Session, ev: Evidence, image) -> None:

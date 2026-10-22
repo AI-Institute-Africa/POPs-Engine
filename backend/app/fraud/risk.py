@@ -25,6 +25,7 @@ from app.core.audit import audit
 from app.extraction import templates
 from app.extraction.agreement import FinalField
 from app.guardrails.rules import active_rules, reason_code
+from app.intake.service import submission_evidence
 from app.models import (
     ApprovalTier,
     Claim,
@@ -60,6 +61,7 @@ DUPLICATE_REASONS = {
 # signals about the file itself; halved when the money is independently confirmed
 FORENSIC_ONLY = {
     "EDITING_SOFTWARE",
+    "PASTED_TEXT",
     "ELA_LOCAL_EDIT",
     "AI_SUSPECTS_EDITING",
     "READERS_DISAGREE",
@@ -106,6 +108,62 @@ def _meta_text(ev: Evidence | None) -> dict[str, str]:
     return out
 
 
+def _file_signals(ev: Evidence, add: Any) -> None:
+    """Signals read from one file's own metadata and forensics."""
+    meta = _meta_text(ev)
+    editors = {k: v for k, v in meta.items() if EDITORS.search(v)}
+    if editors:
+        add(
+            "EDITING_SOFTWARE",
+            "The file's metadata names image or PDF editing software.",
+            metadata=editors,
+        )
+    generated = {
+        k: v[:120] for k, v in meta.items() if GENERATORS.search(v) or k == "png.parameters"
+    }
+    if generated:
+        add(
+            "AI_GENERATED_MARKERS",
+            "The file carries metadata written by an AI image generator.",
+            metadata=generated,
+        )
+    pdf = (ev.meta or {}).get("pdf", {})
+    if pdf.get("eof_markers", 1) > 1 or (
+        pdf.get("creationDate")
+        and pdf.get("modDate")
+        and pdf["creationDate"][:16] != pdf["modDate"][:16]
+    ):
+        add(
+            "PDF_EDITED_AFTER_CREATION",
+            "The PDF was modified after it was first created.",
+            eof_markers=pdf.get("eof_markers"),
+            created=pdf.get("creationDate"),
+            modified=pdf.get("modDate"),
+        )
+    if ev.content_type.endswith("wordprocessingml.document"):
+        add(
+            "EDITABLE_DOCUMENT",
+            "A Word document is easy to type up or edit; banks and mobile "
+            "money apps do not issue receipts as Word files.",
+            properties=(ev.meta or {}).get("docx", {}),
+        )
+    ela = (ev.meta or {}).get("ela")
+    if ela and ela.get("suspicious"):
+        add(
+            "ELA_LOCAL_EDIT",
+            "Image forensics found a region compressed differently from the "
+            "rest of the photo, as happens when text is pasted in.",
+            score=ela.get("score"),
+        )
+    if ev.content_type == "text/plain":
+        add(
+            "PASTED_TEXT",
+            "The proof is pasted text, which anyone can type; it is only as good as "
+            "the bank record it matches.",
+            chars=(ev.meta or {}).get("pasted_text", {}).get("chars"),
+        )
+
+
 def assess(
     session: Session,
     claim: Claim,
@@ -119,11 +177,7 @@ def assess(
     w = cfg.fraud_weight
     signals: list[Signal] = []
     reasons = set(claim.reason_codes)
-    ev = session.scalars(
-        select(Evidence)
-        .where(Evidence.claim_id == claim.claim_id)
-        .order_by(Evidence.received_at.desc())
-    ).first()
+    evs = submission_evidence(session, claim.claim_id)
 
     def add(code: str, reason: str, **evidence: Any) -> None:
         if w(code) > 0 and all(s.code != code for s in signals):
@@ -170,51 +224,13 @@ def assess(
             "imported and no matching payment arrived.",
         )
 
-    # 3. traces left in the file by editors and image generators
-    meta = _meta_text(ev)
-    editors = {k: v for k, v in meta.items() if EDITORS.search(v)}
-    if editors:
+    # 3. traces left in the files by editors and image generators (every file of the submission)
+    for ev in evs:
+        _file_signals(ev, add)
+    if "PROOFS_DISAGREE" in reasons:
         add(
-            "EDITING_SOFTWARE",
-            "The file's metadata names image or PDF editing software.",
-            metadata=editors,
-        )
-    generated = {
-        k: v[:120] for k, v in meta.items() if GENERATORS.search(v) or k == "png.parameters"
-    }
-    if generated:
-        add(
-            "AI_GENERATED_MARKERS",
-            "The file carries metadata written by an AI image generator.",
-            metadata=generated,
-        )
-    pdf = (ev.meta or {}).get("pdf", {}) if ev else {}
-    if pdf.get("eof_markers", 1) > 1 or (
-        pdf.get("creationDate")
-        and pdf.get("modDate")
-        and pdf["creationDate"][:16] != pdf["modDate"][:16]
-    ):
-        add(
-            "PDF_EDITED_AFTER_CREATION",
-            "The PDF was modified after it was first created.",
-            eof_markers=pdf.get("eof_markers"),
-            created=pdf.get("creationDate"),
-            modified=pdf.get("modDate"),
-        )
-    if ev is not None and ev.content_type.endswith("wordprocessingml.document"):
-        add(
-            "EDITABLE_DOCUMENT",
-            "A Word document is easy to type up or edit; banks and mobile "
-            "money apps do not issue receipts as Word files.",
-            properties=(ev.meta or {}).get("docx", {}),
-        )
-    ela = (ev.meta or {}).get("ela") if ev else None
-    if ela and ela.get("suspicious"):
-        add(
-            "ELA_LOCAL_EDIT",
-            "Image forensics found a region compressed differently from the "
-            "rest of the photo, as happens when text is pasted in.",
-            score=ela.get("score"),
+            "PROOFS_DISAGREE",
+            "Two proofs sent for this one payment show different amounts, dates or references.",
         )
 
     # 4. content checks

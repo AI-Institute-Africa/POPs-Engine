@@ -1,7 +1,10 @@
 """File validation, hashing and image preparation (pipeline stage 1, error layer 1)."""
 
+import email
+import email.policy
 import hashlib
 import io
+import re
 import zipfile
 from dataclasses import dataclass, field
 from typing import Any
@@ -21,6 +24,14 @@ except ImportError:  # pragma: no cover
 
 MAX_PAGES = 10  # pages read per document; longer documents are flagged for review
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+TEXT = "text/plain"  # pasted SMS / WhatsApp / banking-app text
+EML = "message/rfc822"  # a forwarded email, with its attachments
+MAX_TEXT_CHARS = 20_000
+_EMAIL_HEADER = re.compile(
+    rb"^(From|To|Subject|Date|Received|Return-Path|MIME-Version|Message-ID|Delivered-To|"
+    rb"DKIM-Signature|X-[A-Za-z-]+):",
+    re.M | re.I,
+)
 _HEIF_BRANDS = {b"heic", b"heix", b"hevc", b"heim", b"heis", b"mif1", b"msf1"}
 
 # Magic numbers: we trust file signatures, never the client's content type or extension.
@@ -52,9 +63,21 @@ def sniff(data: bytes) -> str:
             raise RejectedFile("CORRUPT_FILE", "the document could not be opened") from exc
         if "word/document.xml" in names:
             return DOCX
+    if b"\x00" not in data[:4096]:
+        head = data[:4096]
+        if len(_EMAIL_HEADER.findall(head)) >= 3 and re.search(rb"^From:", head, re.M | re.I):
+            return EML
+        try:
+            text = data.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            text = ""
+        printable = sum(ch.isprintable() or ch in "\r\n\t" for ch in text)
+        if text.strip() and len(text) <= MAX_TEXT_CHARS and printable / len(text) > 0.97:
+            return TEXT
     raise RejectedFile(
         "UNSUPPORTED_TYPE",
-        "accepted evidence: PNG, JPEG, WEBP, HEIC photos, PDF and Word (.docx) documents",
+        "accepted evidence: PNG, JPEG, WEBP, HEIC photos, PDF, Word (.docx), forwarded emails "
+        "(.eml) and pasted text",
     )
 
 
@@ -158,6 +181,68 @@ def _read_docx(data: bytes) -> tuple[list[Image.Image], list[str], dict[str, Any
         if start >= 0:
             props["application"] = app_xml[start + 13 : app_xml.find("</Application>")][:100]
     meta = {"docx": {k: v for k, v in props.items() if v}, "embedded_images": len(images)}
+    return pages, texts, meta
+
+
+def _read_eml(data: bytes, max_bytes: int) -> tuple[list[Image.Image], list[str], dict[str, Any]]:
+    """A forwarded email: its body as text, plus every attachment read like an upload."""
+    msg = email.message_from_bytes(data, policy=email.policy.default)
+    body_part = msg.get_body(preferencelist=("plain", "html"))
+    body = ""
+    if body_part is not None:
+        try:
+            body = body_part.get_content()
+        except (LookupError, ValueError):
+            body = ""
+        if body_part.get_content_type() == "text/html":
+            body = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", body, flags=re.S | re.I)
+            body = re.sub(r"<br\s*/?>|</p>|</tr>|</div>", "\n", body, flags=re.I)
+            body = re.sub(r"<[^>]+>", " ", body)
+    body = "\n".join(" ".join(line.split()) for line in body.splitlines() if line.strip())
+    header_text = "\n".join(f"{h}: {msg.get(h)}" for h in ("From", "Date", "Subject") if msg.get(h))
+    pages: list[Image.Image] = []
+    texts: list[str] = []
+    if body:
+        text = f"{header_text}\n{body}"[:MAX_TEXT_CHARS]
+        pages.append(_render_text(text))
+        texts.append(text)
+    attachments = []
+    for part in msg.iter_attachments():
+        if len(pages) >= MAX_PAGES:
+            break
+        payload = part.get_payload(decode=True)
+        name = part.get_filename() or part.get_content_type()
+        try:
+            # an attached message/rfc822 decodes to a Message, not bytes
+            if not isinstance(payload, bytes) or sniff(payload) == EML:
+                raise RejectedFile("NESTED_EMAIL", "nested emails are not unpacked")
+            sub = prepare(payload, max_bytes)
+        except RejectedFile as exc:
+            attachments.append({"name": name, "read": False, "reason": exc.code})
+            continue
+        attachments.append(
+            {
+                "name": name,
+                "read": True,
+                "type": sub.content_type,
+                "pages": len(sub.pages),
+                "sha256": sub.sha256,
+            }
+        )
+        room = MAX_PAGES - len(pages)
+        pages.extend(sub.pages[:room])
+        texts.extend(sub.page_texts[:room])
+    if not pages:
+        raise RejectedFile("UNREADABLE_DOCUMENT", "the email has no text or readable attachments")
+    meta = {
+        "email": {
+            "from": str(msg.get("From", ""))[:200],
+            "date": str(msg.get("Date", ""))[:100],
+            "subject": str(msg.get("Subject", ""))[:300],
+            "dkim_signed": msg.get("DKIM-Signature") is not None,
+            "attachments": attachments,
+        }
+    }
     return pages, texts, meta
 
 
@@ -277,6 +362,11 @@ def prepare(data: bytes, max_bytes: int) -> PreparedFile:
         pages, texts, meta = _render_pdf(data)
     elif ctype == DOCX:
         pages, texts, meta = _read_docx(data)
+    elif ctype == TEXT:
+        text = data.decode("utf-8-sig").strip()
+        pages, texts, meta = [_render_text(text)], [text], {"pasted_text": {"chars": len(text)}}
+    elif ctype == EML:
+        pages, texts, meta = _read_eml(data, max_bytes)
     else:
         try:
             img = Image.open(io.BytesIO(data))

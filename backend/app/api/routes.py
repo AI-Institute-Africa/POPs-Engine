@@ -258,7 +258,10 @@ async def submit_claim(
     p: Any_,
     obligation_id: Annotated[uuid.UUID, Form()],
     claimant_ref: Annotated[str, Form()],
-    file: Annotated[UploadFile, File()],
+    # one or more proofs for the same payment; repeat the "file" field for several
+    file: Annotated[list[UploadFile] | None, File()] = None,
+    # or the payment SMS / WhatsApp / banking-app message pasted as text
+    text: Annotated[str | None, Form(max_length=20_000)] = None,
     channel: Annotated[str, Form()] = "unknown",
     declared_amount: Annotated[str | None, Form()] = None,
     declared_currency: Annotated[str | None, Form()] = None,
@@ -275,7 +278,12 @@ async def submit_claim(
             amount = parse_minor(declared_amount, currency)
         except MoneyError as exc:
             raise HTTPException(422, str(exc)) from exc
-    data = await file.read(get_settings().max_upload_bytes + 1)
+    limit = get_settings().max_upload_bytes + 1
+    data = [await f.read(limit) for f in file or []]
+    if text and text.strip():
+        data.append(text.strip().encode("utf-8"))
+    if not data:
+        raise HTTPException(422, "attach a proof of payment file or paste the payment message")
     try:
         claim = create_claim(
             db,
@@ -333,13 +341,22 @@ def get_claim(claim_id: uuid.UUID, db: DB, p: Any_) -> ClaimOut:
 
 @router.post("/claims/{claim_id}/evidence", response_model=ClaimOut, tags=["claims"])
 async def add_evidence(
-    claim_id: uuid.UUID, db: DB, p: Any_, file: Annotated[UploadFile, File()]
+    claim_id: uuid.UUID,
+    db: DB,
+    p: Any_,
+    file: Annotated[list[UploadFile] | None, File()] = None,
+    text: Annotated[str | None, Form(max_length=20_000)] = None,
 ) -> ClaimOut:
     claim = _claim(db, p, claim_id)
     if claim.state != ClaimState.NEEDS_INFORMATION:
         raise HTTPException(409, "evidence can only be added when information was requested")
     _limit_uploads(p, claim.claimant_ref)
-    data = await file.read(get_settings().max_upload_bytes + 1)
+    limit = get_settings().max_upload_bytes + 1
+    data = [await f.read(limit) for f in file or []]
+    if text and text.strip():
+        data.append(text.strip().encode("utf-8"))
+    if not data:
+        raise HTTPException(422, "attach a proof of payment file or paste the payment message")
     try:
         resubmit(db, p, claim, data)
     except RejectedFile as exc:

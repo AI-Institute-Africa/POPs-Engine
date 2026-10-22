@@ -39,6 +39,16 @@ Every proof-of-payment format people actually send:
 - Screenshots and photos: PNG, JPEG, WEBP and iPhone HEIC.
 - PDFs: **every page**. A PDF's own text layer is read as an exact, independent third reader.
 - Word documents (.docx): text, tables and embedded screenshots. Macro documents are refused.
+- Pasted text: the payment SMS or banking-app message pasted into the form (`text` field).
+- Forwarded emails (.eml): the body and every attachment (images, PDFs, Word).
+- **Several proofs for one payment**: up to 5 files per claim (e.g. the bank-app screenshot
+  and the SMS). They are read together; if two proofs disagree on the amount, date or
+  reference, the claim goes to a reviewer with `PROOFS_DISAGREE`.
+- **WhatsApp**: payers send the photo to the business number with their payment code; see
+  [`docs/whatsapp.md`](docs/whatsapp.md).
+- English, Shona and isiNdebele documents (month names, configurable status words).
+
+Bank statements import as CSV or as a **digital PDF** (the same column profile reads both).
 
 Readers run on each page, and the first page that yields a field wins. Recipient-side
 **SMS and email alerts** (the merchant phone's EcoCash SMS, bank credit emails) become credits
@@ -54,6 +64,11 @@ read-only views:
 - **Reader accuracy:** per reader, channel and provider, measured against confirmed payments.
 - **Fraud-signal precision:** measured against admins' fake / not-fake decisions, including the
   fakes the score missed.
+
+To benchmark candidate vision models on your own real receipts, export confirmed payments as a
+labelled set (`scripts/export_labelled_set.py <dir>`, ground truth taken from the bank record)
+and run `scripts/benchmark_reader.py <dir> <models...>`. The folder holds personal data: keep
+it on approved infrastructure and delete it afterwards.
 
 Two Phase-4 capabilities are already in the slice, both advisory by design:
 
@@ -145,7 +160,8 @@ python e2e/smoke.py http://127.0.0.1:5173       # Playwright smoke test against 
 
 1. `POST /obligations` for each invoice or instalment. The response carries a **payment code**
    (e.g. `CG-H4CC093`). Show it at checkout and ask payers to put it in the payment reference.
-2. `POST /claims` (multipart) when a learner uploads a POP. `GET /claims/{id}` returns the state,
+2. `POST /claims` (multipart) when a learner uploads a POP: one or more `file` fields and/or a
+   pasted `text` field. `GET /claims/{id}` returns the state,
    the outcome and plain-language `messages` you can show the learner.
 3. Receive `entitlement.updated` webhooks, signed with `X-POPs-Signature: t=<ts>,v1=<hmac-sha256>`
    over `"<ts>." + body`. Deduplicate on `X-POPs-Event-Id`. The payload gives paid and outstanding
@@ -179,6 +195,6 @@ Calibrate them from real samples without code changes: `POPS_PROVIDER_TEMPLATES_
 
 ## Not in this slice
 
-Auto-approval and provisional access (Phase 5), SMS/email alert ingestion and WhatsApp
-(Phase 2), gateway webhooks and the EcoCash API (Phase 3), a trained fraud model on top of the
+Auto-approval and provisional access (Phase 5), outcome replies to WhatsApp payers, gateway
+webhooks and the EcoCash API (Phase 3), a trained fraud model on top of the
 tamper risk flags (Phase 4), reader fine-tuning (§12).
