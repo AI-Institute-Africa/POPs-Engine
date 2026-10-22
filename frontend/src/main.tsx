@@ -1,13 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
-import { currentRole, ensureSession } from "./api";
+import { api, currentRole, ensureSession } from "./api";
 import { I18nProvider, LANG_LABELS, useI18n, type Lang } from "./i18n";
 import { ToastProvider } from "./toast";
 import { useTheme } from "./theme";
 import Scan from "./pages/Scan";
 import Guardrails from "./pages/Guardrails";
+import Fraud from "./pages/Fraud";
 import "./styles.css";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
@@ -39,6 +40,20 @@ function ThemeButton() {
   );
 }
 
+function FraudLink() {
+  const q = useQuery({
+    queryKey: ["fraud-summary"],
+    queryFn: () => api<{ open_high: number; open_medium: number }>("/fraud/alerts/summary"),
+    refetchInterval: 30000,
+  });
+  const n = q.data?.open_high ?? 0;
+  return (
+    <NavLink to="/fraud">
+      Suspected fakes{n > 0 && <span className="count">{n}</span>}
+    </NavLink>
+  );
+}
+
 function Shell({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   return (
@@ -55,6 +70,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <NavLink to="/" end>
             {t("nav.scan")}
           </NavLink>
+          <FraudLink />
           <NavLink to="/guardrails">{t("nav.guardrails")}</NavLink>
         </nav>
         <LangSwitch />
@@ -80,6 +96,7 @@ void ensureSession().finally(() =>
               <Shell>
                 <Routes>
                   <Route path="/" element={<Scan />} />
+                  <Route path="/fraud" element={<Fraud />} />
                   <Route path="/guardrails" element={<Guardrails />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

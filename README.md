@@ -44,6 +44,25 @@ Two Phase-4 capabilities are already in the slice, both advisory by design:
   false-hold rates — so the automation go-live decision is a measurement, not a debate
   (blueprint innovation 8). Off by default; enable with `POPS_SHADOW_MODE_ENABLED=true`.
 
+## Validation and fake detection
+
+Every proof of payment is **validated** against our own records: it is confirmed only when it
+matches a credit on our side that passes every hard gate. Every claim also gets a **fake-POP risk
+score** from explainable signals:
+
+- a reused receipt
+- a bank record that contradicts the amount or date
+- money that never arrived once statements cover the date
+- editing-software or AI-generator metadata, and PDF edit history
+- ELA image forensics
+- the vision model's own observations
+- payer history and velocity
+
+Suspected fakes (score 60+) go to admins under **Suspected fakes**, through the console badge
+plus a webhook and/or email. They cannot be confirmed until an admin marks them *confirmed fake*
+(rejected) or *not fake*. Payers never see an accusation. Details:
+[`docs/fraud-detection.md`](docs/fraud-detection.md).
+
 ## Guardrails and policies for the AI
 
 The AI only reads. Seven **locked guardrails** are always on: AI never approves, schema-only
@@ -89,10 +108,11 @@ cd frontend && npm install && npm run dev       # proxies /api to :8000
 ### Tests
 
 ```bash
-cd backend && createdb pops_test && pytest      # 106 tests: ledger invariants (Hypothesis),
+cd backend && createdb pops_test && pytest      # 120 tests: ledger invariants (Hypothesis),
                                                 # concurrency race, review flows, isolation,
-                                                # guardrails, OIDC, malware scan, real Tesseract OCR,
-                                                # tamper forensics, shadow-mode scorecard
+                                                # guardrails, fake detection, tamper forensics,
+                                                # shadow-mode scorecard, OIDC, malware scan,
+                                                # real Tesseract OCR
 cd frontend && npm run build
 python e2e/smoke.py http://127.0.0.1:5173       # Playwright smoke test against a seeded stack
 ```

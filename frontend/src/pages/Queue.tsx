@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ago, api, Claim, money } from "../api";
+import { RiskBadge } from "./Fraud";
 
 const STATES = [
   "",
@@ -53,6 +54,7 @@ export default function Queue() {
             <th>Age</th>
             <th>State</th>
             <th>Tier</th>
+            <th>Risk</th>
             <th>Evidence</th>
             <th>Claimant</th>
             <th>Channel</th>
@@ -68,6 +70,7 @@ export default function Queue() {
               </td>
               <td><StateBadge state={c.state} /></td>
               <td><TierBadge tier={c.approval_tier} /></td>
+              <td><RiskBadge level={c.risk_level} score={c.risk_score} /></td>
               <td>{c.evidence_tier}</td>
               <td>{c.claimant_ref}</td>
               <td>{c.channel}</td>

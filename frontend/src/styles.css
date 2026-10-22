@@ -466,3 +466,21 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 .diff-row.added .badge { color: var(--ok); background: var(--ok-bg); }
 .diff-row.removed .badge { color: var(--bad); background: var(--bad-bg); }
 .diff-row.changed .badge { color: var(--warn); background: var(--warn-bg); }
+
+.risk-high { color: var(--bad); background: var(--bad-bg); border-color: transparent; }
+.risk-medium { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+.card.risk-card.risk-high { border-color: var(--bad); background: var(--panel); color: inherit; }
+.card.risk-card.risk-medium { border-color: var(--warn); background: var(--panel); color: inherit; }
+.card.risk-card.risk-low { background: var(--panel); color: inherit; }
+header nav a .count { margin-left: 6px; background: var(--bad); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 11px; font-weight: 700; }
+ul.signals { margin: 6px 0; padding-left: 0; list-style: none; }
+ul.signals li { padding: 4px 0; border-bottom: 1px solid var(--line); }
+ul.signals .weight { display: inline-block; min-width: 34px; font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+.card.alert.alert-high { border-left: 4px solid var(--bad); }
+.card.alert.alert-medium { border-left: 4px solid var(--warn); }
+.alert-body { display: flex; gap: 14px; }
+.alert-main { flex: 1; min-width: 0; }
+.alert-main .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.thumbs { display: flex; flex-direction: column; gap: 6px; width: 140px; flex-shrink: 0; }
+.thumbs img { width: 140px; border: 1px solid var(--line); border-radius: 6px; display: block; }
+@media (max-width: 700px) { .alert-body { flex-direction: column; } .thumbs { flex-direction: row; width: auto; } .thumbs img { width: 120px; } }

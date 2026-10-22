@@ -76,6 +76,15 @@ class Settings(BaseSettings):
     cognify_webhook_url: str | None = None
     cognify_webhook_secret: str = DEV_WEBHOOK_SECRET
 
+    # where suspected-fake alerts go (any or both): a Slack/Teams-style webhook, and email
+    admin_alert_webhook_url: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str = "pops-engine@localhost"
+    admin_alert_emails: list[str] = []
+
     cors_origins: list[str] = ["http://localhost:5173"]
 
     # observability

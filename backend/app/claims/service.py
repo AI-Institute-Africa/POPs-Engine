@@ -85,6 +85,9 @@ REASON_TEXT = {
     "AMOUNT_MISMATCH": "The amount received differs from the amount claimed.",
     "PARTIAL_PAYMENT": "Your payment was recorded, but the invoice is not yet fully paid.",
     "OVERPAYMENT": "Your payment exceeds the amount due; the remainder is held for you.",
+    # neutral wording on purpose: payers are never told a claim is suspected (blueprint 4.5)
+    "SUSPECTED_FAKE": "Your payment needs a manual check by our finance team.",
+    "NO_CREDIT_FOUND": "We have not yet seen this payment in our bank records.",
 }
 
 

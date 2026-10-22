@@ -22,6 +22,8 @@ from app.core.config import get_settings
 from app.extraction import preprocess, tamper
 from app.extraction.readers.base import Reader
 from app.extraction.service import build_readers, extract
+from app.fraud import risk
+from app.fraud.forensics import ela
 from app.guardrails.rules import active_rules, evaluate_fields, plan_readers
 from app.intake.files import prepare
 from app.intake.storage import get_storage
@@ -165,6 +167,7 @@ def process_claim(
     guardrail_log = list(plan.applied)
     dup_others: set[uuid.UUID] = set()
     needs_info_codes: set[str] = set()
+    final_fields = None
     run = VerificationRun(
         claim_id=claim.claim_id,
         pipeline_version=PIPELINE_VERSION,
@@ -206,6 +209,9 @@ def process_claim(
             if forensic.score >= cfg.tamper_review_score:
                 reasons.append("TAMPER_SUSPECTED")
                 obs.TAMPER_FLAGS.inc()
+
+        if ev.content_type == "image/jpeg":
+            _forensics(session, ev, image)
 
         if readers is None:
             readers = build_readers(vlm_allowed=plan.vlm_allowed, hints=plan.hints)
@@ -252,6 +258,7 @@ def process_claim(
         if not result.fields and claim.declared_amount_minor is None:
             reasons.append("UNREADABLE")
         needs_info_codes = set(verdict.needs_info)
+        final_fields = result.fields
     checks.append({"layer": 6, "check": "guardrails", "applied": guardrail_log})
     for g in guardrail_log:
         obs.GUARDRAIL_HITS.labels(g["effect"]).inc()
@@ -314,20 +321,32 @@ def process_claim(
         reasons, EvidenceTier(claim.evidence_tier), best is not None
     )
     transition(session, claim, target, actor=ACTOR, reasons=reasons)
+    assessment = risk.assess(session, claim, obligation, policy, facts, candidates, final_fields)
+    risk.apply(session, claim, assessment, ACTOR)
+    checks.append(
+        {
+            "layer": 6,
+            "check": "fraud_risk",
+            "score": assessment.score,
+            "level": assessment.level,
+            "signals": [s.code for s in assessment.signals],
+        }
+    )
     run.checks = checks
-    run.flags = reasons
+    run.flags = claim.reason_codes
     run.outcome = target
     record_decision(
         session,
         claim,
         outcome=target,
-        reasons=reasons,
+        reasons=claim.reason_codes,
         policy_version=policy.version,
         actor_type="rule",
         actor_id=ACTOR,
         credit_id=claim.candidate_credit_id,
         snapshot={
             "run_id": str(run.run_id),
+            "risk": {"score": assessment.score, "level": assessment.level},
             "evidence_sha256": ev.sha256 if ev else None,
             "guardrails": guardrail_log,
             "facts": {
@@ -341,6 +360,86 @@ def process_claim(
     obs.CLAIM_OUTCOMES.labels(target).inc()
     obs.PIPELINE_SECONDS.observe(time.perf_counter() - started)
     return claim
+
+
+def _forensics(session: Session, ev: Evidence, image) -> None:
+    """ELA on JPEG uploads; the heatmap is stored for admins next to the evidence."""
+    try:
+        result = ela(image)
+    except Exception:  # noqa: BLE001 - forensics must never break intake
+        log.exception("ELA failed for evidence %s", ev.evidence_id)
+        return
+    key = ev.object_key.rsplit("/", 1)[0] + "/ela.png"
+    get_storage().put(key, result.heatmap_png, "image/png")
+    ev.forensics_key = key
+    ev.meta = {
+        **(ev.meta or {}),
+        "ela": {
+            "score": result.score,
+            "share": result.outlier_share,
+            "suspicious": result.suspicious,
+        },
+    }
+
+
+def reassess(session: Session, claim: Claim, actor: str = ACTOR) -> None:
+    """Re-score fraud risk with the claim's current facts (after corrections or new credits)."""
+    policy = load_policy(session, claim.org_id)
+    obligation = session.get(Obligation, claim.obligation_id)
+    assert obligation is not None
+    facts, _ = build_facts(session, claim, obligation)
+    candidates = find_candidates(session, facts, obligation, policy.config)
+    a = risk.assess(
+        session, claim, obligation, policy, facts, candidates, guardrail_fields(session, claim)
+    )
+    risk.apply(session, claim, a, actor)
+
+
+def scan_missing_credits(session: Session, org_id: uuid.UUID) -> int:
+    """After a statement import: claims whose date is now covered but no money arrived."""
+    policy = load_policy(session, org_id)
+    end = risk.coverage_end(session, org_id, policy.config.beneficiary_aliases)
+    if end is None:
+        return 0
+    window = timedelta(hours=policy.config.date_window_hours)
+    flagged = 0
+    claims = session.scalars(
+        select(Claim)
+        .where(
+            Claim.org_id == org_id,
+            Claim.candidate_credit_id.is_(None),
+            Claim.state.in_(
+                [ClaimState.AWAITING_FINANCIAL_CONFIRMATION, ClaimState.PENDING_REVIEW]
+            ),
+        )
+        .with_for_update(skip_locked=True)
+    ).all()
+    for claim in claims:
+        if "NO_CREDIT_FOUND" in claim.reason_codes:
+            continue
+        obligation = session.get(Obligation, claim.obligation_id)
+        assert obligation is not None
+        facts, _ = build_facts(session, claim, obligation)
+        if facts.occurred_at is None:
+            continue
+        latest = max([facts.occurred_at, *facts.occurred_alternatives])
+        if latest + window < end:
+            before = list(claim.reason_codes)
+            claim.reason_codes = [*before, "NO_CREDIT_FOUND"]
+            audit(
+                session,
+                actor=ACTOR,
+                action="claim.no_credit_found",
+                entity_type="claim",
+                entity_id=claim.claim_id,
+                org_id=org_id,
+                before={"reason_codes": before},
+                after={"statement_coverage_end": end.isoformat()},
+                correlation_id=claim.correlation_id,
+            )
+            reassess(session, claim)
+            flagged += 1
+    return flagged
 
 
 def _attach_credit(session: Session, claim: Claim, best: Candidate) -> None:
@@ -359,9 +458,12 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
     candidates = find_candidates(session, facts, obligation, policy.config)
     best = next((c for c in candidates if c.passed), None)
     if best is None:
+        if candidates:
+            # a new bank record may contradict the receipt (edited amount or date): re-score
+            reassess(session, claim, actor)
         return claim
     _attach_credit(session, claim, best)
-    reasons = [r for r in claim.reason_codes if r != "AWAITING_CREDIT"]
+    reasons = [r for r in claim.reason_codes if r not in ("AWAITING_CREDIT", "NO_CREDIT_FOUND")]
     claim.approval_tier = approval_tier(reasons, EvidenceTier(claim.evidence_tier), True)
     if TAMPER.intersection(reasons) and claim.state != ClaimState.FINANCIALLY_CONFIRMED:
         # the money matched, but the document flag stays a reviewer's call (blueprint 8)
@@ -391,6 +493,7 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
         credit_id=best.credit_id,
         snapshot={"candidates": [c.as_dict() for c in candidates[:3]]},
     )
+    reassess(session, claim, actor)
     return claim
 
 
@@ -411,7 +514,11 @@ def refresh(session: Session, claim: Claim, actor: str) -> Claim:
         claim.declared_amount_minor,
         claim.declared_currency,
     )
-    kept = [r for r in claim.reason_codes if r not in FACT_FLAGS and not r.startswith("GUARDRAIL_")]
+    kept = [
+        r
+        for r in claim.reason_codes
+        if r not in FACT_FLAGS and not r.startswith("GUARDRAIL_") and r != risk.SUSPECTED_FAKE
+    ]
     reasons = list(dict.fromkeys(kept + flags + verdict.review + verdict.needs_info))
     candidates = find_candidates(session, facts, obligation, policy.config)
     best = next((c for c in candidates if c.passed), None)
@@ -437,6 +544,7 @@ def refresh(session: Session, claim: Claim, actor: str) -> Claim:
             after={"reason_codes": reasons},
             correlation_id=claim.correlation_id,
         )
+    reassess(session, claim, actor)
     return claim
 
 

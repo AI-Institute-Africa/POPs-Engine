@@ -30,6 +30,7 @@ SHADOW_PROPOSALS = Counter(
     "pops_shadow_proposals_total", "Shadow-mode advisory proposals", ["proposer", "outcome"]
 )
 SHADOW_ERRORS = Counter("pops_shadow_errors_total", "Shadow proposer failures (fail-soft)")
+FRAUD_ALERTS = Counter("pops_fraud_alerts_total", "Suspected-fake alerts raised", ["level"])
 UPLOADS_REJECTED = Counter("pops_uploads_rejected_total", "Rejected uploads", ["reason"])
 STUCK_CLAIMS = Gauge("pops_stuck_claims", "Claims stuck in RECEIVED/PROCESSING")
 OUTBOX_PENDING = Gauge("pops_outbox_pending", "Undelivered Cognify events")

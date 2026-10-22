@@ -19,6 +19,9 @@ export type Claim = {
   reason_codes: string[];
   messages: string[];
   candidate_credit_id: string | null;
+  risk_score: number | null;
+  risk_level: string | null;
+  risk_signals: { code: string; weight: number; reason: string; evidence: Record<string, unknown> }[];
   created_at: string;
   updated_at: string;
 };
@@ -125,7 +128,7 @@ export type ReviewDetail = {
     currency: string;
     payment_status: string;
   };
-  evidence: { evidence_id: string; preview_url: string; original_url: string; sha256: string; content_type: string; meta: Record<string, unknown> }[];
+  evidence: { evidence_id: string; preview_url: string; original_url: string; forensics_url: string | null; sha256: string; content_type: string; meta: Record<string, unknown> }[];
   fields: Field[];
   candidates: Candidate[];
   decisions: { decision_id: string; outcome: string; reason_codes: string[]; actor_type: string; actor_id: string; policy_version: string; note: string | null; created_at: string }[];

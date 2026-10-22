@@ -236,6 +236,21 @@ def test_scorecard_counts_false_hold(client, monkeypatch):
 
     # the reviewer investigates and confirms the duplicate claim against the real credit
     _import(client, rev, [_stmt_row()])
+    # the reused receipt also opened a suspected-fake alert, which locks confirmation
+    # until an admin clears it (merged fraud feature): clear it, then confirm
+    adm = login(client, "admin")
+    alert = next(
+        a
+        for a in client.get("/fraud/alerts?status=open", headers=adm).json()
+        if a["claim_id"] == c2["claim_id"]
+    )
+    cleared = client.post(
+        f"/fraud/alerts/{alert['alert_id']}/resolve",
+        headers=adm,
+        json={"resolution": "false_positive", "note": "reuse explained by first claim"},
+    )
+    assert cleared.status_code == 200, cleared.text
+
     detail = client.get(f"/review/claims/{c2['claim_id']}", headers=rev).json()
     credit = detail["candidates"][0]["credit"]
     ok = client.post(

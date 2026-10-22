@@ -14,6 +14,7 @@ FIELD_NAMES = (
     "beneficiary",
     "status",
     "narrative",
+    "tampering_notes",
 )
 
 
@@ -36,6 +37,12 @@ class ReceiptFields(BaseModel):
     beneficiary: str | None = Field(None, description="Recipient name, merchant code or account")
     status: str | None = Field(None, description="Status as printed, e.g. Successful, Pending")
     narrative: str | None = Field(None, description="Reference/narrative text the payer entered")
+    tampering_notes: str | None = Field(
+        None,
+        description="Visible signs this image was edited or fabricated (mismatched fonts or "
+        "spacing in amounts, misaligned digits, smudged or pasted patches, inconsistent "
+        "layout for this provider). null if none are visible.",
+    )
 
 
 def receipt_json_schema() -> dict[str, Any]:

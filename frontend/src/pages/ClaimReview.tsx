@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { API, api, Candidate, Claim, Field, money, post, ReviewDetail } from "../api";
 import { StateBadge, TierBadge } from "./Queue";
+import { RiskBadge, SignalList } from "./Fraud";
 
 const REJECT_REASONS = [
   "PAYMENT_NOT_RECEIVED",
@@ -223,6 +224,7 @@ export default function ClaimReview() {
         <StateBadge state={c.state} />
         <TierBadge tier={c.approval_tier} />
         <span className="badge">{c.evidence_tier}</span>
+        <RiskBadge level={c.risk_level} score={c.risk_score} />
         <span className="muted small">keys: 1-9 pick credit · c confirm · n next</span>
       </div>
       {flash && <p className="flash">{flash}</p>}
@@ -249,6 +251,20 @@ export default function ClaimReview() {
               )}
             </dl>
           </div>
+          {c.risk_signals.length > 0 && (
+            <div className={`card risk-card risk-${c.risk_level}`}>
+              <h3>Fake-POP risk: {c.risk_score}/100</h3>
+              {c.reason_codes.includes("SUSPECTED_FAKE") && (
+                <p className="error small">
+                  Suspected fake: an admin must decide under <Link to="/fraud">Suspected fakes</Link> before this claim can be confirmed.
+                </p>
+              )}
+              <SignalList signals={c.risk_signals} />
+              {d.evidence[0]?.forensics_url && (
+                <a href={`${API}${d.evidence[0].forensics_url}`} target="_blank" rel="noreferrer">Open forensic heatmap (ELA)</a>
+              )}
+            </div>
+          )}
           <Fields detail={d} onHover={setHover} claimId={id} />
           <div className="card">
             <h3>Candidate credits</h3>
