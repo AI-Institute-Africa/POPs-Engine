@@ -30,6 +30,7 @@ from app.api.schemas import (
     RequestInfoIn,
     ReverseIn,
     ReviewDetailOut,
+    ShadowProposalOut,
     TokenOut,
 )
 from app.claims.facts import build_facts
@@ -67,7 +68,9 @@ from app.models import (
     ExtractedField,
     Obligation,
     Organisation,
+    ShadowProposal,
     User,
+    VerificationRun,
 )
 from app.normalise.fields import normalise_reference
 from app.payment_codes.codes import find_codes, new_code
@@ -597,6 +600,18 @@ def review_detail(claim_id: uuid.UUID, db: DB, p: Reviewer) -> ReviewDetailOut:
             )
         ).all()
     )
+    run = db.scalars(
+        select(VerificationRun)
+        .where(VerificationRun.claim_id == claim_id)
+        .order_by(VerificationRun.created_at.desc())
+        .limit(1)
+    ).first()
+    tamper_checks = [c for c in (run.checks if run else []) if c.get("check") == "tamper"]
+    proposals = db.scalars(
+        select(ShadowProposal)
+        .where(ShadowProposal.claim_id == claim_id)
+        .order_by(ShadowProposal.created_at)
+    ).all()
     return ReviewDetailOut(
         claim=claim_out(claim, True),
         obligation=ObligationOut.model_validate(obligation),
@@ -634,6 +649,8 @@ def review_detail(claim_id: uuid.UUID, db: DB, p: Reviewer) -> ReviewDetailOut:
         decisions=[DecisionOut.model_validate(d) for d in decisions],
         allocations=[AllocationOut.model_validate(a) for a in allocations],
         related_claims=sorted(related),
+        tamper=tamper_checks[0] if tamper_checks else None,
+        shadow_proposals=[ShadowProposalOut.model_validate(s) for s in proposals],
     )
 
 
@@ -742,3 +759,36 @@ def ops_stuck(db: DB, p: Admin) -> list[dict]:
         for c in stuck_claims(db)
         if c.org_id == p.org_id
     ]
+
+
+# --- shadow mode ------------------------------------------------------------------------------
+
+
+@router.get("/shadow/scorecard", tags=["shadow"])
+def shadow_scorecard(db: DB, p: Reviewer, days: int = Query(30, ge=1, le=365)) -> dict:
+    """Agreement, false-approval and false-hold rates of the advisory AI vs human decisions.
+
+    This is the blueprint phase-4 measurement: automation only becomes a live decision when
+    these numbers stay inside agreed limits for four straight weeks.
+    """
+    from app.shadow.scorecard import scorecard
+
+    card = scorecard(db, p.org_id, days)
+    out = card.as_dict()
+    out["enabled"] = get_settings().shadow_mode_enabled
+    return out
+
+
+@router.get("/shadow/proposals", tags=["shadow"])
+def shadow_proposals(
+    db: DB,
+    p: Reviewer,
+    claim_id: uuid.UUID | None = None,
+    limit: int = Query(100, le=500),
+) -> list[ShadowProposalOut]:
+    """Recent advisory proposals (newest first); optionally scoped to one claim."""
+    q = select(ShadowProposal).where(ShadowProposal.org_id == p.org_id)
+    if claim_id:
+        q = q.where(ShadowProposal.claim_id == claim_id)
+    rows = db.scalars(q.order_by(ShadowProposal.created_at.desc()).limit(limit)).all()
+    return [ShadowProposalOut.model_validate(r) for r in rows]

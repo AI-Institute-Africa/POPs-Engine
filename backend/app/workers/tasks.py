@@ -40,12 +40,26 @@ def run_pipeline(claim_id: uuid.UUID) -> bool:
     try:
         with session_scope() as session:
             process_claim(session, claim_id)
-        return True
     except Exception as exc:  # noqa: BLE001 - any failure must be recorded, never lost
         log.exception("pipeline failed for claim %s", claim_id)
         with session_scope() as session:
             record_failure(session, claim_id, f"{type(exc).__name__}: {exc}")
         return False
+    dispatch_shadow(claim_id)  # advisory only, never affects the claim
+    return True
+
+
+def run_shadow(claim_id: uuid.UUID) -> int:
+    """Record shadow-mode proposals for a claim. Fail-soft: errors are logged, never raised."""
+    from app.shadow.proposer import propose_for_claim
+
+    try:
+        with session_scope() as session:
+            return len(propose_for_claim(session, claim_id))
+    except Exception:  # noqa: BLE001 - shadow mode must never break or retry the pipeline
+        log.exception("shadow proposal failed for claim %s", claim_id)
+        obs.SHADOW_ERRORS.inc()
+        return 0
 
 
 def run_rematch(org_id: uuid.UUID) -> int:
@@ -92,6 +106,11 @@ def rematch_task(org_id: str) -> int:
     return run_rematch(uuid.UUID(org_id))
 
 
+@celery_app.task(name="pops.shadow_propose", autoretry_for=(Exception,), max_retries=2)
+def shadow_propose_task(claim_id: str) -> int:
+    return run_shadow(uuid.UUID(claim_id))
+
+
 @celery_app.task(name="pops.deliver_outbox")
 def deliver_outbox_task() -> int:
     from app.entitlements.outbox import deliver_pending
@@ -129,6 +148,19 @@ def dispatch_pipeline(claim_id: uuid.UUID) -> None:
             log.exception("could not enqueue claim %s; sweeper will retry", claim_id)
     else:
         run_pipeline(claim_id)
+
+
+def dispatch_shadow(claim_id: uuid.UUID) -> None:
+    """Advisory proposals run after the pipeline, in their own transaction; never retried."""
+    if not get_settings().shadow_mode_enabled:
+        return
+    if get_settings().pipeline_mode == "celery":
+        try:
+            shadow_propose_task.delay(str(claim_id))
+        except Exception:  # noqa: BLE001 - a missing proposal is acceptable; a lost claim is not
+            log.exception("could not enqueue shadow proposal for claim %s", claim_id)
+    else:
+        run_shadow(claim_id)
 
 
 def dispatch_rematch(org_id: uuid.UUID) -> bool:

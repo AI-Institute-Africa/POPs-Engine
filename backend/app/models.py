@@ -326,6 +326,37 @@ class Decision(Base):
     created_at: Mapped[datetime] = _created()
 
 
+class ShadowProposal(Base):
+    """Advisory AI proposal recorded beside a claim, never read by the decision path.
+
+    Shadow mode (blueprint phase 4, innovation 8): the model proposes an outcome and a
+    suggested credit; a named reviewer still decides. The scorecard compares proposals with
+    what humans later decided, so the go-live decision is a measurement, not a debate.
+    Append-only like decisions: proposals are measurement data, not actions.
+    """
+
+    __tablename__ = "shadow_proposals"
+    proposal_id: Mapped[uuid.UUID] = _pk()
+    claim_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("claims.claim_id"), nullable=False)
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("verification_runs.run_id"))
+    # which proposer produced it: "rules" (deterministic baseline) or a model id
+    proposer: Mapped[str] = mapped_column(String(120), nullable=False)
+    # approve | reject | needs_info | review - advisory only, no state change ever derives from it
+    proposed_outcome: Mapped[str] = mapped_column(String(20), nullable=False)
+    proposed_credit_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("credits.credit_id"))
+    risk_flags: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    context: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = _created()
+    __table_args__ = (
+        # one proposal per claim per proposer: a retried task stays idempotent
+        Index("uq_shadow_claim_proposer", "claim_id", "proposer", unique=True),
+        Index("ix_shadow_org_created", "org_id", "created_at"),
+    )
+
+
 class AuditEvent(Base):
     __tablename__ = "audit_events"
     event_id: Mapped[uuid.UUID] = _pk()

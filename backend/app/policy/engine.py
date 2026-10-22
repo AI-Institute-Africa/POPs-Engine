@@ -68,6 +68,10 @@ class PolicyConfig(BaseModel):
     ranking_weights: dict[str, float] = Field(
         default_factory=lambda: {"R": 0.35, "A": 0.25, "B": 0.20, "T": 0.10, "P": 0.10}
     )
+    # tamper forensics (blueprint 8, layer 6): a risk flag only. A hit routes the claim to a
+    # reviewer; it can never approve, reject or allocate on its own.
+    tamper_enabled: bool = True
+    tamper_review_score: float = Field(default=0.6, ge=0.0, le=1.0)
 
     @field_validator("second_approver_above_minor", mode="before")
     @classmethod

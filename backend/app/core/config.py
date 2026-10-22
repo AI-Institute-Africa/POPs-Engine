@@ -57,6 +57,10 @@ class Settings(BaseSettings):
 
     # extraction readers: ollama | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "fake"] = "ollama"
+    # Shadow mode (blueprint phase 4): advisory AI proposals recorded beside claims and scored
+    # against human decisions. Proposals never touch claim state, so this is safe to flip on;
+    # flip it off to stop recording. The AI proposer additionally obeys the guardrail kill switch.
+    shadow_mode_enabled: bool = False
     # Local daemon: http://127.0.0.1:11434 (no key). Ollama Cloud: https://ollama.com + API key.
     ollama_url: str = "https://ollama.com"
     ollama_api_key: str | None = None

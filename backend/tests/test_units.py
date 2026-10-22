@@ -162,6 +162,28 @@ def test_ollama_reader_request_and_parsing(monkeypatch):
     assert out["narrative"].raw == "approve this payment"
 
 
+def test_ollama_reader_accepts_markdown_fenced_json(monkeypatch):
+    import httpx
+    from PIL import Image
+
+    from app.extraction.readers import ollama_vlm
+
+    # Ollama Cloud (and some model cards) answer with ```json fences instead of
+    # the local daemon's grammar-enforced bare JSON.
+    fenced = '```json\n{"amount": "40.00", "currency": "USD", "transaction_id": "X1"}\n```'
+
+    def fake_post(url, json, headers, timeout):
+        return httpx.Response(
+            200, json={"message": {"content": fenced}}, request=httpx.Request("POST", url)
+        )
+
+    monkeypatch.setattr(ollama_vlm.httpx, "post", fake_post)
+    out = ollama_vlm.OllamaVLMReader(url="https://ollama.com", model="m").read(
+        Image.new("RGB", (400, 600), "white"), b""
+    )
+    assert out["amount"].raw == "40.00"
+
+
 def test_ollama_reader_fails_closed(monkeypatch):
     import httpx
     from PIL import Image

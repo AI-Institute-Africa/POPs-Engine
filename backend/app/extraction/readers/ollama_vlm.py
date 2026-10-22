@@ -28,6 +28,20 @@ USER_PROMPT = "Extract the payment fields from this document. Return only JSON m
 VLM_CONFIDENCE = 0.80
 
 
+def _bare_json(text: str) -> str:
+    """Drop a markdown fence around the payload, if present.
+
+    The local daemon grammar-enforces bare JSON; Ollama Cloud (and some model cards) answer
+    with ```json fences. Only the wrapper is removed — the payload must still be strict JSON,
+    and ReceiptFields validates it immediately after.
+    """
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.split("\n", 1)[-1] if "\n" in t else t
+        t = t.rsplit("```", 1)[0]
+    return t.strip()
+
+
 class OllamaVLMReader:
     name = "ollama_vlm"
     per_page = True
@@ -77,7 +91,7 @@ class OllamaVLMReader:
             )
             resp.raise_for_status()
             content = resp.json()["message"]["content"]
-            fields = ReceiptFields.model_validate(json.loads(content))
+            fields = ReceiptFields.model_validate(json.loads(_bare_json(content)))
         except (httpx.HTTPError, KeyError, json.JSONDecodeError, ValidationError) as exc:
             raise ReaderUnavailable(f"ollama read failed: {exc}") from exc
         data = fields.model_dump()

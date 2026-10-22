@@ -46,7 +46,28 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
               title={`${f.name}: ${displayValue(f)}`}
             />
           ))}
+        {detail.tamper?.regions.map((r, i) => (
+          <div
+            key={`tamper-${i}`}
+            className="box tamper"
+            style={{
+              left: `${r.x * 100}%`,
+              top: `${r.y * 100}%`,
+              width: `${r.w * 100}%`,
+              height: `${r.h * 100}%`,
+            }}
+            title={`Possible manipulation (score ${r.score.toFixed(2)}) — a risk flag, not a verdict`}
+          />
+        ))}
       </div>
+      {detail.tamper && (
+        <p className="muted small">
+          Manipulation risk score <strong>{detail.tamper.score.toFixed(2)}</strong>
+          {detail.tamper.skipped ? ` (check skipped: ${detail.tamper.skipped})` : ""}
+          {detail.tamper.regions.length > 0 && ` · ${detail.tamper.regions.length} region(s) highlighted in red`}
+          . A flag only routes the claim to review; it can never approve or reject it.
+        </p>
+      )}
       <div className="muted small">
         <a href={`${API}${ev.original_url}`} target="_blank" rel="noreferrer">Open original</a> · sha256{" "}
         {ev.sha256.slice(0, 12)}… · {ev.content_type}

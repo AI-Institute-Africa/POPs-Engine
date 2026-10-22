@@ -250,7 +250,10 @@ def test_model_observation_and_prompt_injection_add_signals(client):
 
 def _forged_jpeg() -> bytes:
     rng = np.random.default_rng(3)
-    font = ImageFont.truetype("DejaVuSans.ttf", 36)
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 36)
+    except OSError:  # DejaVu is not installed everywhere (e.g. stock Windows); Pillow's
+        font = ImageFont.load_default(36)  # embedded default scales and renders the same text
 
     def noise(w, h):
         arr = rng.normal(150, 25, (h, w, 3)).clip(0, 255).astype(np.uint8)

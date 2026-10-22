@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { api, post } from "../api";
 
 type ReplayResult = {
@@ -159,7 +158,7 @@ export default function Replay() {
               <tbody>
                 {r.changed_claims.map((c) => (
                   <tr key={c.claim_id}>
-                    <td><Link to={`/claims/${c.claim_id}`}>{c.claim_id.slice(0, 8)}</Link></td>
+                    <td><code title={c.claim_id}>{c.claim_id.slice(0, 8)}</code></td>
                     <td className="small">{c.state.replace(/_/g, " ").toLowerCase()}</td>
                     <td>{c.changes.map((k) => CHANGE_LABEL[k] ?? k).join("; ")}</td>
                     <td>{c.risk_now ?? "low"} {c.score_now ?? 0} → {c.risk_replay} {c.score_replay}</td>

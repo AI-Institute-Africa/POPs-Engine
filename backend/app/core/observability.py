@@ -25,6 +25,11 @@ PIPELINE_SECONDS = Histogram("pops_pipeline_seconds", "Pipeline duration per cla
 PIPELINE_FAILURES = Counter("pops_pipeline_failures_total", "Pipeline exceptions")
 READER_FAILURES = Counter("pops_reader_failures_total", "Reader errors", ["reader"])
 GUARDRAIL_HITS = Counter("pops_guardrail_hits_total", "Guardrail rule hits", ["effect"])
+TAMPER_FLAGS = Counter("pops_tamper_flags_total", "Claims flagged by tamper forensics")
+SHADOW_PROPOSALS = Counter(
+    "pops_shadow_proposals_total", "Shadow-mode advisory proposals", ["proposer", "outcome"]
+)
+SHADOW_ERRORS = Counter("pops_shadow_errors_total", "Shadow proposer failures (fail-soft)")
 FRAUD_ALERTS = Counter("pops_fraud_alerts_total", "Suspected-fake alerts raised", ["level"])
 ALERTS_RECEIVED = Counter("pops_alerts_received_total", "SMS/email alerts", ["kind", "status"])
 STALE_ALERT_SOURCES = Gauge("pops_stale_alert_sources", "Alert forwarders not checking in")
