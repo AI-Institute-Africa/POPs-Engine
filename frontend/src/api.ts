@@ -74,6 +74,47 @@ export type Candidate = {
   reference_kind: string;
 };
 
+// Tamper forensics (risk flag only — it can send a claim to review, never approve one)
+export type TamperRegion = { x: number; y: number; w: number; h: number; score: number };
+export type TamperReport = {
+  check: "tamper";
+  score: number;
+  regions: TamperRegion[];
+  signals: string[];
+  skipped: string | null;
+};
+
+// Shadow-mode advisory proposal (blueprint phase 4): shown for transparency, never acted on
+export type ShadowProposal = {
+  proposal_id: string;
+  proposer: string;
+  proposed_outcome: "approve" | "reject" | "needs_info" | "review";
+  proposed_credit_id: string | null;
+  risk_flags: string[];
+  confidence: number;
+  rationale: string;
+  created_at: string;
+};
+
+export type ShadowScorecard = {
+  enabled: boolean;
+  window_days: number;
+  proposals: number;
+  scored: number;
+  proposers: {
+    proposer: string;
+    proposals: number;
+    scored: number;
+    agreements: number;
+    false_approvals: number;
+    false_holds: number;
+    agreement_rate: number;
+    false_approval_rate: number;
+    false_hold_rate: number;
+    by_outcome: Record<string, number>;
+  }[];
+};
+
 export type ReviewDetail = {
   claim: Claim;
   obligation: Obligation;
@@ -90,6 +131,8 @@ export type ReviewDetail = {
   decisions: { decision_id: string; outcome: string; reason_codes: string[]; actor_type: string; actor_id: string; policy_version: string; note: string | null; created_at: string }[];
   allocations: { allocation_id: string; kind: string; amount_minor: number; currency: string; created_at: string; reverses: string | null }[];
   related_claims: string[];
+  tamper: TamperReport | null;
+  shadow_proposals: ShadowProposal[];
 };
 
 export class ApiError extends Error {
@@ -99,7 +142,6 @@ export class ApiError extends Error {
 }
 
 // Tokens live in sessionStorage (cleared when the tab closes), never localStorage.
-// With OIDC configured, oidc-client-ts manages the session and we read its access token.
 function store(): Storage | null {
   try {
     return window.sessionStorage;
@@ -108,13 +150,8 @@ function store(): Storage | null {
   }
 }
 
-let oidcToken: string | null = null;
-export function setOidcToken(t: string | null) {
-  oidcToken = t;
-}
-
 function token(): string | null {
-  return oidcToken ?? store()?.getItem("pops-token") ?? null;
+  return store()?.getItem("pops-token") ?? null;
 }
 
 export function setSession(tok: string | null, role?: string) {
@@ -126,7 +163,23 @@ export function setSession(tok: string | null, role?: string) {
   } else {
     s.removeItem("pops-token");
     s.removeItem("pops-role");
-    oidcToken = null;
+  }
+}
+
+// Validate has no login screen. In dev the API exposes POST /auth/dev-login, so we
+// quietly pick up an admin token on first load and the pages simply work.
+export async function ensureSession(): Promise<boolean> {
+  if (token()) return true;
+  try {
+    const r = await post<{ access_token: string; role: string }>("/auth/dev-login", {
+      email: "validate@local.dev",
+      role: "admin",
+      org_name: "Cognify",
+    });
+    setSession(r.access_token, r.role);
+    return true;
+  } catch {
+    return false; // API offline or dev-login disabled — pages will show server errors as-is
   }
 }
 
@@ -169,6 +222,16 @@ export const post = <T,>(path: string, body: unknown) =>
 
 export const del = <T,>(path: string, body: unknown) =>
   api<T>(path, { method: "DELETE", body: JSON.stringify(body) });
+
+// Liveness probe for the offline banner. Never throws.
+export async function pingBackend(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API}/health`, { method: "GET" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 export function money(minor: number | null | undefined, currency?: string | null): string {
   if (minor === null || minor === undefined) return "—";

@@ -40,7 +40,10 @@ records which rules applied.
 
 When the AI is switched off, claims are still accepted. They are read by OCR only, which never
 reaches two-reader agreement, so every one goes to a reviewer. The console banner shows the
-reader's status and which rule turned it off.
+reader's status and which rule turned it off. The same switch also turns off the **shadow-mode
+AI proposer** (`app/shadow/proposer.py`): when the reader is off, only the deterministic rules
+baseline keeps recording advisory proposals, so the scorecard still measures a reference even
+during an AI outage.
 
 **Lifecycle.** *Add* validates the rule (kind/action pairing, regex syntax and length, known field
 names). *Disable* pauses a rule and keeps it. *Remove* asks for a reason and soft-deletes the

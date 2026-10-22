@@ -28,9 +28,21 @@ statement CSV / manual credit ─► normalised credits ─► credit-first re-m
 | 2 Multi-reader extraction | `app/extraction/` (Ollama VLM, Tesseract + templates, agreement) |
 | 3 Validation, typed cross-check | `app/normalise/`, `app/claims/facts.py` |
 | 4–5 Independent confirmation, hard gates | `app/credits/`, `app/reconcile/matching.py` |
-| 6 Policy tiers and AI guardrails | `app/policy/engine.py`, `app/guardrails/rules.py` (versioned, per-org) |
+| 6 Policy tiers and AI guardrails | `app/policy/engine.py`, `app/guardrails/rules.py`, `app/extraction/tamper.py` (versioned, per-org) |
 | 7 Ledger invariants | `app/ledger/service.py` + DB triggers in `migrations/versions/0002_*` |
 | 8 Review and audit | `app/review/`, `audit_events`, `decisions`, React console |
+
+Two Phase-4 capabilities are already in the slice, both advisory by design:
+
+- **Tamper forensics** (`app/extraction/tamper.py`): error-level-analysis and noise-consistency
+  signals produce a manipulation score with highlighted regions. A hit adds `TAMPER_SUSPECTED`
+  and routes the claim to a reviewer — it can never approve, reject or allocate on its own
+  (blueprint §8: risk flag only). Thresholds live in the payment policy.
+- **Shadow-mode scorecard** (`app/shadow/`): a rules baseline and (when allowed) the AI propose
+  an outcome beside each claim; proposals are append-only and no decision path reads them. The
+  scorecard compares them with what reviewers later decided — agreement, false-approval and
+  false-hold rates — so the automation go-live decision is a measurement, not a debate
+  (blueprint innovation 8). Off by default; enable with `POPS_SHADOW_MODE_ENABLED=true`.
 
 ## Guardrails and policies for the AI
 
@@ -56,7 +68,7 @@ cp .env.example .env          # add your Ollama Cloud key, or set POPS_VLM_BACKE
 docker compose up --build     # includes ClamAV; its first start downloads signatures
 ```
 
-Console at http://localhost:5173, API docs at http://localhost:8000/docs. Evidence sits on a
+Validate UI (Scan + Guardrails, no login) at http://localhost:5173, API docs at http://localhost:8000/docs. Evidence sits on a
 Docker volume in this stack; production uses S3-compatible storage (`POPS_STORAGE_BACKEND=s3`).
 
 ### Local development
@@ -77,9 +89,10 @@ cd frontend && npm install && npm run dev       # proxies /api to :8000
 ### Tests
 
 ```bash
-cd backend && createdb pops_test && pytest      # 92 tests: ledger invariants (Hypothesis),
+cd backend && createdb pops_test && pytest      # 106 tests: ledger invariants (Hypothesis),
                                                 # concurrency race, review flows, isolation,
-                                                # guardrails, OIDC, malware scan, real Tesseract OCR
+                                                # guardrails, OIDC, malware scan, real Tesseract OCR,
+                                                # tamper forensics, shadow-mode scorecard
 cd frontend && npm run build
 python e2e/smoke.py http://127.0.0.1:5173       # Playwright smoke test against a seeded stack
 ```
@@ -123,5 +136,5 @@ Calibrate them from real samples without code changes: `POPS_PROVIDER_TEMPLATES_
 ## Not in this slice
 
 Auto-approval and provisional access (Phase 5), SMS/email alert ingestion and WhatsApp
-(Phase 2), gateway webhooks and the EcoCash API (Phase 3), fraud and tamper models (Phase 4),
-reader fine-tuning (§12).
+(Phase 2), gateway webhooks and the EcoCash API (Phase 3), a trained fraud model on top of the
+tamper risk flags (Phase 4), reader fine-tuning (§12).

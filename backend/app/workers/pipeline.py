@@ -19,7 +19,7 @@ from app.claims.states import REVIEWABLE, TRANSITIONS
 from app.core import observability as obs
 from app.core.audit import audit
 from app.core.config import get_settings
-from app.extraction import preprocess
+from app.extraction import preprocess, tamper
 from app.extraction.readers.base import Reader
 from app.extraction.service import build_readers, extract
 from app.guardrails.rules import active_rules, evaluate_fields, plan_readers
@@ -52,6 +52,8 @@ DUPLICATE = {
     "DUPLICATE_REFERENCE",
     "REFERENCE_ALREADY_CONSUMED",
 }
+# layer 6 risk flags: they escalate to a reviewer and can never approve (blueprint 8)
+TAMPER = {"TAMPER_SUSPECTED"}
 TERMINAL_OR_DONE = {ClaimState.REJECTED, ClaimState.REVERSED_OR_REFUNDED}
 # reasons that do not, on their own, stop a readable claim from waiting for its credit
 SOFT = {"MISSING_REFERENCE"}
@@ -197,6 +199,14 @@ def process_claim(
             }
         )
 
+        # tamper forensics (blueprint 8, layer 6): risk flag only, never a decision
+        if cfg.tamper_enabled and ev.content_type != "application/pdf":
+            forensic = tamper.analyse(image)
+            checks.append({"layer": 6, "check": "tamper", **forensic.as_dict()})
+            if forensic.score >= cfg.tamper_review_score:
+                reasons.append("TAMPER_SUSPECTED")
+                obs.TAMPER_FLAGS.inc()
+
         if readers is None:
             readers = build_readers(vlm_allowed=plan.vlm_allowed, hints=plan.hints)
         result = extract(image, raw, cfg.critical_fields, cfg.single_reader_min_confidence, readers)
@@ -279,6 +289,14 @@ def process_claim(
         )
     elif NEEDS_INFO.intersection(reasons) or needs_info_codes.intersection(reasons):
         target = ClaimState.NEEDS_INFORMATION
+    elif TAMPER.intersection(reasons):
+        # a suspicious document is a reviewer's call: attach the candidate credit as a
+        # suggestion, but do not let the match carry the claim to confirmation (blueprint 8)
+        if best is not None:
+            _attach_credit(session, claim, best)
+        else:
+            claim.evidence_tier = EvidenceTier.E1 if ev else EvidenceTier.E0
+        target = ClaimState.PENDING_REVIEW
     elif best is not None:
         _attach_credit(session, claim, best)
         transition(session, claim, ClaimState.DOCUMENT_VERIFIED, actor=ACTOR)
@@ -345,6 +363,22 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
     _attach_credit(session, claim, best)
     reasons = [r for r in claim.reason_codes if r != "AWAITING_CREDIT"]
     claim.approval_tier = approval_tier(reasons, EvidenceTier(claim.evidence_tier), True)
+    if TAMPER.intersection(reasons) and claim.state != ClaimState.FINANCIALLY_CONFIRMED:
+        # the money matched, but the document flag stays a reviewer's call (blueprint 8)
+        if claim.state != ClaimState.PENDING_REVIEW:
+            transition(session, claim, ClaimState.PENDING_REVIEW, actor=actor, reasons=reasons)
+        record_decision(
+            session,
+            claim,
+            outcome=ClaimState.PENDING_REVIEW,
+            reasons=reasons,
+            policy_version=policy.version,
+            actor_type="rule",
+            actor_id=actor,
+            credit_id=best.credit_id,
+            snapshot={"candidates": [c.as_dict() for c in candidates[:3]]},
+        )
+        return claim
     transition(session, claim, ClaimState.FINANCIALLY_CONFIRMED, actor=actor, reasons=reasons)
     record_decision(
         session,

@@ -172,6 +172,19 @@ class AllocationOut(Out):
     created_at: datetime
 
 
+class ShadowProposalOut(Out):
+    """Advisory proposal from shadow mode (blueprint phase 4): a human still decides."""
+
+    proposal_id: uuid.UUID
+    proposer: str
+    proposed_outcome: str
+    proposed_credit_id: uuid.UUID | None
+    risk_flags: list[str]
+    confidence: float
+    rationale: str
+    created_at: datetime
+
+
 class ReviewDetailOut(BaseModel):
     claim: ClaimOut
     obligation: ObligationOut
@@ -182,6 +195,10 @@ class ReviewDetailOut(BaseModel):
     decisions: list[DecisionOut]
     allocations: list[AllocationOut]
     related_claims: list[uuid.UUID]
+    # tamper forensics from the latest run (risk flag only; see app/extraction/tamper.py)
+    tamper: dict[str, Any] | None = None
+    # advisory AI proposals for this claim (shadow mode; never acted on automatically)
+    shadow_proposals: list[ShadowProposalOut] = Field(default_factory=list)
 
 
 class ConfirmIn(BaseModel):

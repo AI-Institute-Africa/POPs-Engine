@@ -72,6 +72,22 @@ Statement profile entry (use `credit_col`/`debit_col` or a signed `amount_col`):
 Build both from the Phase 0 samples; `scripts/benchmark_reader.py` and
 `scripts/calibrate_phash.py` measure the effect.
 
+## Phase-4 advisory features
+
+Both features are **risk flags and advice only** — neither can approve, reject or allocate
+anything (blueprint §8, innovation 8).
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `POPS_SHADOW_MODE_ENABLED` | false | Record advisory proposals (rules baseline + AI when allowed) beside each claim and score them against human decisions via `GET /shadow/scorecard`. Proposals are append-only; no decision path reads them. |
+| policy `tamper_enabled` | true | Per-org payment policy switch for the tamper forensics check (`POST /admin/policy`). |
+| policy `tamper_review_score` | 0.6 | Manipulation score at or above which the claim gains `TAMPER_SUSPECTED` and routes to a reviewer. |
+
+The AI proposer obeys the same guardrail kill switch / external-processing block / model
+allowlist as the AI reader: when the reader is off, only the deterministic rules baseline keeps
+proposing. Thresholds for the forensics live in `app/extraction/tamper.py` (robust z-scores over
+per-cell ELA residual and noise MAD) and are exposed as `tamper` on the review detail payload.
+
 ## Observability
 
 - JSON logs with `request_id` (echoed in `X-Request-Id`). Logs carry no secrets or document
@@ -79,6 +95,7 @@ Build both from the Phase 0 samples; `scripts/benchmark_reader.py` and
 - Prometheus at `/metrics`: `pops_claim_outcomes_total{state}`, `pops_pipeline_seconds`,
   `pops_pipeline_failures_total`, `pops_reader_failures_total{reader}`,
   `pops_guardrail_hits_total{effect}`, `pops_uploads_rejected_total{reason}`, `pops_stuck_claims`,
-  `pops_outbox_pending`, `pops_http_seconds`.
+  `pops_outbox_pending`, `pops_http_seconds`, `pops_tamper_flags_total`,
+  `pops_shadow_proposals_total{proposer,outcome}`, `pops_shadow_errors_total`.
 - `POPS_SENTRY_DSN` and `POPS_OTEL_ENDPOINT` switch on Sentry and OpenTelemetry tracing when the
   `observability` extra is installed (`pip install -e ".[observability]"`).

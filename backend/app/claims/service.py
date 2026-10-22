@@ -79,6 +79,7 @@ REASON_TEXT = {
     "RECEIPT_STATUS_NOT_SUCCESS": "The receipt shows the payment as not completed.",
     "AWAITING_CREDIT": "Your payment is waiting for confirmation from our bank records.",
     "EXTRACTION_UNCONFIRMED": "Some payment details need a quick check by our finance team.",
+    "TAMPER_SUSPECTED": "The receipt image needs a manual check by our finance team.",
     "CURRENCY_MISMATCH": "The currency paid does not match the invoice currency.",
     "WRONG_BENEFICIARY": "The payment does not appear to have been sent to our account.",
     "AMOUNT_MISMATCH": "The amount received differs from the amount claimed.",

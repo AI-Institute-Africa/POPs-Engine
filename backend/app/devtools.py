@@ -57,6 +57,42 @@ def ecocash_fields(txn: str = "PP251021.1432.A12345", amount: str = "40.00", **o
     return base
 
 
+def splice_receipt(
+    base: bytes, patch: bytes, box: tuple[int, int, int, int], *, seed: int = 20261021
+) -> bytes:
+    """Pretend a crop from `patch` was pasted into `base` at `box` (tamper-test fixture).
+
+    Forensically realistic: the donor carries its own sensor-noise floor (Gaussian, seeded)
+    and a different JPEG history - exactly the inconsistency tamper forensics look for - and
+    the base gets the mild capture noise of a real photo so the two floors are comparable.
+    The base's tEXt chunks (fake-reader ground truth) are carried over.
+    """
+    import numpy as np
+
+    rng = np.random.default_rng(seed)
+    src = Image.open(io.BytesIO(base))
+    info = PngInfo()
+    for k, v in src.info.items():
+        if isinstance(v, str):
+            info.add_text(k, v)
+    canvas = np.asarray(src.convert("RGB"), dtype=np.float32)
+    canvas += rng.normal(0.0, 2.0, canvas.shape)  # the base photo's own capture noise
+    donor = Image.open(io.BytesIO(patch)).convert("RGB").crop(box)
+    buf = io.BytesIO()
+    donor.save(buf, format="JPEG", quality=90)  # a different compression history
+    buf.seek(0)
+    darr = np.asarray(Image.open(buf).convert("RGB"), dtype=np.float32)
+    darr += rng.normal(0.0, 12.0, darr.shape)  # the pasted crop's own (higher) noise floor
+    x0, y0 = box[0], box[1]
+    h = min(darr.shape[0], canvas.shape[0] - y0)
+    w = min(darr.shape[1], canvas.shape[1] - x0)
+    canvas[y0 : y0 + h, x0 : x0 + w] = darr[:h, :w]
+    out = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8))
+    obuf = io.BytesIO()
+    out.save(obuf, format="PNG", pnginfo=info)
+    return obuf.getvalue()
+
+
 def statement_csv(rows: list[dict]) -> bytes:
     header = "date,narrative,reference,credit,debit,currency\n"
     body = "".join(

@@ -1,71 +1,93 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
-import { currentRole, setSession } from "./api";
-import Login from "./pages/Login";
-import Queue from "./pages/Queue";
-import ClaimReview from "./pages/ClaimReview";
-import Credits from "./pages/Credits";
-import Obligations from "./pages/Obligations";
+import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { currentRole, ensureSession } from "./api";
+import { I18nProvider, LANG_LABELS, useI18n, type Lang } from "./i18n";
+import { ToastProvider } from "./toast";
+import { useTheme } from "./theme";
+import Scan from "./pages/Scan";
 import Guardrails from "./pages/Guardrails";
-import AuthCallback from "./pages/AuthCallback";
-import { oidcEnabled, restoreOidcSession, userManager } from "./oidc";
 import "./styles.css";
 
-const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } } });
+const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
+
+function LangSwitch() {
+  const { lang, setLang } = useI18n();
+  return (
+    <select
+      className="lang-switch"
+      value={lang}
+      onChange={(e) => setLang(e.target.value as Lang)}
+      aria-label="Language"
+    >
+      {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
+        <option key={l} value={l}>
+          {LANG_LABELS[l]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function ThemeButton() {
+  const { cycle, icon, label } = useTheme();
+  return (
+    <button type="button" className="ghost icon-btn" onClick={cycle} title={label} aria-label={label}>
+      <span aria-hidden>{icon}</span>
+    </button>
+  );
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
-  const nav = useNavigate();
+  const { t } = useI18n();
   return (
     <div className="shell">
       <header>
-        <strong>POPs Review</strong>
+        <NavLink to="/" className="brand">
+          <span className="logo" aria-hidden>V</span>
+          <span className="brand-name">
+            Validate<span className="dot">.ai</span>
+          </span>
+          <span className="pill">Receipt verification</span>
+        </NavLink>
         <nav>
-          <NavLink to="/queue">Queue</NavLink>
-          <NavLink to="/credits">Credits</NavLink>
-          <NavLink to="/obligations">Obligations</NavLink>
-          <NavLink to="/guardrails">Guardrails &amp; policies</NavLink>
+          <NavLink to="/" end>
+            {t("nav.scan")}
+          </NavLink>
+          <NavLink to="/guardrails">{t("nav.guardrails")}</NavLink>
         </nav>
-        <span className="muted">{currentRole()}</span>
-        <button
-          className="ghost"
-          onClick={() => {
-            setSession(null);
-            if (userManager) void userManager.signoutRedirect();
-            else nav("/login");
-          }}
-        >
-          Sign out
-        </button>
+        <LangSwitch />
+        <ThemeButton />
+        <span className="muted small">{currentRole() ?? "local"}</span>
       </header>
       <main>{children}</main>
+      <footer>
+        <strong>Validate</strong> — {t("footer.text").replace("Validate — ", "")}
+      </footer>
     </div>
   );
 }
 
-function Authed({ children }: { children: React.ReactNode }) {
-  return currentRole() ? <Shell>{children}</Shell> : <Navigate to="/login" replace />;
-}
-
-// with OIDC, pick up an existing identity session before rendering
-const ready = oidcEnabled ? restoreOidcSession().catch(() => false) : Promise.resolve(false);
-
-void ready.then(() => ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={qc}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/guardrails" element={<Authed><Guardrails /></Authed>} />
-          <Route path="/queue" element={<Authed><Queue /></Authed>} />
-          <Route path="/claims/:id" element={<Authed><ClaimReview /></Authed>} />
-          <Route path="/credits" element={<Authed><Credits /></Authed>} />
-          <Route path="/obligations" element={<Authed><Obligations /></Authed>} />
-          <Route path="*" element={<Navigate to="/queue" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>,
-));
+// No login screen: quietly obtain a dev session, then render.
+void ensureSession().finally(() =>
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <QueryClientProvider client={qc}>
+        <I18nProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <Shell>
+                <Routes>
+                  <Route path="/" element={<Scan />} />
+                  <Route path="/guardrails" element={<Guardrails />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Shell>
+            </BrowserRouter>
+          </ToastProvider>
+        </I18nProvider>
+      </QueryClientProvider>
+    </React.StrictMode>,
+  ),
+);
