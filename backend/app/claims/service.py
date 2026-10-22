@@ -87,6 +87,8 @@ REASON_TEXT = {
     # neutral wording on purpose: payers are never told a claim is suspected (blueprint 4.5)
     "SUSPECTED_FAKE": "Your payment needs a manual check by our finance team.",
     "NO_CREDIT_FOUND": "We have not yet seen this payment in our bank records.",
+    "DOCUMENT_TRUNCATED": "Your document is long; our finance team will check the remaining pages.",
+    "CREDIT_DISPUTED": "Your payment needs a manual check by our finance team.",
 }
 
 

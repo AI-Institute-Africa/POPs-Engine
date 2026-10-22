@@ -412,3 +412,58 @@ class FraudAlert(Base):
         ),
         Index("ix_fraud_alerts_org_status", "org_id", "status"),
     )
+
+
+class AlertSource(Base):
+    """A registered, trusted origin of recipient-side payment alerts.
+
+    An SMS forwarder on the merchant phone, or a mailbox that receives bank/mobile-money credit
+    notifications. Only registered sources with a valid key are accepted (threat model 4.7:
+    spoofed alerts), and alert credits are capped at evidence tier E2.
+    """
+
+    __tablename__ = "alert_sources"
+    source_id: Mapped[uuid.UUID] = _pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    kind: Mapped[str] = mapped_column(String(10), nullable=False)  # sms | email
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)  # e.g. ECOCASH, CBZ
+    account_alias: Mapped[str] = mapped_column(String(80), nullable=False)  # our account
+    key_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    # SMS sender IDs (e.g. "EcoCash", "+263...") or email addresses/domains; empty = any
+    allowed_senders: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    require_dkim: Mapped[bool] = mapped_column(default=True, nullable=False)
+    template: Mapped[str | None] = mapped_column(String(40))  # None = try all templates
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(80), nullable=False)
+    created_at: Mapped[datetime] = _created()
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_message_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    stale_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (CheckConstraint("kind in ('sms','email')", name="alert_source_kind"),)
+
+
+class AlertMessage(Base):
+    """Every alert received, kept for audit whether or not it became a credit."""
+
+    __tablename__ = "alert_messages"
+    message_id: Mapped[uuid.UUID] = _pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    source_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("alert_sources.source_id"), nullable=False
+    )
+    sender: Mapped[str] = mapped_column(String(200), nullable=False)
+    subject: Mapped[str | None] = mapped_column(String(300))
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    body_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # credited | duplicate | ignored | rejected | unparsed | conflict
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    reason: Mapped[str | None] = mapped_column(String(200))
+    parsed: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    credit_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("credits.credit_id"))
+    created_at: Mapped[datetime] = _created()
+    __table_args__ = (
+        UniqueConstraint("source_id", "body_sha256", name="uq_alert_message_dedupe"),
+        Index("ix_alert_messages_org_created", "org_id", "created_at"),
+    )

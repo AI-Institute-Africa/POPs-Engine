@@ -32,6 +32,29 @@ statement CSV / manual credit ─► normalised credits ─► credit-first re-m
 | 7 Ledger invariants | `app/ledger/service.py` + DB triggers in `migrations/versions/0002_*` |
 | 8 Review and audit | `app/review/`, `audit_events`, `decisions`, React console |
 
+## What it reads
+
+Every proof-of-payment format people actually send:
+
+- Screenshots and photos: PNG, JPEG, WEBP and iPhone HEIC.
+- PDFs: **every page**. A PDF's own text layer is read as an exact, independent third reader.
+- Word documents (.docx): text, tables and embedded screenshots. Macro documents are refused.
+
+Readers run on each page, and the first page that yields a field wins. Recipient-side
+**SMS and email alerts** (the merchant phone's EcoCash SMS, bank credit emails) become credits
+within seconds; see [`docs/alerts.md`](docs/alerts.md).
+
+## Measuring it: replay and accuracy
+
+*Replay & accuracy* in the console (and `POST /admin/replay`, `GET /admin/accuracy`) gives three
+read-only views:
+
+- **Policy what-if:** re-runs past claims under the active or a draft policy and lists every
+  claim that would match, lose its match, or change risk.
+- **Reader accuracy:** per reader, channel and provider, measured against confirmed payments.
+- **Fraud-signal precision:** measured against admins' fake / not-fake decisions, including the
+  fakes the score missed.
+
 ## Validation and fake detection
 
 Every proof of payment is **validated** against our own records: it is confirmed only when it
@@ -96,9 +119,10 @@ cd frontend && npm install && npm run dev       # proxies /api to :8000
 ### Tests
 
 ```bash
-cd backend && createdb pops_test && pytest      # 106 tests: ledger invariants (Hypothesis),
+cd backend && createdb pops_test && pytest      # 134 tests: ledger invariants (Hypothesis),
                                                 # concurrency race, review flows, isolation,
-                                                # guardrails, fake detection, OIDC, malware scan,
+                                                # guardrails, fake detection, SMS/email alerts,
+                                                # PDF/Word/HEIC, replay, OIDC, malware scan,
                                                 # real Tesseract OCR
 cd frontend && npm run build
 python e2e/smoke.py http://127.0.0.1:5173       # Playwright smoke test against a seeded stack

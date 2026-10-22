@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from app.alerts.service import reconcile_with_statement
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.money import MoneyError, normalise_currency, parse_minor
@@ -91,6 +92,7 @@ class ImportResult:
     created: list[uuid.UUID]
     duplicates: int
     errors: list[str]
+    confirmed_alerts: int = 0
 
 
 def import_statement(
@@ -136,6 +138,7 @@ def import_statement(
     errors: list[str] = []
     totals: dict[str, int] = {}
     duplicates = 0
+    confirmed_alerts = 0
     for i, row in enumerate(rows, start=2):  # line 1 is the header
         try:
             parsed = _parse_row(row, profile)
@@ -146,6 +149,27 @@ def import_statement(
             continue  # debit or zero line
         amount, currency, occurred, narrative, ref, payer, status = parsed
         totals[currency] = totals.get(currency, 0) + amount
+        # money an SMS/email alert already reported: confirm that credit instead of adding one
+        handled = reconcile_with_statement(
+            session,
+            {
+                "org_id": org_id,
+                "reference_norm": normalise_reference(ref) if ref else None,
+                "narrative_norm": normalise_reference(narrative) or "",
+                "amount_minor": amount,
+                "currency": currency,
+                "import_id": imp.import_id,
+                "created_by": actor,
+            },
+        )
+        if handled == "upgraded":
+            confirmed_alerts += 1
+            continue
+        if handled == "disputed":
+            errors.append(
+                f"line {i}: contradicts an SMS/email alert for the same reference; "
+                "the alert credit is frozen for review"
+            )
         if not ref:
             # no bank reference: a stable synthetic key so re-imports of overlapping periods dedupe
             ref = (
@@ -185,7 +209,7 @@ def import_statement(
         else:
             created.append(credit_id)
 
-    imp.credit_rows = len(created) + duplicates
+    imp.credit_rows = len(created) + duplicates + confirmed_alerts
     imp.duplicate_rows = duplicates
     imp.control_totals = totals
     audit(
@@ -199,11 +223,12 @@ def import_statement(
             "rows": len(rows),
             "created": len(created),
             "duplicates": duplicates,
+            "confirmed_alerts": confirmed_alerts,
             "errors": len(errors),
             "control_totals": totals,
         },
     )
-    return ImportResult(imp, created, duplicates, errors)
+    return ImportResult(imp, created, duplicates, errors, confirmed_alerts)
 
 
 def _parse_row(row: dict[str, str], p: StatementProfile):

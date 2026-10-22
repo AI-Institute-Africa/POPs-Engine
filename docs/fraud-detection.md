@@ -39,6 +39,7 @@ Both thresholds are set per organisation in the payment policy (`fraud_high_scor
 | `EDITING_SOFTWARE` | 35 | Metadata names an editor (Photoshop, GIMP, Canva, PicsArt, Snapseed, PDF editors…). |
 | `PROMPT_INJECTION_TEXT` | 30 | The receipt contains text aimed at the AI or the reviewer (needs the *Prompt-injection phrases* guardrail). |
 | `PDF_EDITED_AFTER_CREATION` | 30 | The PDF has incremental saves, or its modified date differs from its created date. |
+| `EDITABLE_DOCUMENT` | 30 | The proof is a Word document. Banks and mobile-money apps don't issue those, and they're easy to type up. |
 | `PAYER_HISTORY` | 30 | The same payer has earlier claims confirmed as fake, duplicate or never paid. |
 | `ELA_LOCAL_EDIT` | 25 | Image forensics (Error Level Analysis on JPEGs) found a region compressed differently from the rest, as happens when an amount is pasted in. The heatmap is shown to admins. |
 | `REFERENCE_FORMAT_INVALID` | 25 | The reference does not match the provider's known format. |

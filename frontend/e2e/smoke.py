@@ -51,6 +51,20 @@ with sync_playwright() as p:
     edited.get_by_role("button", name="Confirm fake & reject").click()
     expect(page.locator(".alert", has_text="amount edit suspected")).to_have_count(0)
 
+    # alerts: the merchant phone's SMS became a credit; the OTP was ignored
+    page.get_by_role("link", name="Alerts").click()
+    expect(page.get_by_role("heading", name="Payment alert sources")).to_be_visible()
+    expect(page.locator("tbody tr", has_text="credited").first).to_be_visible()
+    expect(page.locator("tbody tr", has_text="ignored").first).to_be_visible()
+    page.screenshot(path=f"{out}/7-alerts.png", full_page=True)
+
+    # replay: run the active policy over past claims, and read reader / fraud accuracy
+    page.get_by_role("link", name="Replay & accuracy").click()
+    expect(page.get_by_role("heading", name="Readers vs confirmed payments")).to_be_visible()
+    page.get_by_role("button", name="Replay active policy").click()
+    expect(page.locator("p", has_text="claims:").first).to_be_visible()
+    page.screenshot(path=f"{out}/8-replay.png", full_page=True)
+
     page.get_by_role("link", name="Guardrails & policies").click()
     expect(page.get_by_role("heading", name="Locked guardrails")).to_be_visible()
     kill = page.locator(".rule", has_text="AI kill switch").first

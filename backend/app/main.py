@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.alerts import router as alerts_router
 from app.api.fraud import router as fraud_router
 from app.api.guardrails import router as guardrails_router
 from app.api.routes import router
@@ -29,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(router)
     app.include_router(guardrails_router)
     app.include_router(fraud_router)
+    app.include_router(alerts_router)
 
     @app.get("/health", tags=["ops"])
     def health() -> dict:

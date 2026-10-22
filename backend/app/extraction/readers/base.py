@@ -11,6 +11,8 @@ class ReaderUnavailable(Exception):
 
 class Reader(Protocol):
     name: str
+    # True: run on every page and merge; False: the reader reads the whole file at once
+    per_page: bool
 
     @property
     def version(self) -> str: ...

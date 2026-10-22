@@ -72,6 +72,12 @@ Statement profile entry (use `credit_col`/`debit_col` or a signed `amount_col`):
 Build both from the Phase 0 samples; `scripts/benchmark_reader.py` and
 `scripts/calibrate_phash.py` measure the effect.
 
+## Alerts
+
+See [`alerts.md`](alerts.md): `POPS_ALERT_IMAP_HOST/USER/PASSWORD/FOLDER/SOURCE_ID`,
+`POPS_ALERT_SOURCE_STALE_MINUTES` (default 30), `POPS_ALERT_TEMPLATES_FILE`, and
+`POPS_RATE_LIMIT_ALERTS_PER_MINUTE` (default 120 per source).
+
 ## Observability
 
 - JSON logs with `request_id` (echoed in `X-Request-Id`). Logs carry no secrets or document
@@ -79,6 +85,7 @@ Build both from the Phase 0 samples; `scripts/benchmark_reader.py` and
 - Prometheus at `/metrics`: `pops_claim_outcomes_total{state}`, `pops_pipeline_seconds`,
   `pops_pipeline_failures_total`, `pops_reader_failures_total{reader}`,
   `pops_guardrail_hits_total{effect}`, `pops_uploads_rejected_total{reason}`, `pops_stuck_claims`,
-  `pops_outbox_pending`, `pops_http_seconds`.
+  `pops_outbox_pending`, `pops_http_seconds`, `pops_fraud_alerts_total{level}`,
+  `pops_alerts_received_total{kind,status}`, `pops_stale_alert_sources`.
 - `POPS_SENTRY_DSN` and `POPS_OTEL_ENDPOINT` switch on Sentry and OpenTelemetry tracing when the
   `observability` extra is installed (`pip install -e ".[observability]"`).

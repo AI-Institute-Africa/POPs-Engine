@@ -37,6 +37,7 @@ def _readings(data: dict, default_conf: float) -> dict[str, FieldReading]:
 class FakeVLMReader:
     name = "fake_vlm"
     version = "fake:1"
+    per_page = False  # fixtures carry their readings in the file, not per page
 
     def read(self, image: Image.Image, raw: bytes) -> dict[str, FieldReading]:
         return _readings(_chunk(raw, "pops-vlm"), 0.8)
@@ -45,6 +46,7 @@ class FakeVLMReader:
 class FakeOCRReader:
     name = "fake_ocr"
     version = "fake:1"
+    per_page = False
 
     def read(self, image: Image.Image, raw: bytes) -> dict[str, FieldReading]:
         data = _chunk(raw, "pops-ocr") or _chunk(raw, "pops-vlm")

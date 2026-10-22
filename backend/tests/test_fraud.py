@@ -35,7 +35,7 @@ def test_reused_receipt_is_flagged_to_admin_but_not_shown_to_payer(client, sessi
     sub = login(client, "submitter")
     ob = _obligation(client, sub)
     png = make_receipt(ecocash_fields())
-    _submit(client, sub, ob, png)
+    first = _submit(client, sub, ob, png)
     second = _submit(client, sub, ob, png)
 
     # payer-facing view: neutral, no score, no accusation
@@ -49,13 +49,14 @@ def test_reused_receipt_is_flagged_to_admin_but_not_shown_to_payer(client, sessi
 
     admin = login(client, "admin")
     alerts = client.get("/fraud/alerts", headers=admin).json()
-    assert [a["claim_id"] for a in alerts] == [second["claim_id"]]
+    # both halves of the reuse are put in front of the admin, who decides which (if any) is real
+    assert {a["claim_id"] for a in alerts} == {first["claim_id"], second["claim_id"]}
     assert alerts[0]["signals"][0]["reason"]  # plain-language explanation for the admin
-    assert client.get("/fraud/alerts/summary", headers=admin).json()["open_high"] == 1
+    assert client.get("/fraud/alerts/summary", headers=admin).json()["open_high"] == 2
     events = session.scalars(
         select(OutboxEvent).where(OutboxEvent.event_type == "fraud.suspected")
     ).all()
-    assert len(events) == 1 and "REUSED_RECEIPT" in events[0].payload["signals"]
+    assert len(events) == 2 and all("REUSED_RECEIPT" in e.payload["signals"] for e in events)
 
 
 def test_amount_edited_receipt_contradicted_by_bank_record(client):
@@ -153,7 +154,11 @@ def test_confirmed_fake_rejects_claim_and_marks_payer(client):
     png = make_receipt(ecocash_fields())
     _submit(client, sub, ob, png)
     dup = _submit(client, sub, ob, png)
-    alert = client.get("/fraud/alerts", headers=admin).json()[0]
+    alert = next(
+        a
+        for a in client.get("/fraud/alerts", headers=admin).json()
+        if a["claim_id"] == dup["claim_id"]
+    )
     r = client.post(
         f"/fraud/alerts/{alert['alert_id']}/resolve",
         headers=admin,
@@ -300,7 +305,7 @@ def test_admin_alert_webhook_delivery(client, session, monkeypatch):
     http = httpx.Client(
         transport=httpx.MockTransport(lambda req: sent.append(req) or httpx.Response(200))
     )
-    assert outbox.deliver_pending(session, client=http) == 1
+    assert outbox.deliver_pending(session, client=http) == 2  # one per claim in the reuse pair
     body = sent[0].read().decode()
     assert sent[0].url.host == "hooks.slack.test"
     assert "Suspected fake proof of payment" in body and "REUSED_RECEIPT" in body

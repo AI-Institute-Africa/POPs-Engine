@@ -20,6 +20,7 @@ celery_app.conf.update(
     beat_schedule={
         "deliver-outbox": {"task": "pops.deliver_outbox", "schedule": 30.0},
         "sweep-stuck-claims": {"task": "pops.sweep_stuck", "schedule": 60.0},
+        "poll-alert-mailbox": {"task": "pops.poll_alert_mailbox", "schedule": 60.0},
     },
 )
 
@@ -67,6 +68,10 @@ def sweep_stuck() -> int:
         pending = session.scalar(
             select(func.count()).select_from(OutboxEvent).where(OutboxEvent.status == "pending")
         )
+    from app.alerts.service import check_stale_sources
+
+    with session_scope() as session:
+        check_stale_sources(session)
     obs.STUCK_CLAIMS.set(len(stuck))
     obs.OUTBOX_PENDING.set(pending or 0)
     if stuck:
@@ -93,6 +98,22 @@ def deliver_outbox_task() -> int:
 
     with session_scope() as session:
         return deliver_pending(session)
+
+
+@celery_app.task(name="pops.poll_alert_mailbox")
+def poll_alert_mailbox_task() -> int:
+    from app.alerts.service import poll_imap
+    from app.models import AlertSource
+
+    with session_scope() as session:
+        count = poll_imap(session)
+        org = None
+        if count and get_settings().alert_imap_source_id:
+            src = session.get(AlertSource, uuid.UUID(get_settings().alert_imap_source_id))
+            org = src.org_id if src else None
+    if org:
+        dispatch_rematch(org)
+    return count
 
 
 @celery_app.task(name="pops.sweep_stuck")

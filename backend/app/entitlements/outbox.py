@@ -57,7 +57,7 @@ def sign(body: bytes, secret: str, ts: int) -> str:
 
 def _channels(event_type: str) -> list[str]:
     s = get_settings()
-    if event_type.startswith("fraud."):
+    if event_type.startswith(("fraud.", "ops.")):
         out = []
         if s.admin_alert_webhook_url:
             out.append("admin_webhook")
@@ -91,7 +91,11 @@ def _send(channel: str, ev: OutboxEvent, http: httpx.Client) -> None:
         http.post(s.admin_alert_webhook_url or "", json=alert).raise_for_status()
     elif channel == "email":
         msg = EmailMessage()
-        msg["Subject"] = f"[POPs] Suspected fake proof of payment ({ev.payload.get('score')}/100)"
+        msg["Subject"] = (
+            f"[POPs] Suspected fake proof of payment ({ev.payload.get('score')}/100)"
+            if ev.event_type.startswith("fraud.")
+            else "[POPs] Operations alert"
+        )
         msg["From"] = s.smtp_from
         msg["To"] = ", ".join(s.admin_alert_emails)
         msg.set_content(

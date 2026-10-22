@@ -127,3 +127,6 @@ ul.signals .weight { display: inline-block; min-width: 34px; font-family: ui-mon
 .thumbs { display: flex; flex-direction: column; gap: 6px; width: 140px; flex-shrink: 0; }
 .thumbs img { width: 140px; border: 1px solid var(--line); border-radius: 6px; display: block; }
 @media (max-width: 700px) { .alert-body { flex-direction: column; } .thumbs { flex-direction: row; width: auto; } .thumbs img { width: 120px; } }
+
+code.key { display: inline-block; padding: 2px 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; word-break: break-all; }
+header nav { flex-wrap: wrap; }

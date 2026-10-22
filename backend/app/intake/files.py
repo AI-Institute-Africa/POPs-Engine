@@ -2,13 +2,26 @@
 
 import hashlib
 import io
+import zipfile
 from dataclasses import dataclass, field
 from typing import Any
 
 import imagehash
-from PIL import ExifTags, Image, ImageOps
+from PIL import ExifTags, Image, ImageDraw, ImageFont, ImageOps
 
 Image.MAX_IMAGE_PIXELS = 40_000_000  # decompression-bomb guard
+
+try:  # iPhone photos (HEIC/HEIF)
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+    HEIF = True
+except ImportError:  # pragma: no cover
+    HEIF = False
+
+MAX_PAGES = 10  # pages read per document; longer documents are flagged for review
+DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+_HEIF_BRANDS = {b"heic", b"heix", b"hevc", b"heim", b"heis", b"mif1", b"msf1"}
 
 # Magic numbers: we trust file signatures, never the client's content type or extension.
 SIGNATURES: list[tuple[bytes, str]] = [
@@ -30,7 +43,19 @@ def sniff(data: bytes) -> str:
             return ctype
     if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
         return "image/webp"
-    raise RejectedFile("UNSUPPORTED_TYPE", "only PNG, JPEG, WEBP and PDF evidence is accepted")
+    if data[4:8] == b"ftyp" and data[8:12] in _HEIF_BRANDS and HEIF:
+        return "image/heic"
+    if data.startswith(b"PK\x03\x04"):
+        try:
+            names = set(zipfile.ZipFile(io.BytesIO(data)).namelist())
+        except zipfile.BadZipFile as exc:
+            raise RejectedFile("CORRUPT_FILE", "the document could not be opened") from exc
+        if "word/document.xml" in names:
+            return DOCX
+    raise RejectedFile(
+        "UNSUPPORTED_TYPE",
+        "accepted evidence: PNG, JPEG, WEBP, HEIC photos, PDF and Word (.docx) documents",
+    )
 
 
 @dataclass
@@ -41,9 +66,17 @@ class PreparedFile:
     phash: str
     meta: dict[str, Any] = field(default_factory=dict)
     preview_png: bytes = b""
+    pages: list[Image.Image] = field(default_factory=list)  # every page/image to read
+    page_texts: list[str] = field(default_factory=list)  # digital text per page (PDF/DOCX)
+    # preview is the pages stacked vertically; (y0, h) of each page as fractions of the stack
+    page_layout: list[tuple[float, float]] = field(default_factory=list)
+
+    @property
+    def text(self) -> str:
+        return "\n".join(t for t in self.page_texts if t)
 
 
-def _render_pdf(data: bytes) -> tuple[Image.Image, dict[str, Any]]:
+def _render_pdf(data: bytes) -> tuple[list[Image.Image], list[str], dict[str, Any]]:
     import pymupdf
 
     try:
@@ -59,11 +92,109 @@ def _render_pdf(data: bytes) -> tuple[Image.Image, dict[str, Any]]:
     # each incremental save appends a new trailer: more than one %%EOF means the PDF was edited
     # after it was first written (banks' generated statements are written once)
     meta["eof_markers"] = data.count(b"%%EOF")
-    meta["has_text"] = bool(doc.load_page(0).get_text().strip())
-    page = doc.load_page(0)
-    pix = page.get_pixmap(dpi=200)
-    img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
-    return img, {"pdf": meta}
+    pages, texts = [], []
+    for n in range(min(doc.page_count, MAX_PAGES)):
+        page = doc.load_page(n)
+        texts.append(page.get_text().strip())
+        pix = page.get_pixmap(dpi=150 if doc.page_count > 3 else 200)
+        pages.append(Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB"))
+    meta["has_text"] = any(texts)
+    meta["pages_read"] = len(pages)
+    return pages, texts, {"pdf": meta}
+
+
+def _read_docx(data: bytes) -> tuple[list[Image.Image], list[str], dict[str, Any]]:
+    """Word documents: the text (paragraphs and tables) plus any embedded screenshots."""
+    from docx import Document
+
+    zf = zipfile.ZipFile(io.BytesIO(data))
+    infos = zf.infolist()
+    if len(infos) > 2000 or sum(i.file_size for i in infos) > 60 * 1024 * 1024:
+        raise RejectedFile("CORRUPT_FILE", "the document is too large when unpacked")
+    names = {i.filename for i in infos}
+    content_types = zf.read("[Content_Types].xml").decode(errors="replace")
+    if "word/vbaProject.bin" in names or "macroEnabled" in content_types:
+        raise RejectedFile("MACRO_DOCUMENT", "documents with macros are not accepted")
+    try:
+        doc = Document(io.BytesIO(data))
+    except Exception as exc:  # noqa: BLE001
+        raise RejectedFile("CORRUPT_FILE", "the document could not be read") from exc
+
+    lines = [p.text for p in doc.paragraphs if p.text.strip()]
+    for table in doc.tables:
+        for row in table.rows:
+            cells = [c.text.strip() for c in row.cells if c.text.strip()]
+            if cells:
+                lines.append(" | ".join(dict.fromkeys(cells)))
+    text = "\n".join(lines)
+
+    images: list[Image.Image] = []
+    for name in sorted(n for n in names if n.startswith("word/media/")):
+        if len(images) >= MAX_PAGES - 1:
+            break
+        try:
+            img = Image.open(io.BytesIO(zf.read(name)))
+            img.load()
+            if min(img.size) >= 100:  # skip logos and icons
+                images.append(ImageOps.exif_transpose(img).convert("RGB"))
+        except Exception:  # noqa: BLE001, S112 - EMF/WMF and odd formats are skipped
+            continue
+
+    pages = ([_render_text(text)] if text else []) + images
+    texts = [text] + [""] * len(images) if text else [""] * len(images)
+    if not pages:
+        raise RejectedFile("UNREADABLE_DOCUMENT", "the document has no text or images to read")
+    cp = doc.core_properties
+    props = {
+        "author": cp.author,
+        "last_modified_by": cp.last_modified_by,
+        "created": cp.created.isoformat() if cp.created else None,
+        "modified": cp.modified.isoformat() if cp.modified else None,
+        "revision": cp.revision,
+    }
+    if "docProps/app.xml" in names:
+        app_xml = zf.read("docProps/app.xml").decode(errors="replace")
+        start = app_xml.find("<Application>")
+        if start >= 0:
+            props["application"] = app_xml[start + 13 : app_xml.find("</Application>")][:100]
+    meta = {"docx": {k: v for k, v in props.items() if v}, "embedded_images": len(images)}
+    return pages, texts, meta
+
+
+def _render_text(text: str, width: int = 1240) -> Image.Image:
+    """A readable page image of document text, for the readers and the reviewer's viewer."""
+    try:
+        font: ImageFont.ImageFont | ImageFont.FreeTypeFont = ImageFont.truetype(
+            "DejaVuSans.ttf", 26
+        )
+    except OSError:
+        font = ImageFont.load_default()
+    wrapped: list[str] = []
+    for line in text.splitlines()[:120]:
+        while len(line) > 80:
+            cut = line.rfind(" ", 0, 80)
+            cut = cut if cut > 20 else 80
+            wrapped.append(line[:cut])
+            line = line[cut:].lstrip()
+        wrapped.append(line)
+    img = Image.new("RGB", (width, max(400, 60 + 38 * len(wrapped))), "white")
+    d = ImageDraw.Draw(img)
+    for n, line in enumerate(wrapped):
+        d.text((40, 30 + 38 * n), line, fill="black", font=font)
+    return img
+
+
+def _stack(pages: list[Image.Image], width: int = 1000) -> tuple[Image.Image, list]:
+    """Pages scaled to one width and stacked, with each page's position as fractions."""
+    scaled = [p.resize((width, max(1, round(p.height * width / p.width)))) for p in pages]
+    total = sum(p.height for p in scaled)
+    out = Image.new("RGB", (width, total), "white")
+    layout, y = [], 0
+    for p in scaled:
+        out.paste(p, (0, y))
+        layout.append((y / total, p.height / total))
+        y += p.height
+    return out, layout
 
 
 def _exif(img: Image.Image) -> dict[str, Any]:
@@ -141,8 +272,11 @@ def prepare(data: bytes, max_bytes: int) -> PreparedFile:
     ctype = sniff(data)
     sha = hashlib.sha256(data).hexdigest()
     meta: dict[str, Any] = {}
+    texts: list[str] = []
     if ctype == "application/pdf":
-        img, meta = _render_pdf(data)
+        pages, texts, meta = _render_pdf(data)
+    elif ctype == DOCX:
+        pages, texts, meta = _read_docx(data)
     else:
         try:
             img = Image.open(io.BytesIO(data))
@@ -157,17 +291,26 @@ def prepare(data: bytes, max_bytes: int) -> PreparedFile:
             meta["image_text"] = text_chunks
         if ctype == "image/jpeg":
             meta["jpeg_quality"] = _jpeg_quality(img)
-        img = ImageOps.exif_transpose(img).convert("RGB")
-    meta["width"], meta["height"] = img.size
+        pages = [ImageOps.exif_transpose(img).convert("RGB")]
+    first = pages[0]
+    meta["width"], meta["height"] = first.size
+    meta["pages"] = len(pages)
+    if len(pages) > 1:
+        preview, layout = _stack(pages)
+    else:
+        preview, layout = first, [(0.0, 1.0)]
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    preview.save(buf, format="PNG")
     return PreparedFile(
         content_type=ctype,
         sha256=sha,
-        image=img,
-        phash=str(imagehash.phash(img)),
+        image=first,
+        phash=str(imagehash.phash(first)),
         meta=meta,
         preview_png=buf.getvalue(),
+        pages=pages,
+        page_texts=texts or [""] * len(pages),
+        page_layout=layout,
     )
 
 

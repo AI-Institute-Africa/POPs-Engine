@@ -68,6 +68,7 @@ FORENSIC_ONLY = {
     "VELOCITY",
     "DATE_BEFORE_INVOICE",
     "REFERENCE_FORMAT_INVALID",
+    "EDITABLE_DOCUMENT",
 }
 
 
@@ -199,6 +200,13 @@ def assess(
             eof_markers=pdf.get("eof_markers"),
             created=pdf.get("creationDate"),
             modified=pdf.get("modDate"),
+        )
+    if ev is not None and ev.content_type.endswith("wordprocessingml.document"):
+        add(
+            "EDITABLE_DOCUMENT",
+            "A Word document is easy to type up or edit; banks and mobile "
+            "money apps do not issue receipts as Word files.",
+            properties=(ev.meta or {}).get("docx", {}),
         )
     ela = (ev.meta or {}).get("ela") if ev else None
     if ela and ela.get("suspicious"):

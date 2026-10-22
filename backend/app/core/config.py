@@ -68,6 +68,16 @@ class Settings(BaseSettings):
     # provider layouts and statement CSV profiles (see docs/configuration.md)
     provider_templates_file: str | None = None
     statement_profiles_file: str | None = None
+    alert_templates_file: str | None = None
+
+    # recipient-side alerts: optional IMAP mailbox polled for bank/mobile-money credit emails
+    alert_imap_host: str | None = None
+    alert_imap_user: str | None = None
+    alert_imap_password: str | None = None
+    alert_imap_folder: str = "INBOX"
+    alert_imap_source_id: str | None = None  # the registered email alert source it feeds
+    alert_source_stale_minutes: int = 30  # forwarder heartbeat expected at least this often
+    rate_limit_alerts_per_minute: int = 120
 
     cognify_webhook_url: str | None = None
     cognify_webhook_secret: str = DEV_WEBHOOK_SECRET

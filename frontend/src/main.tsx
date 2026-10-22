@@ -10,6 +10,8 @@ import Credits from "./pages/Credits";
 import Obligations from "./pages/Obligations";
 import Guardrails from "./pages/Guardrails";
 import Fraud from "./pages/Fraud";
+import Alerts from "./pages/Alerts";
+import Replay from "./pages/Replay";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 import AuthCallback from "./pages/AuthCallback";
@@ -42,8 +44,10 @@ function Shell({ children }: { children: React.ReactNode }) {
           <NavLink to="/queue">Queue</NavLink>
           <FraudLink />
           <NavLink to="/credits">Credits</NavLink>
+          <NavLink to="/alerts">Alerts</NavLink>
           <NavLink to="/obligations">Obligations</NavLink>
           <NavLink to="/guardrails">Guardrails &amp; policies</NavLink>
+          <NavLink to="/replay">Replay &amp; accuracy</NavLink>
         </nav>
         <span className="muted">{currentRole()}</span>
         <button
@@ -78,6 +82,8 @@ void ready.then(() => ReactDOM.createRoot(document.getElementById("root")!).rend
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/guardrails" element={<Authed><Guardrails /></Authed>} />
           <Route path="/fraud" element={<Authed><Fraud /></Authed>} />
+          <Route path="/alerts" element={<Authed><Alerts /></Authed>} />
+          <Route path="/replay" element={<Authed><Replay /></Authed>} />
           <Route path="/queue" element={<Authed><Queue /></Authed>} />
           <Route path="/claims/:id" element={<Authed><ClaimReview /></Authed>} />
           <Route path="/credits" element={<Authed><Credits /></Authed>} />

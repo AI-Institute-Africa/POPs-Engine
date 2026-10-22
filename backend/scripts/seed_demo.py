@@ -138,3 +138,33 @@ r = c.post(
 )
 r.raise_for_status()
 print("import:", r.json())
+
+# recipient-side alert: register the merchant phone and forward one EcoCash credit SMS
+admin = token("admin@cognify.dev", "admin")
+src = c.post("/alerts/sources", headers=admin, json={
+    "kind": "sms", "name": "Merchant phone (EcoCash)", "provider": "ECOCASH",
+    "account_alias": "MAIN", "allowed_senders": ["EcoCash"]}).json()
+n = obligation("nyasha.p", 4000)
+claim(n, receipt(ecocash_fields("PP251021.1810.F70001")))
+r = c.post("/alerts/sms", headers={"X-POPs-Source-Key": src["key"]}, json={
+    "from": "EcoCash",
+    "text": "You have received USD40.00 from NYASHA PFEBVE (0772223344). "
+            "Approval Code: PP251021.1810.F70001. New wallet balance: USD1,400.00"})
+print("sms alert:", r.json()["status"])
+c.post("/alerts/sms", headers={"X-POPs-Source-Key": src["key"]},
+       json={"from": "EcoCash", "text": "Your EcoCash one-time PIN is 482910"})
+
+# a two-page PDF where the receipt is on page 2
+import pymupdf  # noqa: E402
+
+doc = pymupdf.open()
+doc.new_page().insert_text((72, 72), "Proof of payment for Tariro's course fees", fontsize=14)
+pg = doc.new_page()
+for i, line in enumerate(["EcoCash", "Payment Successful", "Txn ID: PP251021.1900.G80002",
+                          "Amount: USD 40.00", "Paid to: COGNIFY MAIN", "21/10/2026 19:00"]):
+    pg.insert_text((72, 72 + 24 * i), line, fontsize=14)
+t = obligation("tariro.m", 4000)
+r = c.post("/claims", headers=sub, files={"file": ("pop.pdf", doc.tobytes(), "application/pdf")},
+           data={"obligation_id": t["obligation_id"], "claimant_ref": "tariro.m",
+                 "channel": "ecocash"})
+print("pdf claim:", r.json()["state"])

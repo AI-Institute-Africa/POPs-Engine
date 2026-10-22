@@ -116,6 +116,7 @@ class ImportOut(BaseModel):
     errors: list[str]
     control_totals: dict[str, int]
     rematched_claims: int | None
+    confirmed_alerts: int = 0  # alert credits this statement confirmed (now evidence tier E3)
 
 
 class FieldOut(Out):

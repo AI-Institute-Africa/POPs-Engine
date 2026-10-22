@@ -430,6 +430,7 @@ async def import_credits(
         control_totals=imp.control_totals,
         # with background workers the re-match is queued, so the count is not known yet
         rematched_claims=_confirmed_count(db, p.org_id) - before if ran_now else None,
+        confirmed_alerts=result.confirmed_alerts,
     )
 
 

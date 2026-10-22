@@ -30,6 +30,7 @@ VLM_CONFIDENCE = 0.80
 
 class OllamaVLMReader:
     name = "ollama_vlm"
+    per_page = True
 
     def __init__(
         self, url: str | None = None, model: str | None = None, hints: list[str] | None = None

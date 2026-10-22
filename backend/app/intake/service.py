@@ -6,7 +6,7 @@ from app.claims.service import transition
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.security import Principal
-from app.intake.files import RejectedFile, phash_to_int, prepare
+from app.intake.files import DOCX, RejectedFile, phash_to_int, prepare
 from app.intake.scan import InfectedFile, scan
 from app.intake.storage import get_storage
 from app.models import Claim, ClaimState, Evidence
@@ -20,9 +20,14 @@ def store_evidence(session: Session, claim: Claim, data: bytes, source_type: str
     except InfectedFile as exc:
         raise RejectedFile("MALWARE_DETECTED", "the file failed the malware scan") from exc
     prepared.meta["malware_scan"] = scan_result
-    ext = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf"}[
-        prepared.content_type
-    ]
+    ext = {
+        "image/png": "png",
+        "image/jpeg": "jpg",
+        "image/webp": "webp",
+        "image/heic": "heic",
+        "application/pdf": "pdf",
+        DOCX: "docx",
+    }[prepared.content_type]
     evidence_id = uuid.uuid4()
     base = f"{claim.org_id}/{claim.claim_id}/{evidence_id}"
     storage = get_storage()

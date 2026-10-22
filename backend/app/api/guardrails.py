@@ -25,6 +25,7 @@ from app.guardrails.rules import (
 )
 from app.models import GuardrailRule, PaymentPolicy
 from app.policy.engine import PolicyConfig, load_policy, policy_snapshot
+from app.replay import service as replay_service
 
 router = APIRouter(prefix="/admin", tags=["guardrails & policies"])
 DB = Annotated[Session, Depends(get_session)]
@@ -209,3 +210,31 @@ def deactivate_policy(policy_id: uuid.UUID, body: RemoveIn, db: DB, p: Admin) ->
     )
     db.commit()
     return policy_snapshot(load_policy(db, p.org_id))
+
+
+# --- replay and accuracy -----------------------------------------------------------------------
+
+
+class ReplayIn(BaseModel):
+    config: dict[str, Any] | None = None  # a draft policy; omit to replay the active one
+    since_days: int = Field(90, ge=1, le=730)
+    limit: int = Field(1000, ge=1, le=5000)
+
+
+@router.post("/replay")
+def replay(body: ReplayIn, db: DB, p: Reviewer) -> dict:
+    """What would change if this policy had decided past claims? Read-only."""
+    try:
+        if body.config is not None:
+            PolicyConfig.model_validate(body.config)
+    except ValidationError as exc:
+        err = exc.errors()[0]
+        raise HTTPException(422, f"{'.'.join(map(str, err['loc']))}: {err['msg']}") from exc
+    return replay_service.what_if(db, p.org_id, body.config, body.since_days, body.limit)
+
+
+@router.get("/accuracy")
+def accuracy(db: DB, p: Reviewer, since_days: int = 90) -> dict:
+    """Reader accuracy against confirmed payments, and fraud-signal precision against admin
+    decisions."""
+    return replay_service.accuracy(db, p.org_id, since_days)

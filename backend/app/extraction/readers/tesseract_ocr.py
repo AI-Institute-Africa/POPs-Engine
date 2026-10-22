@@ -24,6 +24,7 @@ class Word:
 
 class TesseractReader:
     name = "tesseract_ocr"
+    per_page = True
 
     def __init__(self) -> None:
         if shutil.which("tesseract") is None:

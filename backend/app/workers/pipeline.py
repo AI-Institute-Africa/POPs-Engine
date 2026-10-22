@@ -136,6 +136,9 @@ def _hold_others(session: Session, ids: set[uuid.UUID], reason: str) -> None:
             reasons = sorted({*other.reason_codes, reason} - {"AWAITING_CREDIT"})
             other.approval_tier = ApprovalTier.RED
             transition(session, other, ClaimState.DUPLICATE_HOLD, actor=ACTOR, reasons=reasons)
+            # both claims share the reuse: score the earlier one too so an admin sees the pair
+            # (found by the replay report); which one, if either, is genuine is a human call
+            reassess(session, other)
 
 
 def process_claim(
@@ -187,9 +190,17 @@ def process_claim(
         checks.append({"layer": 1, "check": "duplicate_file", "passed": not file_reasons})
 
         raw = get_storage().get(ev.object_key)
-        image = prepare(raw, max_bytes=len(raw) + 1).image
+        prepared = prepare(raw, max_bytes=len(raw) + 1)
+        image = prepared.image
         quality = preprocess.assess(image)
-        problems = quality.problems(cfg.min_image_side_px, cfg.min_sharpness)
+        # digital documents (PDF text layer, Word) are read from their text, not their pixels
+        problems = (
+            []
+            if prepared.text.strip()
+            else quality.problems(cfg.min_image_side_px, cfg.min_sharpness)
+        )
+        if prepared.meta.get("pdf", {}).get("page_count", 1) > len(prepared.pages):
+            reasons.append("DOCUMENT_TRUNCATED")
         reasons += problems
         checks.append(
             {
@@ -205,7 +216,15 @@ def process_claim(
 
         if readers is None:
             readers = build_readers(vlm_allowed=plan.vlm_allowed, hints=plan.hints)
-        result = extract(image, raw, cfg.critical_fields, cfg.single_reader_min_confidence, readers)
+        result = extract(
+            prepared.pages,
+            raw,
+            cfg.critical_fields,
+            cfg.single_reader_min_confidence,
+            readers,
+            text=prepared.text,
+            layout=prepared.page_layout,
+        )
         run.model_versions = {**result.versions, "guardrails": [r.name for r in rules]}
         for name in result.failures:
             obs.READER_FAILURES.labels(name).inc()
@@ -218,6 +237,13 @@ def process_claim(
                 "readers": list(result.versions),
                 "failures": result.failures,
                 "vlm_allowed": plan.vlm_allowed,
+                # per-reader normalised readings of the fields that matter, for accuracy reports
+                "readings": {
+                    name: f.readings
+                    for name, f in result.fields.items()
+                    if name in ("amount", "transaction_id", "date", "currency")
+                },
+                "pages": len(prepared.pages),
             }
         )
 
