@@ -66,6 +66,23 @@ of layouts. They are not a measure of real receipt accuracy and should not be us
 detector. Before fine-tuning or making accuracy claims, add reviewer-verified, consented receipts
 and reserve a separate held-out set of real layouts.
 
+The Donut fine-tuning entry point is `scripts/train_extractor.py`. From the `backend` folder,
+install its optional dependencies with `pip install -e ".[training]"`, then run from the repository
+root:
+
+```bash
+python scripts/train_extractor.py \
+  --data-dir sample_data/mock_pops/training_splits \
+  --output-dir var/models/donut-pops \
+  --epochs 3 --batch-size 1
+```
+
+This downloads `naver-clova-ix/donut-base` from Hugging Face the first time it runs. A CUDA GPU is
+strongly recommended; `--allow-cpu` permits CPU training but can take a very long time. On CPU the
+script uses 640×960 images and freezes the vision encoder by default; `--train-encoder` opts into
+full fine-tuning. The script saves the model, processor and `run_summary.json` under the output
+directory and reports held-out test loss.
+
 When to fine-tune at all is set by blueprint §12.1: a high-volume channel is below target, you have
 a few hundred reviewer-corrected examples per major layout, and the tuned model beats the best
 pretrained one on the held-out set.

@@ -55,8 +55,8 @@ class Settings(BaseSettings):
     rate_limit_uploads_per_minute: int = 30
     rate_limit_claims_per_claimant_per_day: int = 20
 
-    # extraction readers: ollama | fake ; ocr: tesseract | none
-    vlm_backend: Literal["ollama", "fake"] = "ollama"
+    # extraction readers: ollama | donut | fake ; ocr: tesseract | none
+    vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"
     # Shadow mode (blueprint phase 4): advisory AI proposals recorded beside claims and scored
     # against human decisions. Proposals never touch claim state, so this is safe to flip on;
     # flip it off to stop recording. The AI proposer additionally obeys the guardrail kill switch.
@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     ollama_api_key: str | None = None
     ollama_model: str = "qwen3-vl:235b"
     ollama_timeout_seconds: float = 120.0
+    donut_model_path: str = "./var/models/donut-pops"
     ocr_backend: Literal["tesseract", "none"] = "tesseract"
     ocr_languages: str = "eng"
     # Phase 0 calibration without code changes: JSON files that extend or override the built-in

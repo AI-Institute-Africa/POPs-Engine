@@ -22,9 +22,14 @@ def build_readers(vlm_allowed: bool = True, hints: list[str] | None = None) -> l
     if vlm_allowed and s.vlm_backend == "fake":
         readers.append(FakeVLMReader())
     elif vlm_allowed:
-        from app.extraction.readers.ollama_vlm import OllamaVLMReader
+        if s.vlm_backend == "donut":
+            from app.extraction.readers.donut import DonutReader
 
-        readers.append(OllamaVLMReader(hints=hints))
+            readers.append(DonutReader())
+        else:
+            from app.extraction.readers.ollama_vlm import OllamaVLMReader
+
+            readers.append(OllamaVLMReader(hints=hints))
     if s.vlm_backend == "fake":
         readers.append(FakeOCRReader())
     elif s.ocr_backend == "tesseract":

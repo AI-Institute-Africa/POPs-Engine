@@ -187,6 +187,22 @@ The Ollama reader works with Ollama Cloud (default) or a self-hosted Ollama. See
 [`docs/models.md`](docs/models.md) for the recommended free cloud vision models, the Phase 0
 benchmark script, and the open-weights models to fine-tune for v2.
 
+### Local Donut live demo
+
+The trained local Donut checkpoint is available in `var/models/donut-pops`. Start the demo stack
+from the repository root in PowerShell:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.donut-demo.yml up --build -d
+.venv\Scripts\python.exe scripts/seed_live_demo.py
+```
+
+Open the console at <http://localhost:5173>. The seed command prints a payment code and a
+synthetic screenshot, SMS, and complex proof image to upload. API docs are at
+<http://localhost:8000/docs>. Use the review console to inspect extraction; synthetic uploads
+are evidence only and do not create recipient-side credits or confirm payments. Stop the stack
+with `docker compose -f docker-compose.yml -f docker-compose.donut-demo.yml down`.
+
 ## Needs real data (Phase 0)
 
 Provider templates, statement layouts and the near-duplicate threshold are starting guesses.

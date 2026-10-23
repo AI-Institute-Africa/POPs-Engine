@@ -1,0 +1,25 @@
+# Local demo override: use the fine-tuned Donut reader without editing the user's .env.
+services:
+  api:
+    build:
+      context: ./backend
+      args:
+        INSTALL_DONUT: "1"
+    environment:
+      POPS_VLM_BACKEND: donut
+      POPS_DONUT_MODEL_PATH: /models/donut-pops
+    volumes:
+      - ./var/models/donut-pops:/models/donut-pops:ro
+      - ./sample_data/mock_pops:/demo-data:ro
+
+  worker:
+    build:
+      context: ./backend
+      args:
+        INSTALL_DONUT: "1"
+    environment:
+      POPS_VLM_BACKEND: donut
+      POPS_DONUT_MODEL_PATH: /models/donut-pops
+    volumes:
+      - ./var/models/donut-pops:/models/donut-pops:ro
+    command: celery -A app.workers.tasks:celery_app worker --loglevel=info --concurrency=1

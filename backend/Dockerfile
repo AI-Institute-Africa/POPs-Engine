@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
 
 WORKDIR /app
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir .
+ARG INSTALL_DONUT=0
+RUN if [ "$INSTALL_DONUT" = "1" ]; then \
+      pip install --no-cache-dir '.[training]'; \
+    else \
+      pip install --no-cache-dir .; \
+    fi
 COPY . .
 RUN pip install --no-cache-dir --no-deps . && useradd -r -u 1001 pops \
     && mkdir -p var /data/evidence && chown pops var /data/evidence
