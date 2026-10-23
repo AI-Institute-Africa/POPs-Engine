@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 1406.12
+Paid to: Rufaro Sibanda
+Amount Transferred: USD 1406.12
+Account: 770782963911
+From: Memory Gumbo  (2074••••1251)
+Reference: FT761463734080
+Date: 2026-01-18 10:54:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

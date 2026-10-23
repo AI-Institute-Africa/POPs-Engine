@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 695.93
+Paid to: Tariro Zhou
+Amount Transferred: USD 695.93
+Account: 238558436860
+From: Tendai Maphosa  (2833••••7038)
+Reference: CBZ3362463938
+Date: 2026-01-13 18:29:30
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

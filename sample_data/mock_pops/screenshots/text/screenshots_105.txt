@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 164.11
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 164.11
+Account: 4054431
+From: Tinashe Ncube  (1260••••7013)
+Reference: NMB-TXN-91556163
+Date: 2026-03-27 14:37:29
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 864.22
+Paid to: Choppies Supermarket
+Amount Transferred: ZWG 864.22
+Account: 9767817
+From: Tinashe Sibanda  (4825••••8012)
+Reference: NMB-TXN-23582129
+Date: 2026-02-14 20:07:11
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

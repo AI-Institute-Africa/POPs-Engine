@@ -1,0 +1,501 @@
+id,category,bank,reference,status,date_time,currency,amount,text_file,image_file,synthetic
+screenshots_001,screenshots,Steward Bank,FT404708920005,PENDING,2026-07-23 13:39:48,ZWG,146.96,screenshots/text/screenshots_001.txt,screenshots/images/screenshots_001.jpg,true
+screenshots_002,screenshots,NMB Bank,NMB-TXN-44329668,SUCCESSFUL,2026-10-14 13:32:17,USD,1096.52,screenshots/text/screenshots_002.txt,screenshots/images/screenshots_002.jpg,true
+screenshots_003,screenshots,First Capital Bank,FT250450483861,SUCCESSFUL,2026-01-07 09:09:30,ZWG,650.67,screenshots/text/screenshots_003.txt,screenshots/images/screenshots_003.jpg,true
+screenshots_004,screenshots,Steward Bank,FT555735747501,SUCCESSFUL,2026-04-17 13:20:03,ZWG,719.44,screenshots/text/screenshots_004.txt,screenshots/images/screenshots_004.jpg,true
+screenshots_005,screenshots,First Capital Bank,FT338314559166,SUCCESSFUL,2026-08-20 16:22:24,USD,52.04,screenshots/text/screenshots_005.txt,screenshots/images/screenshots_005.jpg,true
+screenshots_006,screenshots,CBZ Bank,CBZ8072330780,SUCCESSFUL,2026-10-13 12:06:47,ZWG,1180.38,screenshots/text/screenshots_006.txt,screenshots/images/screenshots_006.jpg,true
+screenshots_007,screenshots,FBC Bank,FT462892966565,SUCCESSFUL,2026-09-25 12:59:21,USD,957.50,screenshots/text/screenshots_007.txt,screenshots/images/screenshots_007.jpg,true
+screenshots_008,screenshots,FBC Bank,FT200869008980,SUCCESSFUL,2026-01-03 08:09:40,USD,177.38,screenshots/text/screenshots_008.txt,screenshots/images/screenshots_008.jpg,true
+screenshots_009,screenshots,ZB Bank,FT874343680521,SUCCESSFUL,2026-08-08 21:31:05,ZWG,210.25,screenshots/text/screenshots_009.txt,screenshots/images/screenshots_009.jpg,true
+screenshots_010,screenshots,CBZ Bank,CBZ2440955357,SUCCESSFUL,2026-04-23 13:15:03,USD,1014.72,screenshots/text/screenshots_010.txt,screenshots/images/screenshots_010.jpg,true
+screenshots_011,screenshots,ZB Bank,FT956669197248,SUCCESSFUL,2026-07-20 11:41:13,USD,614.78,screenshots/text/screenshots_011.txt,screenshots/images/screenshots_011.jpg,true
+screenshots_012,screenshots,NMB Bank,NMB-TXN-03108019,SUCCESSFUL,2026-07-12 20:04:36,USD,1413.21,screenshots/text/screenshots_012.txt,screenshots/images/screenshots_012.jpg,true
+screenshots_013,screenshots,First Capital Bank,FT227808282977,SUCCESSFUL,2026-03-21 20:52:44,ZWG,1453.24,screenshots/text/screenshots_013.txt,screenshots/images/screenshots_013.jpg,true
+screenshots_014,screenshots,Stanbic Bank,FT092470585896,SUCCESSFUL,2026-10-03 08:12:53,USD,433.24,screenshots/text/screenshots_014.txt,screenshots/images/screenshots_014.jpg,true
+screenshots_015,screenshots,Stanbic Bank,FT634530715482,PENDING,2026-09-27 20:38:50,USD,671.94,screenshots/text/screenshots_015.txt,screenshots/images/screenshots_015.jpg,true
+screenshots_016,screenshots,NMB Bank,NMB-TXN-93097072,SUCCESSFUL,2026-06-18 09:10:41,ZWG,223.08,screenshots/text/screenshots_016.txt,screenshots/images/screenshots_016.jpg,true
+screenshots_017,screenshots,Stanbic Bank,FT562528867305,SUCCESSFUL,2026-10-18 17:51:12,ZWG,61.37,screenshots/text/screenshots_017.txt,screenshots/images/screenshots_017.jpg,true
+screenshots_018,screenshots,First Capital Bank,FT601929832389,SUCCESSFUL,2026-07-18 15:56:49,USD,495.50,screenshots/text/screenshots_018.txt,screenshots/images/screenshots_018.jpg,true
+screenshots_019,screenshots,Stanbic Bank,FT152022875736,SUCCESSFUL,2026-09-08 20:08:27,USD,263.40,screenshots/text/screenshots_019.txt,screenshots/images/screenshots_019.jpg,true
+screenshots_020,screenshots,Stanbic Bank,FT146438581928,SUCCESSFUL,2026-08-12 16:54:01,USD,1451.41,screenshots/text/screenshots_020.txt,screenshots/images/screenshots_020.jpg,true
+screenshots_021,screenshots,CBZ Bank,CBZ3021688288,SUCCESSFUL,2026-02-06 07:19:12,ZWG,278.18,screenshots/text/screenshots_021.txt,screenshots/images/screenshots_021.jpg,true
+screenshots_022,screenshots,Steward Bank,FT604396637703,SUCCESSFUL,2026-07-31 13:10:51,ZWG,727.56,screenshots/text/screenshots_022.txt,screenshots/images/screenshots_022.jpg,true
+screenshots_023,screenshots,CABS,FT439704026576,SUCCESSFUL,2026-02-19 13:12:27,USD,802.29,screenshots/text/screenshots_023.txt,screenshots/images/screenshots_023.jpg,true
+screenshots_024,screenshots,Stanbic Bank,FT385105569097,SUCCESSFUL,2026-09-14 14:14:25,USD,344.43,screenshots/text/screenshots_024.txt,screenshots/images/screenshots_024.jpg,true
+screenshots_025,screenshots,NMB Bank,NMB-TXN-13546099,SUCCESSFUL,2026-05-21 19:51:33,ZWG,1456.91,screenshots/text/screenshots_025.txt,screenshots/images/screenshots_025.jpg,true
+screenshots_026,screenshots,First Capital Bank,FT732891388791,SUCCESSFUL,2026-10-08 09:18:13,ZWG,1278.69,screenshots/text/screenshots_026.txt,screenshots/images/screenshots_026.jpg,true
+screenshots_027,screenshots,Stanbic Bank,FT973068078242,SUCCESSFUL,2026-07-29 21:17:46,USD,702.48,screenshots/text/screenshots_027.txt,screenshots/images/screenshots_027.jpg,true
+screenshots_028,screenshots,Steward Bank,FT037479548616,SUCCESSFUL,2026-01-07 16:59:17,USD,537.45,screenshots/text/screenshots_028.txt,screenshots/images/screenshots_028.jpg,true
+screenshots_029,screenshots,CBZ Bank,CBZ1475142852,SUCCESSFUL,2026-05-02 21:20:07,USD,996.00,screenshots/text/screenshots_029.txt,screenshots/images/screenshots_029.jpg,true
+screenshots_030,screenshots,CBZ Bank,CBZ8871450955,SUCCESSFUL,2026-09-10 08:44:16,ZWG,1316.99,screenshots/text/screenshots_030.txt,screenshots/images/screenshots_030.jpg,true
+screenshots_031,screenshots,Stanbic Bank,FT531343091844,SUCCESSFUL,2026-04-14 19:33:06,USD,506.88,screenshots/text/screenshots_031.txt,screenshots/images/screenshots_031.jpg,true
+screenshots_032,screenshots,Stanbic Bank,FT354231619568,SUCCESSFUL,2026-06-23 14:51:18,USD,1352.61,screenshots/text/screenshots_032.txt,screenshots/images/screenshots_032.jpg,true
+screenshots_033,screenshots,ZB Bank,FT164539667445,SUCCESSFUL,2026-04-29 10:33:10,USD,1256.13,screenshots/text/screenshots_033.txt,screenshots/images/screenshots_033.jpg,true
+screenshots_034,screenshots,ZB Bank,FT522829077274,SUCCESSFUL,2026-07-10 21:48:32,ZWG,1400.77,screenshots/text/screenshots_034.txt,screenshots/images/screenshots_034.jpg,true
+screenshots_035,screenshots,FBC Bank,FT311690921175,SUCCESSFUL,2026-08-18 10:52:20,ZWG,543.22,screenshots/text/screenshots_035.txt,screenshots/images/screenshots_035.jpg,true
+screenshots_036,screenshots,FBC Bank,FT739612750294,SUCCESSFUL,2026-06-19 12:27:44,ZWG,798.48,screenshots/text/screenshots_036.txt,screenshots/images/screenshots_036.jpg,true
+screenshots_037,screenshots,Steward Bank,FT297006983179,SUCCESSFUL,2026-01-26 14:39:50,USD,822.76,screenshots/text/screenshots_037.txt,screenshots/images/screenshots_037.jpg,true
+screenshots_038,screenshots,NMB Bank,NMB-TXN-87545124,SUCCESSFUL,2026-08-05 21:20:09,ZWG,123.01,screenshots/text/screenshots_038.txt,screenshots/images/screenshots_038.jpg,true
+screenshots_039,screenshots,First Capital Bank,FT892112125937,PENDING,2026-06-21 19:16:50,USD,718.79,screenshots/text/screenshots_039.txt,screenshots/images/screenshots_039.jpg,true
+screenshots_040,screenshots,First Capital Bank,FT996479731434,SUCCESSFUL,2026-10-08 13:40:09,ZWG,41.75,screenshots/text/screenshots_040.txt,screenshots/images/screenshots_040.jpg,true
+screenshots_041,screenshots,ZB Bank,FT905956022421,SUCCESSFUL,2026-03-08 08:32:46,USD,628.63,screenshots/text/screenshots_041.txt,screenshots/images/screenshots_041.jpg,true
+screenshots_042,screenshots,ZB Bank,FT788490714552,SUCCESSFUL,2026-02-27 21:37:41,USD,1320.45,screenshots/text/screenshots_042.txt,screenshots/images/screenshots_042.jpg,true
+screenshots_043,screenshots,ZB Bank,FT949461525978,SUCCESSFUL,2026-07-26 07:07:47,USD,173.13,screenshots/text/screenshots_043.txt,screenshots/images/screenshots_043.jpg,true
+screenshots_044,screenshots,First Capital Bank,FT514880865651,SUCCESSFUL,2026-09-27 14:33:30,ZWG,728.82,screenshots/text/screenshots_044.txt,screenshots/images/screenshots_044.jpg,true
+screenshots_045,screenshots,CABS,FT457578669569,SUCCESSFUL,2026-04-18 07:54:46,ZWG,818.07,screenshots/text/screenshots_045.txt,screenshots/images/screenshots_045.jpg,true
+screenshots_046,screenshots,Stanbic Bank,FT477804960885,SUCCESSFUL,2026-04-29 09:17:10,USD,362.83,screenshots/text/screenshots_046.txt,screenshots/images/screenshots_046.jpg,true
+screenshots_047,screenshots,CBZ Bank,CBZ5056416973,SUCCESSFUL,2025-12-31 17:25:23,USD,259.01,screenshots/text/screenshots_047.txt,screenshots/images/screenshots_047.jpg,true
+screenshots_048,screenshots,Steward Bank,FT409984406747,SUCCESSFUL,2026-09-12 16:43:44,ZWG,778.55,screenshots/text/screenshots_048.txt,screenshots/images/screenshots_048.jpg,true
+screenshots_049,screenshots,First Capital Bank,FT890410288844,SUCCESSFUL,2026-02-02 13:19:17,USD,618.55,screenshots/text/screenshots_049.txt,screenshots/images/screenshots_049.jpg,true
+screenshots_050,screenshots,First Capital Bank,FT538316319785,SUCCESSFUL,2026-05-21 14:45:13,USD,1381.94,screenshots/text/screenshots_050.txt,screenshots/images/screenshots_050.jpg,true
+screenshots_051,screenshots,NMB Bank,NMB-TXN-45601411,SUCCESSFUL,2026-04-23 10:43:02,ZWG,73.89,screenshots/text/screenshots_051.txt,screenshots/images/screenshots_051.jpg,true
+screenshots_052,screenshots,CBZ Bank,CBZ4633982448,SUCCESSFUL,2026-07-05 13:18:56,ZWG,348.41,screenshots/text/screenshots_052.txt,screenshots/images/screenshots_052.jpg,true
+screenshots_053,screenshots,NMB Bank,NMB-TXN-61305169,SUCCESSFUL,2026-09-25 13:36:07,ZWG,658.38,screenshots/text/screenshots_053.txt,screenshots/images/screenshots_053.jpg,true
+screenshots_054,screenshots,NMB Bank,NMB-TXN-07494897,SUCCESSFUL,2026-06-14 17:37:19,ZWG,490.81,screenshots/text/screenshots_054.txt,screenshots/images/screenshots_054.jpg,true
+screenshots_055,screenshots,CBZ Bank,CBZ9125190589,SUCCESSFUL,2026-06-18 20:20:49,USD,1144.60,screenshots/text/screenshots_055.txt,screenshots/images/screenshots_055.jpg,true
+screenshots_056,screenshots,NMB Bank,NMB-TXN-79001577,SUCCESSFUL,2026-05-29 11:42:31,USD,168.84,screenshots/text/screenshots_056.txt,screenshots/images/screenshots_056.jpg,true
+screenshots_057,screenshots,CABS,FT898468289923,SUCCESSFUL,2026-03-10 10:07:40,USD,176.23,screenshots/text/screenshots_057.txt,screenshots/images/screenshots_057.jpg,true
+screenshots_058,screenshots,NMB Bank,NMB-TXN-30516073,SUCCESSFUL,2026-07-17 10:00:06,USD,463.78,screenshots/text/screenshots_058.txt,screenshots/images/screenshots_058.jpg,true
+screenshots_059,screenshots,CBZ Bank,CBZ0916852506,PENDING,2026-09-16 19:26:27,ZWG,705.99,screenshots/text/screenshots_059.txt,screenshots/images/screenshots_059.jpg,true
+screenshots_060,screenshots,First Capital Bank,FT439259210801,SUCCESSFUL,2026-08-01 12:09:37,ZWG,25.43,screenshots/text/screenshots_060.txt,screenshots/images/screenshots_060.jpg,true
+screenshots_061,screenshots,NMB Bank,NMB-TXN-36209181,SUCCESSFUL,2026-01-20 14:16:49,ZWG,743.92,screenshots/text/screenshots_061.txt,screenshots/images/screenshots_061.jpg,true
+screenshots_062,screenshots,NMB Bank,NMB-TXN-67945887,SUCCESSFUL,2026-01-09 19:35:23,USD,680.01,screenshots/text/screenshots_062.txt,screenshots/images/screenshots_062.jpg,true
+screenshots_063,screenshots,Stanbic Bank,FT727598160924,SUCCESSFUL,2026-04-24 09:53:27,USD,929.20,screenshots/text/screenshots_063.txt,screenshots/images/screenshots_063.jpg,true
+screenshots_064,screenshots,CABS,FT602348060124,SUCCESSFUL,2026-01-13 11:57:57,ZWG,16.02,screenshots/text/screenshots_064.txt,screenshots/images/screenshots_064.jpg,true
+screenshots_065,screenshots,Steward Bank,FT719752959567,SUCCESSFUL,2026-06-28 20:31:57,ZWG,1267.74,screenshots/text/screenshots_065.txt,screenshots/images/screenshots_065.jpg,true
+screenshots_066,screenshots,ZB Bank,FT157453418528,SUCCESSFUL,2026-06-05 13:27:59,ZWG,929.32,screenshots/text/screenshots_066.txt,screenshots/images/screenshots_066.jpg,true
+screenshots_067,screenshots,NMB Bank,NMB-TXN-82585216,PENDING,2026-04-23 20:44:54,USD,1012.83,screenshots/text/screenshots_067.txt,screenshots/images/screenshots_067.jpg,true
+screenshots_068,screenshots,ZB Bank,FT425093547094,SUCCESSFUL,2026-06-20 11:15:55,USD,1041.80,screenshots/text/screenshots_068.txt,screenshots/images/screenshots_068.jpg,true
+screenshots_069,screenshots,First Capital Bank,FT405726715539,SUCCESSFUL,2026-08-10 13:20:37,ZWG,29.33,screenshots/text/screenshots_069.txt,screenshots/images/screenshots_069.jpg,true
+screenshots_070,screenshots,CBZ Bank,CBZ3362463938,SUCCESSFUL,2026-01-13 18:29:30,USD,695.93,screenshots/text/screenshots_070.txt,screenshots/images/screenshots_070.jpg,true
+screenshots_071,screenshots,Stanbic Bank,FT066460475562,SUCCESSFUL,2026-01-27 07:56:02,USD,1429.37,screenshots/text/screenshots_071.txt,screenshots/images/screenshots_071.jpg,true
+screenshots_072,screenshots,Steward Bank,FT153372041264,SUCCESSFUL,2026-01-23 13:44:34,ZWG,231.47,screenshots/text/screenshots_072.txt,screenshots/images/screenshots_072.jpg,true
+screenshots_073,screenshots,NMB Bank,NMB-TXN-84668477,SUCCESSFUL,2026-02-04 09:20:08,ZWG,364.63,screenshots/text/screenshots_073.txt,screenshots/images/screenshots_073.jpg,true
+screenshots_074,screenshots,CABS,FT063989348296,SUCCESSFUL,2026-02-22 15:56:03,USD,1425.15,screenshots/text/screenshots_074.txt,screenshots/images/screenshots_074.jpg,true
+screenshots_075,screenshots,ZB Bank,FT904206428141,SUCCESSFUL,2026-10-10 15:59:56,USD,322.76,screenshots/text/screenshots_075.txt,screenshots/images/screenshots_075.jpg,true
+screenshots_076,screenshots,FBC Bank,FT839706104148,SUCCESSFUL,2026-03-12 20:03:50,USD,1340.19,screenshots/text/screenshots_076.txt,screenshots/images/screenshots_076.jpg,true
+screenshots_077,screenshots,Steward Bank,FT886526359281,SUCCESSFUL,2026-01-07 12:42:49,ZWG,1495.86,screenshots/text/screenshots_077.txt,screenshots/images/screenshots_077.jpg,true
+screenshots_078,screenshots,First Capital Bank,FT939347968323,SUCCESSFUL,2026-10-10 15:28:35,ZWG,1164.90,screenshots/text/screenshots_078.txt,screenshots/images/screenshots_078.jpg,true
+screenshots_079,screenshots,Stanbic Bank,FT893087903946,PENDING,2026-08-30 08:34:52,USD,1405.38,screenshots/text/screenshots_079.txt,screenshots/images/screenshots_079.jpg,true
+screenshots_080,screenshots,NMB Bank,NMB-TXN-14558432,SUCCESSFUL,2026-04-03 08:13:49,ZWG,1436.52,screenshots/text/screenshots_080.txt,screenshots/images/screenshots_080.jpg,true
+screenshots_081,screenshots,Stanbic Bank,FT777306421630,SUCCESSFUL,2026-03-02 09:19:36,USD,844.84,screenshots/text/screenshots_081.txt,screenshots/images/screenshots_081.jpg,true
+screenshots_082,screenshots,CBZ Bank,CBZ2765026545,SUCCESSFUL,2026-03-21 09:29:50,ZWG,617.68,screenshots/text/screenshots_082.txt,screenshots/images/screenshots_082.jpg,true
+screenshots_083,screenshots,FBC Bank,FT621600892901,SUCCESSFUL,2026-06-23 13:21:54,USD,1496.10,screenshots/text/screenshots_083.txt,screenshots/images/screenshots_083.jpg,true
+screenshots_084,screenshots,ZB Bank,FT486918165224,PENDING,2026-07-16 10:16:02,USD,1442.94,screenshots/text/screenshots_084.txt,screenshots/images/screenshots_084.jpg,true
+screenshots_085,screenshots,First Capital Bank,FT272915841772,SUCCESSFUL,2026-07-19 12:41:58,ZWG,295.65,screenshots/text/screenshots_085.txt,screenshots/images/screenshots_085.jpg,true
+screenshots_086,screenshots,First Capital Bank,FT242256972542,SUCCESSFUL,2026-03-21 17:24:01,USD,1349.78,screenshots/text/screenshots_086.txt,screenshots/images/screenshots_086.jpg,true
+screenshots_087,screenshots,CBZ Bank,CBZ8414931802,SUCCESSFUL,2026-08-01 17:15:24,ZWG,1278.67,screenshots/text/screenshots_087.txt,screenshots/images/screenshots_087.jpg,true
+screenshots_088,screenshots,First Capital Bank,FT549852246174,SUCCESSFUL,2026-10-18 13:45:51,ZWG,143.41,screenshots/text/screenshots_088.txt,screenshots/images/screenshots_088.jpg,true
+screenshots_089,screenshots,Steward Bank,FT732054362708,SUCCESSFUL,2026-01-11 09:54:09,USD,908.09,screenshots/text/screenshots_089.txt,screenshots/images/screenshots_089.jpg,true
+screenshots_090,screenshots,NMB Bank,NMB-TXN-23582129,SUCCESSFUL,2026-02-14 20:07:11,ZWG,864.22,screenshots/text/screenshots_090.txt,screenshots/images/screenshots_090.jpg,true
+screenshots_091,screenshots,ZB Bank,FT435015889873,SUCCESSFUL,2026-03-09 08:53:39,ZWG,952.09,screenshots/text/screenshots_091.txt,screenshots/images/screenshots_091.jpg,true
+screenshots_092,screenshots,Steward Bank,FT250179946874,SUCCESSFUL,2026-02-09 13:42:50,ZWG,892.41,screenshots/text/screenshots_092.txt,screenshots/images/screenshots_092.jpg,true
+screenshots_093,screenshots,ZB Bank,FT586557641181,SUCCESSFUL,2026-02-02 10:01:16,USD,367.81,screenshots/text/screenshots_093.txt,screenshots/images/screenshots_093.jpg,true
+screenshots_094,screenshots,FBC Bank,FT066992384135,SUCCESSFUL,2026-05-16 10:19:25,ZWG,386.56,screenshots/text/screenshots_094.txt,screenshots/images/screenshots_094.jpg,true
+screenshots_095,screenshots,NMB Bank,NMB-TXN-17169020,SUCCESSFUL,2026-06-05 13:22:27,ZWG,1426.46,screenshots/text/screenshots_095.txt,screenshots/images/screenshots_095.jpg,true
+screenshots_096,screenshots,CABS,FT761463734080,SUCCESSFUL,2026-01-18 10:54:24,USD,1406.12,screenshots/text/screenshots_096.txt,screenshots/images/screenshots_096.jpg,true
+screenshots_097,screenshots,Steward Bank,FT739076966315,SUCCESSFUL,2026-07-20 10:56:11,ZWG,669.22,screenshots/text/screenshots_097.txt,screenshots/images/screenshots_097.jpg,true
+screenshots_098,screenshots,FBC Bank,FT524079346749,SUCCESSFUL,2026-01-27 13:36:32,USD,565.84,screenshots/text/screenshots_098.txt,screenshots/images/screenshots_098.jpg,true
+screenshots_099,screenshots,NMB Bank,NMB-TXN-01168956,PENDING,2026-02-02 10:08:40,ZWG,516.29,screenshots/text/screenshots_099.txt,screenshots/images/screenshots_099.jpg,true
+screenshots_100,screenshots,First Capital Bank,FT149299481657,PENDING,2026-05-30 16:33:32,ZWG,802.63,screenshots/text/screenshots_100.txt,screenshots/images/screenshots_100.jpg,true
+screenshots_101,screenshots,First Capital Bank,FT775576979598,SUCCESSFUL,2026-02-23 07:16:15,USD,795.14,screenshots/text/screenshots_101.txt,screenshots/images/screenshots_101.jpg,true
+screenshots_102,screenshots,CBZ Bank,CBZ1088575526,SUCCESSFUL,2026-06-07 16:11:26,USD,292.80,screenshots/text/screenshots_102.txt,screenshots/images/screenshots_102.jpg,true
+screenshots_103,screenshots,NMB Bank,NMB-TXN-10588758,SUCCESSFUL,2026-02-02 18:50:43,ZWG,323.93,screenshots/text/screenshots_103.txt,screenshots/images/screenshots_103.jpg,true
+screenshots_104,screenshots,Steward Bank,FT986607732408,SUCCESSFUL,2026-01-06 12:00:53,ZWG,1406.29,screenshots/text/screenshots_104.txt,screenshots/images/screenshots_104.jpg,true
+screenshots_105,screenshots,NMB Bank,NMB-TXN-91556163,SUCCESSFUL,2026-03-27 14:37:29,ZWG,164.11,screenshots/text/screenshots_105.txt,screenshots/images/screenshots_105.jpg,true
+screenshots_106,screenshots,CABS,FT671910135694,SUCCESSFUL,2026-01-03 18:37:05,USD,1309.96,screenshots/text/screenshots_106.txt,screenshots/images/screenshots_106.jpg,true
+screenshots_107,screenshots,ZB Bank,FT055599972237,SUCCESSFUL,2026-01-16 08:58:18,ZWG,199.93,screenshots/text/screenshots_107.txt,screenshots/images/screenshots_107.jpg,true
+screenshots_108,screenshots,Stanbic Bank,FT541958221157,SUCCESSFUL,2026-06-01 07:18:08,ZWG,92.58,screenshots/text/screenshots_108.txt,screenshots/images/screenshots_108.jpg,true
+screenshots_109,screenshots,ZB Bank,FT853204773013,PENDING,2026-08-26 13:14:27,USD,1473.55,screenshots/text/screenshots_109.txt,screenshots/images/screenshots_109.jpg,true
+screenshots_110,screenshots,CBZ Bank,CBZ5762507004,SUCCESSFUL,2026-08-01 10:23:59,USD,917.46,screenshots/text/screenshots_110.txt,screenshots/images/screenshots_110.jpg,true
+screenshots_111,screenshots,Steward Bank,FT410837971401,SUCCESSFUL,2026-03-08 19:45:22,ZWG,558.41,screenshots/text/screenshots_111.txt,screenshots/images/screenshots_111.jpg,true
+screenshots_112,screenshots,FBC Bank,FT593614935170,SUCCESSFUL,2026-09-26 20:33:22,ZWG,280.72,screenshots/text/screenshots_112.txt,screenshots/images/screenshots_112.jpg,true
+screenshots_113,screenshots,FBC Bank,FT375274499315,SUCCESSFUL,2026-08-21 17:06:03,USD,566.34,screenshots/text/screenshots_113.txt,screenshots/images/screenshots_113.jpg,true
+screenshots_114,screenshots,ZB Bank,FT476470902245,SUCCESSFUL,2026-05-30 14:18:37,USD,203.15,screenshots/text/screenshots_114.txt,screenshots/images/screenshots_114.jpg,true
+screenshots_115,screenshots,CBZ Bank,CBZ8614509183,SUCCESSFUL,2026-06-02 11:42:34,USD,662.23,screenshots/text/screenshots_115.txt,screenshots/images/screenshots_115.jpg,true
+screenshots_116,screenshots,ZB Bank,FT640460188590,SUCCESSFUL,2026-09-13 14:51:06,USD,1305.86,screenshots/text/screenshots_116.txt,screenshots/images/screenshots_116.jpg,true
+screenshots_117,screenshots,NMB Bank,NMB-TXN-93053762,SUCCESSFUL,2026-08-09 16:09:08,USD,1447.40,screenshots/text/screenshots_117.txt,screenshots/images/screenshots_117.jpg,true
+screenshots_118,screenshots,Stanbic Bank,FT966016103549,SUCCESSFUL,2026-07-17 19:32:19,ZWG,57.93,screenshots/text/screenshots_118.txt,screenshots/images/screenshots_118.jpg,true
+screenshots_119,screenshots,CABS,FT443719826302,SUCCESSFUL,2026-04-15 18:19:36,ZWG,968.30,screenshots/text/screenshots_119.txt,screenshots/images/screenshots_119.jpg,true
+screenshots_120,screenshots,FBC Bank,FT394705979816,SUCCESSFUL,2026-07-01 18:23:17,USD,1392.44,screenshots/text/screenshots_120.txt,screenshots/images/screenshots_120.jpg,true
+screenshots_121,screenshots,Steward Bank,FT195135473201,SUCCESSFUL,2026-08-24 18:56:12,USD,154.83,screenshots/text/screenshots_121.txt,screenshots/images/screenshots_121.jpg,true
+screenshots_122,screenshots,CBZ Bank,CBZ4061443150,SUCCESSFUL,2026-05-08 20:03:17,USD,899.23,screenshots/text/screenshots_122.txt,screenshots/images/screenshots_122.jpg,true
+screenshots_123,screenshots,First Capital Bank,FT007301939894,SUCCESSFUL,2026-01-16 20:59:42,ZWG,71.81,screenshots/text/screenshots_123.txt,screenshots/images/screenshots_123.jpg,true
+screenshots_124,screenshots,First Capital Bank,FT526336763158,SUCCESSFUL,2026-07-12 11:21:39,USD,417.66,screenshots/text/screenshots_124.txt,screenshots/images/screenshots_124.jpg,true
+screenshots_125,screenshots,CABS,FT671262133483,SUCCESSFUL,2026-10-09 13:01:27,USD,667.36,screenshots/text/screenshots_125.txt,screenshots/images/screenshots_125.jpg,true
+screenshots_126,screenshots,ZB Bank,FT880355080416,SUCCESSFUL,2026-07-25 20:29:28,ZWG,601.21,screenshots/text/screenshots_126.txt,screenshots/images/screenshots_126.jpg,true
+screenshots_127,screenshots,ZB Bank,FT545918725949,SUCCESSFUL,2026-02-07 07:11:10,USD,1467.31,screenshots/text/screenshots_127.txt,screenshots/images/screenshots_127.jpg,true
+screenshots_128,screenshots,NMB Bank,NMB-TXN-04571432,SUCCESSFUL,2026-02-27 12:07:09,ZWG,1386.93,screenshots/text/screenshots_128.txt,screenshots/images/screenshots_128.jpg,true
+screenshots_129,screenshots,CBZ Bank,CBZ6714189648,SUCCESSFUL,2026-07-12 21:55:57,ZWG,349.09,screenshots/text/screenshots_129.txt,screenshots/images/screenshots_129.jpg,true
+screenshots_130,screenshots,NMB Bank,NMB-TXN-64705882,SUCCESSFUL,2026-05-30 18:07:16,ZWG,362.77,screenshots/text/screenshots_130.txt,screenshots/images/screenshots_130.jpg,true
+screenshots_131,screenshots,CBZ Bank,CBZ5821263592,SUCCESSFUL,2026-08-21 21:52:55,USD,376.06,screenshots/text/screenshots_131.txt,screenshots/images/screenshots_131.jpg,true
+screenshots_132,screenshots,Stanbic Bank,FT423138974854,SUCCESSFUL,2026-03-09 09:15:02,ZWG,359.76,screenshots/text/screenshots_132.txt,screenshots/images/screenshots_132.jpg,true
+screenshots_133,screenshots,ZB Bank,FT326041566786,SUCCESSFUL,2026-08-02 11:01:44,USD,834.39,screenshots/text/screenshots_133.txt,screenshots/images/screenshots_133.jpg,true
+screenshots_134,screenshots,Stanbic Bank,FT013709083623,SUCCESSFUL,2026-09-02 11:57:56,ZWG,1398.86,screenshots/text/screenshots_134.txt,screenshots/images/screenshots_134.jpg,true
+screenshots_135,screenshots,ZB Bank,FT288471666111,SUCCESSFUL,2026-10-11 09:35:32,USD,161.21,screenshots/text/screenshots_135.txt,screenshots/images/screenshots_135.jpg,true
+screenshots_136,screenshots,CABS,FT710244744602,SUCCESSFUL,2026-06-28 11:31:12,USD,233.29,screenshots/text/screenshots_136.txt,screenshots/images/screenshots_136.jpg,true
+screenshots_137,screenshots,NMB Bank,NMB-TXN-87586766,SUCCESSFUL,2026-10-14 16:26:56,ZWG,318.38,screenshots/text/screenshots_137.txt,screenshots/images/screenshots_137.jpg,true
+screenshots_138,screenshots,CABS,FT004968788495,PENDING,2026-01-06 20:39:41,ZWG,1216.87,screenshots/text/screenshots_138.txt,screenshots/images/screenshots_138.jpg,true
+screenshots_139,screenshots,Stanbic Bank,FT116340082619,SUCCESSFUL,2026-07-01 21:46:50,ZWG,372.99,screenshots/text/screenshots_139.txt,screenshots/images/screenshots_139.jpg,true
+screenshots_140,screenshots,CABS,FT018968463639,SUCCESSFUL,2026-03-26 12:12:43,ZWG,1495.78,screenshots/text/screenshots_140.txt,screenshots/images/screenshots_140.jpg,true
+screenshots_141,screenshots,NMB Bank,NMB-TXN-11803801,SUCCESSFUL,2026-02-25 21:18:32,ZWG,322.08,screenshots/text/screenshots_141.txt,screenshots/images/screenshots_141.jpg,true
+screenshots_142,screenshots,FBC Bank,FT936069024699,SUCCESSFUL,2026-08-06 08:08:02,ZWG,796.26,screenshots/text/screenshots_142.txt,screenshots/images/screenshots_142.jpg,true
+screenshots_143,screenshots,Stanbic Bank,FT740210130384,SUCCESSFUL,2025-12-28 18:42:58,USD,592.00,screenshots/text/screenshots_143.txt,screenshots/images/screenshots_143.jpg,true
+screenshots_144,screenshots,ZB Bank,FT707235285194,SUCCESSFUL,2026-02-07 16:35:52,ZWG,1140.34,screenshots/text/screenshots_144.txt,screenshots/images/screenshots_144.jpg,true
+screenshots_145,screenshots,Steward Bank,FT724339147869,SUCCESSFUL,2026-06-22 19:01:24,ZWG,1117.71,screenshots/text/screenshots_145.txt,screenshots/images/screenshots_145.jpg,true
+screenshots_146,screenshots,CBZ Bank,CBZ4812573091,SUCCESSFUL,2026-07-22 20:39:20,ZWG,1115.44,screenshots/text/screenshots_146.txt,screenshots/images/screenshots_146.jpg,true
+screenshots_147,screenshots,First Capital Bank,FT076739896789,SUCCESSFUL,2026-10-06 16:36:47,ZWG,305.78,screenshots/text/screenshots_147.txt,screenshots/images/screenshots_147.jpg,true
+screenshots_148,screenshots,CBZ Bank,CBZ4008686114,SUCCESSFUL,2026-01-26 21:02:44,ZWG,35.74,screenshots/text/screenshots_148.txt,screenshots/images/screenshots_148.jpg,true
+screenshots_149,screenshots,CABS,FT244181189421,SUCCESSFUL,2026-01-28 12:50:42,USD,1293.10,screenshots/text/screenshots_149.txt,screenshots/images/screenshots_149.jpg,true
+screenshots_150,screenshots,CBZ Bank,CBZ0627349659,SUCCESSFUL,2026-10-19 17:10:25,USD,296.38,screenshots/text/screenshots_150.txt,screenshots/images/screenshots_150.jpg,true
+screenshots_151,screenshots,CABS,FT021698351741,SUCCESSFUL,2026-06-07 10:21:15,USD,936.86,screenshots/text/screenshots_151.txt,screenshots/images/screenshots_151.jpg,true
+screenshots_152,screenshots,FBC Bank,FT235332960259,SUCCESSFUL,2026-10-15 09:02:18,ZWG,416.38,screenshots/text/screenshots_152.txt,screenshots/images/screenshots_152.jpg,true
+screenshots_153,screenshots,FBC Bank,FT247639928106,SUCCESSFUL,2026-03-20 09:39:57,USD,487.32,screenshots/text/screenshots_153.txt,screenshots/images/screenshots_153.jpg,true
+screenshots_154,screenshots,Stanbic Bank,FT693629096469,PENDING,2026-01-02 09:03:30,ZWG,1251.07,screenshots/text/screenshots_154.txt,screenshots/images/screenshots_154.jpg,true
+screenshots_155,screenshots,Stanbic Bank,FT783449645428,SUCCESSFUL,2026-05-07 16:09:38,ZWG,1476.68,screenshots/text/screenshots_155.txt,screenshots/images/screenshots_155.jpg,true
+screenshots_156,screenshots,CBZ Bank,CBZ9396842907,SUCCESSFUL,2026-09-23 21:20:19,USD,1007.84,screenshots/text/screenshots_156.txt,screenshots/images/screenshots_156.jpg,true
+screenshots_157,screenshots,CABS,FT752669439324,SUCCESSFUL,2026-02-14 08:25:01,ZWG,577.72,screenshots/text/screenshots_157.txt,screenshots/images/screenshots_157.jpg,true
+screenshots_158,screenshots,FBC Bank,FT608347247248,PENDING,2026-10-03 15:40:21,USD,903.73,screenshots/text/screenshots_158.txt,screenshots/images/screenshots_158.jpg,true
+screenshots_159,screenshots,Stanbic Bank,FT663827968304,SUCCESSFUL,2026-06-05 18:22:19,ZWG,907.67,screenshots/text/screenshots_159.txt,screenshots/images/screenshots_159.jpg,true
+screenshots_160,screenshots,CABS,FT749915886868,SUCCESSFUL,2026-01-20 08:26:56,USD,944.07,screenshots/text/screenshots_160.txt,screenshots/images/screenshots_160.jpg,true
+screenshots_161,screenshots,FBC Bank,FT061473792413,SUCCESSFUL,2025-12-28 10:49:44,ZWG,444.48,screenshots/text/screenshots_161.txt,screenshots/images/screenshots_161.jpg,true
+screenshots_162,screenshots,NMB Bank,NMB-TXN-91540879,SUCCESSFUL,2026-01-05 15:24:07,ZWG,1103.46,screenshots/text/screenshots_162.txt,screenshots/images/screenshots_162.jpg,true
+screenshots_163,screenshots,FBC Bank,FT745356491527,SUCCESSFUL,2026-05-17 07:42:57,USD,58.10,screenshots/text/screenshots_163.txt,screenshots/images/screenshots_163.jpg,true
+screenshots_164,screenshots,First Capital Bank,FT671860696858,SUCCESSFUL,2026-06-08 13:48:53,USD,926.34,screenshots/text/screenshots_164.txt,screenshots/images/screenshots_164.jpg,true
+screenshots_165,screenshots,ZB Bank,FT142502231573,SUCCESSFUL,2026-10-02 13:16:56,USD,17.11,screenshots/text/screenshots_165.txt,screenshots/images/screenshots_165.jpg,true
+screenshots_166,screenshots,CBZ Bank,CBZ1682123234,SUCCESSFUL,2026-07-25 21:27:44,ZWG,786.09,screenshots/text/screenshots_166.txt,screenshots/images/screenshots_166.jpg,true
+screenshots_167,screenshots,NMB Bank,NMB-TXN-85834299,SUCCESSFUL,2026-05-03 17:13:59,USD,48.06,screenshots/text/screenshots_167.txt,screenshots/images/screenshots_167.jpg,true
+screenshots_168,screenshots,FBC Bank,FT452189092541,SUCCESSFUL,2026-03-16 07:22:47,USD,828.81,screenshots/text/screenshots_168.txt,screenshots/images/screenshots_168.jpg,true
+screenshots_169,screenshots,NMB Bank,NMB-TXN-69048121,SUCCESSFUL,2026-10-18 10:37:38,USD,322.92,screenshots/text/screenshots_169.txt,screenshots/images/screenshots_169.jpg,true
+screenshots_170,screenshots,Stanbic Bank,FT379233839411,SUCCESSFUL,2026-09-29 08:23:27,USD,181.75,screenshots/text/screenshots_170.txt,screenshots/images/screenshots_170.jpg,true
+screenshots_171,screenshots,CABS,FT417563502334,SUCCESSFUL,2026-01-10 11:59:46,ZWG,695.64,screenshots/text/screenshots_171.txt,screenshots/images/screenshots_171.jpg,true
+screenshots_172,screenshots,NMB Bank,NMB-TXN-38605169,SUCCESSFUL,2026-08-10 17:19:11,ZWG,510.29,screenshots/text/screenshots_172.txt,screenshots/images/screenshots_172.jpg,true
+screenshots_173,screenshots,Steward Bank,FT406532955983,SUCCESSFUL,2026-03-01 20:17:05,USD,532.37,screenshots/text/screenshots_173.txt,screenshots/images/screenshots_173.jpg,true
+screenshots_174,screenshots,FBC Bank,FT617332141837,SUCCESSFUL,2026-06-30 17:12:18,USD,1180.94,screenshots/text/screenshots_174.txt,screenshots/images/screenshots_174.jpg,true
+screenshots_175,screenshots,ZB Bank,FT863936778905,SUCCESSFUL,2026-09-01 11:21:25,USD,811.12,screenshots/text/screenshots_175.txt,screenshots/images/screenshots_175.jpg,true
+screenshots_176,screenshots,Steward Bank,FT836649339126,SUCCESSFUL,2026-05-19 08:14:49,USD,256.32,screenshots/text/screenshots_176.txt,screenshots/images/screenshots_176.jpg,true
+screenshots_177,screenshots,NMB Bank,NMB-TXN-40074130,SUCCESSFUL,2026-09-19 17:59:33,USD,204.04,screenshots/text/screenshots_177.txt,screenshots/images/screenshots_177.jpg,true
+screenshots_178,screenshots,Stanbic Bank,FT590924690288,PENDING,2026-02-16 13:36:00,USD,281.41,screenshots/text/screenshots_178.txt,screenshots/images/screenshots_178.jpg,true
+screenshots_179,screenshots,Stanbic Bank,FT389382583703,SUCCESSFUL,2026-02-27 12:29:21,ZWG,936.18,screenshots/text/screenshots_179.txt,screenshots/images/screenshots_179.jpg,true
+screenshots_180,screenshots,First Capital Bank,FT951942494343,SUCCESSFUL,2026-05-31 20:14:50,USD,506.92,screenshots/text/screenshots_180.txt,screenshots/images/screenshots_180.jpg,true
+screenshots_181,screenshots,First Capital Bank,FT281660045095,SUCCESSFUL,2026-07-29 11:49:06,ZWG,845.03,screenshots/text/screenshots_181.txt,screenshots/images/screenshots_181.jpg,true
+screenshots_182,screenshots,Stanbic Bank,FT825721280334,SUCCESSFUL,2026-07-07 21:51:24,USD,493.07,screenshots/text/screenshots_182.txt,screenshots/images/screenshots_182.jpg,true
+screenshots_183,screenshots,NMB Bank,NMB-TXN-14979048,SUCCESSFUL,2026-04-18 18:34:39,USD,586.83,screenshots/text/screenshots_183.txt,screenshots/images/screenshots_183.jpg,true
+screenshots_184,screenshots,CBZ Bank,CBZ0539164333,SUCCESSFUL,2026-10-02 20:01:41,ZWG,754.49,screenshots/text/screenshots_184.txt,screenshots/images/screenshots_184.jpg,true
+screenshots_185,screenshots,NMB Bank,NMB-TXN-51797480,SUCCESSFUL,2026-03-31 09:26:02,USD,1052.91,screenshots/text/screenshots_185.txt,screenshots/images/screenshots_185.jpg,true
+screenshots_186,screenshots,FBC Bank,FT799880283852,SUCCESSFUL,2026-05-28 21:52:12,ZWG,1094.91,screenshots/text/screenshots_186.txt,screenshots/images/screenshots_186.jpg,true
+screenshots_187,screenshots,CABS,FT398890169415,SUCCESSFUL,2026-08-12 11:34:51,ZWG,422.75,screenshots/text/screenshots_187.txt,screenshots/images/screenshots_187.jpg,true
+screenshots_188,screenshots,CABS,FT294207928295,SUCCESSFUL,2026-06-20 15:45:49,USD,561.89,screenshots/text/screenshots_188.txt,screenshots/images/screenshots_188.jpg,true
+screenshots_189,screenshots,ZB Bank,FT228051041963,SUCCESSFUL,2026-06-28 18:44:36,USD,1254.47,screenshots/text/screenshots_189.txt,screenshots/images/screenshots_189.jpg,true
+screenshots_190,screenshots,CBZ Bank,CBZ7611838881,SUCCESSFUL,2026-07-01 10:30:33,USD,1154.79,screenshots/text/screenshots_190.txt,screenshots/images/screenshots_190.jpg,true
+screenshots_191,screenshots,FBC Bank,FT196804778747,SUCCESSFUL,2026-09-01 20:10:07,USD,39.68,screenshots/text/screenshots_191.txt,screenshots/images/screenshots_191.jpg,true
+screenshots_192,screenshots,CABS,FT069482139328,SUCCESSFUL,2026-07-31 15:35:40,USD,875.20,screenshots/text/screenshots_192.txt,screenshots/images/screenshots_192.jpg,true
+screenshots_193,screenshots,Steward Bank,FT574461152750,SUCCESSFUL,2026-05-07 20:14:55,ZWG,723.18,screenshots/text/screenshots_193.txt,screenshots/images/screenshots_193.jpg,true
+screenshots_194,screenshots,ZB Bank,FT408282952198,SUCCESSFUL,2026-03-26 12:27:33,ZWG,682.60,screenshots/text/screenshots_194.txt,screenshots/images/screenshots_194.jpg,true
+screenshots_195,screenshots,CBZ Bank,CBZ2513459428,SUCCESSFUL,2026-01-12 08:01:29,USD,999.77,screenshots/text/screenshots_195.txt,screenshots/images/screenshots_195.jpg,true
+screenshots_196,screenshots,CBZ Bank,CBZ9364650650,SUCCESSFUL,2026-04-22 07:07:02,USD,775.71,screenshots/text/screenshots_196.txt,screenshots/images/screenshots_196.jpg,true
+screenshots_197,screenshots,Stanbic Bank,FT540255580704,SUCCESSFUL,2026-02-04 11:59:52,ZWG,829.77,screenshots/text/screenshots_197.txt,screenshots/images/screenshots_197.jpg,true
+screenshots_198,screenshots,CABS,FT204404271492,SUCCESSFUL,2026-09-11 08:49:50,USD,150.54,screenshots/text/screenshots_198.txt,screenshots/images/screenshots_198.jpg,true
+screenshots_199,screenshots,Steward Bank,FT444402706962,SUCCESSFUL,2026-02-16 09:13:05,ZWG,1431.00,screenshots/text/screenshots_199.txt,screenshots/images/screenshots_199.jpg,true
+screenshots_200,screenshots,CABS,FT006021203503,SUCCESSFUL,2026-10-14 09:02:55,USD,1433.66,screenshots/text/screenshots_200.txt,screenshots/images/screenshots_200.jpg,true
+sms_001,sms,EcoCash,PP326UK88I,SUCCESSFUL,2026-05-24 20:17:04,ZWG,174.51,sms/text/sms_001.txt,sms/images/sms_001.jpg,true
+sms_002,sms,EcoCash,PPZZ5OJ863,PENDING,2026-07-27 09:54:32,ZWG,1290.84,sms/text/sms_002.txt,sms/images/sms_002.jpg,true
+sms_003,sms,EcoCash,PPBEJS3CHY,SUCCESSFUL,2026-02-11 16:40:57,USD,1472.87,sms/text/sms_003.txt,sms/images/sms_003.jpg,true
+sms_004,sms,EcoCash,PPF3JRQDMH,SUCCESSFUL,2026-06-02 18:24:11,ZWG,885.87,sms/text/sms_004.txt,sms/images/sms_004.jpg,true
+sms_005,sms,EcoCash,PPEIW6O4SJ,SUCCESSFUL,2026-06-29 16:31:09,ZWG,1172.11,sms/text/sms_005.txt,sms/images/sms_005.jpg,true
+sms_006,sms,EcoCash,PP0FHWY5IM,SUCCESSFUL,2026-06-01 14:19:02,ZWG,441.22,sms/text/sms_006.txt,sms/images/sms_006.jpg,true
+sms_007,sms,EcoCash,PPL246DSPK,PENDING,2026-03-17 17:41:49,USD,965.68,sms/text/sms_007.txt,sms/images/sms_007.jpg,true
+sms_008,sms,EcoCash,PPE769DQMI,SUCCESSFUL,2026-09-13 10:20:32,USD,75.88,sms/text/sms_008.txt,sms/images/sms_008.jpg,true
+sms_009,sms,EcoCash,PPRDUXXQ0N,SUCCESSFUL,2026-02-07 09:52:02,ZWG,343.56,sms/text/sms_009.txt,sms/images/sms_009.jpg,true
+sms_010,sms,EcoCash,PPS6JLYU4M,SUCCESSFUL,2026-05-13 09:59:20,ZWG,360.62,sms/text/sms_010.txt,sms/images/sms_010.jpg,true
+sms_011,sms,EcoCash,PP46O5MVZQ,SUCCESSFUL,2026-05-25 18:56:21,ZWG,1316.04,sms/text/sms_011.txt,sms/images/sms_011.jpg,true
+sms_012,sms,EcoCash,PP4GA2MP4W,SUCCESSFUL,2026-10-07 12:19:20,USD,318.22,sms/text/sms_012.txt,sms/images/sms_012.jpg,true
+sms_013,sms,EcoCash,PP7GO3GAMC,SUCCESSFUL,2026-06-06 13:10:51,ZWG,745.97,sms/text/sms_013.txt,sms/images/sms_013.jpg,true
+sms_014,sms,EcoCash,PPCGDAXAWV,PENDING,2026-03-31 18:56:45,USD,119.89,sms/text/sms_014.txt,sms/images/sms_014.jpg,true
+sms_015,sms,EcoCash,PPQBFKBEM1,SUCCESSFUL,2026-05-05 10:50:54,ZWG,966.49,sms/text/sms_015.txt,sms/images/sms_015.jpg,true
+sms_016,sms,EcoCash,PPCK7DKHIO,PENDING,2026-06-13 13:11:39,ZWG,1260.73,sms/text/sms_016.txt,sms/images/sms_016.jpg,true
+sms_017,sms,EcoCash,PPDWWT0U2C,SUCCESSFUL,2026-03-12 12:01:27,ZWG,1430.07,sms/text/sms_017.txt,sms/images/sms_017.jpg,true
+sms_018,sms,EcoCash,PPT4ZHN3LH,SUCCESSFUL,2026-01-13 10:55:15,USD,378.58,sms/text/sms_018.txt,sms/images/sms_018.jpg,true
+sms_019,sms,EcoCash,PPFJ6R7OH6,SUCCESSFUL,2026-06-10 08:11:41,ZWG,999.66,sms/text/sms_019.txt,sms/images/sms_019.jpg,true
+sms_020,sms,EcoCash,PP9E75YBIQ,SUCCESSFUL,2026-07-20 11:21:54,ZWG,962.74,sms/text/sms_020.txt,sms/images/sms_020.jpg,true
+sms_021,sms,EcoCash,PPDPM6E7OL,SUCCESSFUL,2026-02-11 17:48:17,USD,50.12,sms/text/sms_021.txt,sms/images/sms_021.jpg,true
+sms_022,sms,EcoCash,PPAIS775XX,SUCCESSFUL,2026-10-13 16:42:01,ZWG,1088.55,sms/text/sms_022.txt,sms/images/sms_022.jpg,true
+sms_023,sms,EcoCash,PPPVN2V9IO,SUCCESSFUL,2026-07-27 11:16:02,USD,931.78,sms/text/sms_023.txt,sms/images/sms_023.jpg,true
+sms_024,sms,EcoCash,PPYD3V1IOG,SUCCESSFUL,2026-04-14 15:30:38,USD,1497.49,sms/text/sms_024.txt,sms/images/sms_024.jpg,true
+sms_025,sms,EcoCash,PPZPMRUZ9X,SUCCESSFUL,2026-07-18 10:50:51,ZWG,1111.86,sms/text/sms_025.txt,sms/images/sms_025.jpg,true
+sms_026,sms,EcoCash,PPV63JCAGL,PENDING,2026-08-03 14:54:35,ZWG,228.08,sms/text/sms_026.txt,sms/images/sms_026.jpg,true
+sms_027,sms,EcoCash,PP0WJ8DV96,SUCCESSFUL,2026-07-20 15:19:44,ZWG,1090.59,sms/text/sms_027.txt,sms/images/sms_027.jpg,true
+sms_028,sms,EcoCash,PPGYBV4IH7,SUCCESSFUL,2026-03-02 12:08:34,ZWG,1089.71,sms/text/sms_028.txt,sms/images/sms_028.jpg,true
+sms_029,sms,EcoCash,PP5LD7DP42,SUCCESSFUL,2026-09-15 07:33:35,ZWG,297.92,sms/text/sms_029.txt,sms/images/sms_029.jpg,true
+sms_030,sms,EcoCash,PPU5JDLXRW,SUCCESSFUL,2026-03-13 10:36:01,ZWG,875.51,sms/text/sms_030.txt,sms/images/sms_030.jpg,true
+sms_031,sms,EcoCash,PP1D33J4LR,SUCCESSFUL,2026-05-15 14:20:45,ZWG,1198.78,sms/text/sms_031.txt,sms/images/sms_031.jpg,true
+sms_032,sms,EcoCash,PP8H4XO3PY,SUCCESSFUL,2026-01-23 11:34:46,ZWG,681.49,sms/text/sms_032.txt,sms/images/sms_032.jpg,true
+sms_033,sms,EcoCash,PPD3ATXM8Y,SUCCESSFUL,2026-03-17 21:00:42,ZWG,21.39,sms/text/sms_033.txt,sms/images/sms_033.jpg,true
+sms_034,sms,EcoCash,PPZJNOO0LT,SUCCESSFUL,2026-01-30 15:34:26,USD,850.15,sms/text/sms_034.txt,sms/images/sms_034.jpg,true
+sms_035,sms,EcoCash,PPTGJRKPKT,SUCCESSFUL,2026-06-09 07:02:48,USD,606.59,sms/text/sms_035.txt,sms/images/sms_035.jpg,true
+sms_036,sms,EcoCash,PPYKU55YDS,SUCCESSFUL,2026-04-20 09:36:54,ZWG,457.54,sms/text/sms_036.txt,sms/images/sms_036.jpg,true
+sms_037,sms,EcoCash,PPB4WSAQMW,SUCCESSFUL,2026-08-24 14:33:27,ZWG,1165.66,sms/text/sms_037.txt,sms/images/sms_037.jpg,true
+sms_038,sms,EcoCash,PP2O9H51KK,SUCCESSFUL,2026-09-28 16:31:53,USD,356.35,sms/text/sms_038.txt,sms/images/sms_038.jpg,true
+sms_039,sms,EcoCash,PPBWX4PBHY,SUCCESSFUL,2026-01-16 13:11:37,ZWG,396.55,sms/text/sms_039.txt,sms/images/sms_039.jpg,true
+sms_040,sms,EcoCash,PPD0TYVX72,SUCCESSFUL,2026-08-23 10:10:34,ZWG,674.11,sms/text/sms_040.txt,sms/images/sms_040.jpg,true
+sms_041,sms,EcoCash,PPWGU3BNE5,SUCCESSFUL,2026-08-09 07:26:12,USD,670.99,sms/text/sms_041.txt,sms/images/sms_041.jpg,true
+sms_042,sms,EcoCash,PPH50QBGBD,SUCCESSFUL,2026-04-25 18:10:42,USD,383.41,sms/text/sms_042.txt,sms/images/sms_042.jpg,true
+sms_043,sms,EcoCash,PP7GFDHJWJ,SUCCESSFUL,2026-07-09 11:18:27,USD,262.60,sms/text/sms_043.txt,sms/images/sms_043.jpg,true
+sms_044,sms,EcoCash,PPME2MNR02,SUCCESSFUL,2026-07-18 17:11:50,USD,144.30,sms/text/sms_044.txt,sms/images/sms_044.jpg,true
+sms_045,sms,EcoCash,PP8EWPL03Q,SUCCESSFUL,2026-09-04 12:51:12,USD,785.95,sms/text/sms_045.txt,sms/images/sms_045.jpg,true
+sms_046,sms,EcoCash,PPDWXH65KI,SUCCESSFUL,2026-04-11 07:09:31,ZWG,846.78,sms/text/sms_046.txt,sms/images/sms_046.jpg,true
+sms_047,sms,EcoCash,PPERY05N29,SUCCESSFUL,2026-09-10 07:56:12,ZWG,476.89,sms/text/sms_047.txt,sms/images/sms_047.jpg,true
+sms_048,sms,EcoCash,PPC76YZY2O,SUCCESSFUL,2026-06-04 17:20:14,USD,566.50,sms/text/sms_048.txt,sms/images/sms_048.jpg,true
+sms_049,sms,EcoCash,PP1IHXKBDT,SUCCESSFUL,2026-06-08 20:09:03,USD,925.31,sms/text/sms_049.txt,sms/images/sms_049.jpg,true
+sms_050,sms,EcoCash,PP5M4LITCB,SUCCESSFUL,2026-08-07 11:27:10,ZWG,1007.02,sms/text/sms_050.txt,sms/images/sms_050.jpg,true
+sms_051,sms,EcoCash,PPTCSDNYCE,SUCCESSFUL,2026-01-24 12:40:34,ZWG,316.87,sms/text/sms_051.txt,sms/images/sms_051.jpg,true
+sms_052,sms,EcoCash,PPM2V9LTTM,SUCCESSFUL,2026-07-13 13:21:43,ZWG,524.99,sms/text/sms_052.txt,sms/images/sms_052.jpg,true
+sms_053,sms,EcoCash,PP6GOWCHF2,SUCCESSFUL,2026-03-28 19:15:32,ZWG,275.92,sms/text/sms_053.txt,sms/images/sms_053.jpg,true
+sms_054,sms,EcoCash,PPMJR3IZTC,SUCCESSFUL,2026-02-06 14:21:46,USD,458.40,sms/text/sms_054.txt,sms/images/sms_054.jpg,true
+sms_055,sms,EcoCash,PPHJIWQ9DS,SUCCESSFUL,2026-05-25 19:02:42,ZWG,485.73,sms/text/sms_055.txt,sms/images/sms_055.jpg,true
+sms_056,sms,EcoCash,PP06G1B8OX,SUCCESSFUL,2026-05-10 21:27:08,ZWG,28.67,sms/text/sms_056.txt,sms/images/sms_056.jpg,true
+sms_057,sms,EcoCash,PPBFNFX1EE,SUCCESSFUL,2026-06-25 12:53:40,USD,329.64,sms/text/sms_057.txt,sms/images/sms_057.jpg,true
+sms_058,sms,EcoCash,PP1VYSJJNI,SUCCESSFUL,2026-02-16 16:00:22,ZWG,274.73,sms/text/sms_058.txt,sms/images/sms_058.jpg,true
+sms_059,sms,EcoCash,PPE51P4VLV,SUCCESSFUL,2026-08-14 14:08:47,ZWG,297.15,sms/text/sms_059.txt,sms/images/sms_059.jpg,true
+sms_060,sms,EcoCash,PPWFYLB693,SUCCESSFUL,2026-04-15 13:15:49,ZWG,843.24,sms/text/sms_060.txt,sms/images/sms_060.jpg,true
+sms_061,sms,EcoCash,PPZBG78WKA,SUCCESSFUL,2026-10-01 18:28:36,ZWG,478.27,sms/text/sms_061.txt,sms/images/sms_061.jpg,true
+sms_062,sms,EcoCash,PPZTDHFG6V,PENDING,2026-05-07 17:24:52,USD,1442.23,sms/text/sms_062.txt,sms/images/sms_062.jpg,true
+sms_063,sms,EcoCash,PP04MILZW4,SUCCESSFUL,2026-09-12 09:54:33,USD,1002.05,sms/text/sms_063.txt,sms/images/sms_063.jpg,true
+sms_064,sms,EcoCash,PPMVBGWPZD,SUCCESSFUL,2026-09-23 11:44:32,ZWG,50.53,sms/text/sms_064.txt,sms/images/sms_064.jpg,true
+sms_065,sms,EcoCash,PPRAUPGKZA,SUCCESSFUL,2026-09-13 12:45:01,USD,550.99,sms/text/sms_065.txt,sms/images/sms_065.jpg,true
+sms_066,sms,EcoCash,PPJXEHFU8U,SUCCESSFUL,2026-04-21 14:11:29,ZWG,1013.01,sms/text/sms_066.txt,sms/images/sms_066.jpg,true
+sms_067,sms,EcoCash,PP28Z5TIFD,SUCCESSFUL,2026-02-09 21:29:22,USD,228.69,sms/text/sms_067.txt,sms/images/sms_067.jpg,true
+sms_068,sms,EcoCash,PP0Z5TPLEX,PENDING,2026-07-30 12:52:38,USD,1227.35,sms/text/sms_068.txt,sms/images/sms_068.jpg,true
+sms_069,sms,EcoCash,PPHK1GAUCE,SUCCESSFUL,2026-07-24 16:12:19,ZWG,1467.28,sms/text/sms_069.txt,sms/images/sms_069.jpg,true
+sms_070,sms,EcoCash,PPY8824U8H,PENDING,2026-04-10 07:41:19,USD,1282.28,sms/text/sms_070.txt,sms/images/sms_070.jpg,true
+sms_071,sms,EcoCash,PPF1L87GG5,SUCCESSFUL,2026-03-28 21:08:30,ZWG,1460.24,sms/text/sms_071.txt,sms/images/sms_071.jpg,true
+sms_072,sms,EcoCash,PPUI5LKF9C,SUCCESSFUL,2026-07-10 17:31:35,USD,580.85,sms/text/sms_072.txt,sms/images/sms_072.jpg,true
+sms_073,sms,EcoCash,PPGIWPZ77F,PENDING,2026-05-22 16:14:57,ZWG,1286.92,sms/text/sms_073.txt,sms/images/sms_073.jpg,true
+sms_074,sms,EcoCash,PPJOZM2ZPD,SUCCESSFUL,2026-10-06 17:52:09,ZWG,1333.72,sms/text/sms_074.txt,sms/images/sms_074.jpg,true
+sms_075,sms,EcoCash,PPQ09D2UMD,SUCCESSFUL,2026-07-19 07:03:46,USD,843.86,sms/text/sms_075.txt,sms/images/sms_075.jpg,true
+sms_076,sms,EcoCash,PPZH5Q1IPD,SUCCESSFUL,2026-04-18 10:14:34,ZWG,814.05,sms/text/sms_076.txt,sms/images/sms_076.jpg,true
+sms_077,sms,EcoCash,PPV2A1XV84,SUCCESSFUL,2026-05-28 19:44:35,ZWG,847.04,sms/text/sms_077.txt,sms/images/sms_077.jpg,true
+sms_078,sms,EcoCash,PPF5RKGLT3,SUCCESSFUL,2026-07-08 07:16:25,USD,1182.50,sms/text/sms_078.txt,sms/images/sms_078.jpg,true
+sms_079,sms,EcoCash,PPWMM95FQ2,SUCCESSFUL,2026-03-18 16:31:48,USD,157.57,sms/text/sms_079.txt,sms/images/sms_079.jpg,true
+sms_080,sms,EcoCash,PPU4CRXKXN,SUCCESSFUL,2026-06-11 16:40:03,USD,325.73,sms/text/sms_080.txt,sms/images/sms_080.jpg,true
+sms_081,sms,EcoCash,PPR6UY0K9D,SUCCESSFUL,2026-04-06 16:38:25,USD,357.27,sms/text/sms_081.txt,sms/images/sms_081.jpg,true
+sms_082,sms,EcoCash,PPEHA1CSB3,SUCCESSFUL,2026-01-01 16:24:30,USD,856.31,sms/text/sms_082.txt,sms/images/sms_082.jpg,true
+sms_083,sms,EcoCash,PP3YMZ2J0K,SUCCESSFUL,2026-02-14 07:10:12,USD,1261.86,sms/text/sms_083.txt,sms/images/sms_083.jpg,true
+sms_084,sms,EcoCash,PP4CEQ9GO4,SUCCESSFUL,2026-01-12 15:50:55,USD,623.80,sms/text/sms_084.txt,sms/images/sms_084.jpg,true
+sms_085,sms,EcoCash,PPWC23GJKX,SUCCESSFUL,2026-01-23 08:42:47,ZWG,1268.22,sms/text/sms_085.txt,sms/images/sms_085.jpg,true
+sms_086,sms,EcoCash,PPEEF44V8A,SUCCESSFUL,2026-01-04 21:26:24,ZWG,1099.18,sms/text/sms_086.txt,sms/images/sms_086.jpg,true
+sms_087,sms,EcoCash,PP0TPBJA0S,SUCCESSFUL,2026-02-01 14:39:03,USD,108.62,sms/text/sms_087.txt,sms/images/sms_087.jpg,true
+sms_088,sms,EcoCash,PPCICRBHY6,SUCCESSFUL,2026-05-06 17:37:27,USD,57.33,sms/text/sms_088.txt,sms/images/sms_088.jpg,true
+sms_089,sms,EcoCash,PPO31N9IOO,SUCCESSFUL,2026-04-19 20:13:14,ZWG,844.43,sms/text/sms_089.txt,sms/images/sms_089.jpg,true
+sms_090,sms,EcoCash,PPSMVEI4N2,SUCCESSFUL,2026-04-03 10:00:58,ZWG,315.40,sms/text/sms_090.txt,sms/images/sms_090.jpg,true
+sms_091,sms,EcoCash,PPTU8HEFRT,SUCCESSFUL,2026-07-04 10:02:22,USD,347.59,sms/text/sms_091.txt,sms/images/sms_091.jpg,true
+sms_092,sms,EcoCash,PP0H6KC9HZ,SUCCESSFUL,2026-10-01 16:39:54,ZWG,1042.17,sms/text/sms_092.txt,sms/images/sms_092.jpg,true
+sms_093,sms,EcoCash,PPLSCIF548,SUCCESSFUL,2025-12-29 19:58:09,ZWG,62.99,sms/text/sms_093.txt,sms/images/sms_093.jpg,true
+sms_094,sms,EcoCash,PP9GL9PZOZ,SUCCESSFUL,2026-06-17 10:23:51,USD,665.84,sms/text/sms_094.txt,sms/images/sms_094.jpg,true
+sms_095,sms,EcoCash,PP411EPMO6,PENDING,2026-09-16 07:11:35,USD,1217.00,sms/text/sms_095.txt,sms/images/sms_095.jpg,true
+sms_096,sms,EcoCash,PPFBT02HJQ,PENDING,2026-02-04 09:20:16,ZWG,428.90,sms/text/sms_096.txt,sms/images/sms_096.jpg,true
+sms_097,sms,EcoCash,PPQ70SVS2H,SUCCESSFUL,2026-05-05 16:16:12,ZWG,1135.96,sms/text/sms_097.txt,sms/images/sms_097.jpg,true
+sms_098,sms,EcoCash,PP2ZMRO45C,SUCCESSFUL,2026-07-10 14:15:50,USD,1126.50,sms/text/sms_098.txt,sms/images/sms_098.jpg,true
+sms_099,sms,EcoCash,PP6Q5RWA7L,SUCCESSFUL,2026-06-04 20:53:56,ZWG,1197.62,sms/text/sms_099.txt,sms/images/sms_099.jpg,true
+sms_100,sms,EcoCash,PPPVJ7B7DH,SUCCESSFUL,2026-03-17 17:37:35,USD,1404.55,sms/text/sms_100.txt,sms/images/sms_100.jpg,true
+complex_001,complex,NMB Bank,NMB-TXN-20193559,SUCCESSFUL,2026-09-04 20:14:04,ZWG,140.34,complex/text/complex_001.txt,complex/images/complex_001.jpg,true
+complex_002,complex,Steward Bank,FT623094669890,SUCCESSFUL,2026-05-17 12:20:50,USD,175.11,complex/text/complex_002.txt,complex/images/complex_002.jpg,true
+complex_003,complex,ZB Bank,FT677002703034,SUCCESSFUL,2026-06-20 08:55:03,ZWG,999.79,complex/text/complex_003.txt,complex/images/complex_003.jpg,true
+complex_004,complex,CBZ Bank,CBZ5460997635,SUCCESSFUL,2026-01-29 21:54:52,USD,616.93,complex/text/complex_004.txt,complex/images/complex_004.jpg,true
+complex_005,complex,First Capital Bank,FT409388378588,SUCCESSFUL,2026-05-18 09:32:36,ZWG,285.18,complex/text/complex_005.txt,complex/images/complex_005.jpg,true
+complex_006,complex,CABS,FT012696129913,SUCCESSFUL,2026-05-18 13:53:54,USD,1165.95,complex/text/complex_006.txt,complex/images/complex_006.jpg,true
+complex_007,complex,CBZ Bank,CBZ5440758028,SUCCESSFUL,2026-01-15 16:39:59,ZWG,481.51,complex/text/complex_007.txt,complex/images/complex_007.jpg,true
+complex_008,complex,NMB Bank,NMB-TXN-77773367,SUCCESSFUL,2026-04-18 09:04:12,ZWG,18.58,complex/text/complex_008.txt,complex/images/complex_008.jpg,true
+complex_009,complex,Steward Bank,FT222249216708,SUCCESSFUL,2026-03-20 21:39:32,USD,1353.30,complex/text/complex_009.txt,complex/images/complex_009.jpg,true
+complex_010,complex,NMB Bank,NMB-TXN-81456262,SUCCESSFUL,2026-06-02 13:03:20,ZWG,1381.77,complex/text/complex_010.txt,complex/images/complex_010.jpg,true
+complex_011,complex,CABS,FT884235588690,SUCCESSFUL,2026-06-24 17:23:30,ZWG,1095.39,complex/text/complex_011.txt,complex/images/complex_011.jpg,true
+complex_012,complex,ZB Bank,FT898680043190,PENDING,2026-02-07 10:27:40,USD,642.01,complex/text/complex_012.txt,complex/images/complex_012.jpg,true
+complex_013,complex,Steward Bank,FT534877699522,SUCCESSFUL,2026-06-14 14:23:30,USD,785.90,complex/text/complex_013.txt,complex/images/complex_013.jpg,true
+complex_014,complex,First Capital Bank,FT582831216621,SUCCESSFUL,2025-12-29 21:49:18,USD,423.78,complex/text/complex_014.txt,complex/images/complex_014.jpg,true
+complex_015,complex,First Capital Bank,FT144788326144,SUCCESSFUL,2026-03-27 20:31:14,ZWG,254.13,complex/text/complex_015.txt,complex/images/complex_015.jpg,true
+complex_016,complex,CABS,FT535236747171,SUCCESSFUL,2025-12-26 17:47:32,USD,948.63,complex/text/complex_016.txt,complex/images/complex_016.jpg,true
+complex_017,complex,Stanbic Bank,FT336171095137,SUCCESSFUL,2026-08-25 21:00:35,ZWG,1275.82,complex/text/complex_017.txt,complex/images/complex_017.jpg,true
+complex_018,complex,Stanbic Bank,FT606536138244,SUCCESSFUL,2026-01-22 08:28:48,ZWG,1235.48,complex/text/complex_018.txt,complex/images/complex_018.jpg,true
+complex_019,complex,ZB Bank,FT764983288261,SUCCESSFUL,2026-08-27 07:05:07,ZWG,598.13,complex/text/complex_019.txt,complex/images/complex_019.jpg,true
+complex_020,complex,ZB Bank,FT629325045175,SUCCESSFUL,2026-04-24 14:42:09,USD,1234.39,complex/text/complex_020.txt,complex/images/complex_020.jpg,true
+complex_021,complex,Steward Bank,FT947706532918,SUCCESSFUL,2026-08-11 19:25:09,USD,1233.30,complex/text/complex_021.txt,complex/images/complex_021.jpg,true
+complex_022,complex,CBZ Bank,CBZ2293644811,SUCCESSFUL,2026-08-27 20:42:37,ZWG,599.97,complex/text/complex_022.txt,complex/images/complex_022.jpg,true
+complex_023,complex,CBZ Bank,CBZ7897229062,SUCCESSFUL,2026-09-20 12:08:36,USD,858.28,complex/text/complex_023.txt,complex/images/complex_023.jpg,true
+complex_024,complex,CBZ Bank,CBZ8254002572,SUCCESSFUL,2026-01-02 13:49:03,USD,482.33,complex/text/complex_024.txt,complex/images/complex_024.jpg,true
+complex_025,complex,CBZ Bank,CBZ6853540873,SUCCESSFUL,2026-06-06 20:19:34,ZWG,1031.54,complex/text/complex_025.txt,complex/images/complex_025.jpg,true
+complex_026,complex,NMB Bank,NMB-TXN-70268193,SUCCESSFUL,2026-07-01 14:54:22,USD,1068.99,complex/text/complex_026.txt,complex/images/complex_026.jpg,true
+complex_027,complex,CABS,FT686443191397,SUCCESSFUL,2026-05-13 20:25:55,ZWG,856.95,complex/text/complex_027.txt,complex/images/complex_027.jpg,true
+complex_028,complex,Stanbic Bank,FT758107642721,SUCCESSFUL,2026-05-08 14:05:22,ZWG,171.76,complex/text/complex_028.txt,complex/images/complex_028.jpg,true
+complex_029,complex,Stanbic Bank,FT745244414662,SUCCESSFUL,2026-03-05 08:41:02,USD,1400.50,complex/text/complex_029.txt,complex/images/complex_029.jpg,true
+complex_030,complex,Steward Bank,FT375476101291,SUCCESSFUL,2026-08-10 18:30:55,USD,1112.38,complex/text/complex_030.txt,complex/images/complex_030.jpg,true
+complex_031,complex,ZB Bank,FT570463448517,SUCCESSFUL,2026-07-07 16:34:17,ZWG,1383.68,complex/text/complex_031.txt,complex/images/complex_031.jpg,true
+complex_032,complex,FBC Bank,FT371074630776,SUCCESSFUL,2026-05-16 21:29:07,ZWG,1413.86,complex/text/complex_032.txt,complex/images/complex_032.jpg,true
+complex_033,complex,First Capital Bank,FT203637389936,SUCCESSFUL,2026-03-02 11:48:09,USD,1373.67,complex/text/complex_033.txt,complex/images/complex_033.jpg,true
+complex_034,complex,FBC Bank,FT692699753824,SUCCESSFUL,2026-04-09 10:43:31,ZWG,605.36,complex/text/complex_034.txt,complex/images/complex_034.jpg,true
+complex_035,complex,NMB Bank,NMB-TXN-41537393,SUCCESSFUL,2026-04-19 15:17:08,ZWG,1425.20,complex/text/complex_035.txt,complex/images/complex_035.jpg,true
+complex_036,complex,Stanbic Bank,FT468286483327,SUCCESSFUL,2026-06-04 10:43:39,ZWG,369.35,complex/text/complex_036.txt,complex/images/complex_036.jpg,true
+complex_037,complex,FBC Bank,FT795106329757,SUCCESSFUL,2026-08-08 08:27:45,USD,101.06,complex/text/complex_037.txt,complex/images/complex_037.jpg,true
+complex_038,complex,NMB Bank,NMB-TXN-74708682,SUCCESSFUL,2026-07-13 18:06:56,USD,1000.15,complex/text/complex_038.txt,complex/images/complex_038.jpg,true
+complex_039,complex,ZB Bank,FT574419298499,SUCCESSFUL,2026-09-25 20:42:00,USD,791.77,complex/text/complex_039.txt,complex/images/complex_039.jpg,true
+complex_040,complex,FBC Bank,FT859393155586,SUCCESSFUL,2026-06-17 17:35:26,USD,1290.69,complex/text/complex_040.txt,complex/images/complex_040.jpg,true
+complex_041,complex,Steward Bank,FT114326144853,SUCCESSFUL,2026-01-28 08:16:52,USD,1435.21,complex/text/complex_041.txt,complex/images/complex_041.jpg,true
+complex_042,complex,First Capital Bank,FT969688205302,SUCCESSFUL,2026-08-12 15:51:28,ZWG,1047.62,complex/text/complex_042.txt,complex/images/complex_042.jpg,true
+complex_043,complex,NMB Bank,NMB-TXN-47579454,SUCCESSFUL,2026-07-22 21:59:58,USD,192.72,complex/text/complex_043.txt,complex/images/complex_043.jpg,true
+complex_044,complex,Steward Bank,FT592702892247,SUCCESSFUL,2026-04-29 08:26:37,USD,1297.97,complex/text/complex_044.txt,complex/images/complex_044.jpg,true
+complex_045,complex,FBC Bank,FT148852420390,PENDING,2026-02-04 13:20:33,ZWG,514.50,complex/text/complex_045.txt,complex/images/complex_045.jpg,true
+complex_046,complex,Stanbic Bank,FT969594448540,PENDING,2026-09-24 13:41:41,ZWG,446.54,complex/text/complex_046.txt,complex/images/complex_046.jpg,true
+complex_047,complex,NMB Bank,NMB-TXN-78445377,SUCCESSFUL,2026-01-11 07:53:53,USD,879.44,complex/text/complex_047.txt,complex/images/complex_047.jpg,true
+complex_048,complex,FBC Bank,FT068822168368,SUCCESSFUL,2026-06-08 21:43:58,USD,1086.77,complex/text/complex_048.txt,complex/images/complex_048.jpg,true
+complex_049,complex,NMB Bank,NMB-TXN-57721085,SUCCESSFUL,2026-08-28 19:57:03,ZWG,1080.44,complex/text/complex_049.txt,complex/images/complex_049.jpg,true
+complex_050,complex,Steward Bank,FT475801725155,SUCCESSFUL,2026-08-05 17:45:17,ZWG,1010.31,complex/text/complex_050.txt,complex/images/complex_050.jpg,true
+complex_051,complex,Steward Bank,FT766451306362,SUCCESSFUL,2026-04-29 15:28:33,ZWG,132.72,complex/text/complex_051.txt,complex/images/complex_051.jpg,true
+complex_052,complex,CBZ Bank,CBZ5961520180,SUCCESSFUL,2026-06-02 15:13:42,USD,783.09,complex/text/complex_052.txt,complex/images/complex_052.jpg,true
+complex_053,complex,First Capital Bank,FT993902425681,SUCCESSFUL,2026-08-14 09:20:19,ZWG,165.06,complex/text/complex_053.txt,complex/images/complex_053.jpg,true
+complex_054,complex,CBZ Bank,CBZ0491776675,SUCCESSFUL,2026-08-27 12:23:13,ZWG,720.30,complex/text/complex_054.txt,complex/images/complex_054.jpg,true
+complex_055,complex,First Capital Bank,FT221257176721,SUCCESSFUL,2026-08-19 09:14:12,ZWG,1238.03,complex/text/complex_055.txt,complex/images/complex_055.jpg,true
+complex_056,complex,First Capital Bank,FT363993433361,SUCCESSFUL,2026-05-16 11:54:12,ZWG,1100.09,complex/text/complex_056.txt,complex/images/complex_056.jpg,true
+complex_057,complex,CBZ Bank,CBZ4217258121,PENDING,2026-09-09 16:07:22,USD,1325.86,complex/text/complex_057.txt,complex/images/complex_057.jpg,true
+complex_058,complex,Steward Bank,FT890795572288,SUCCESSFUL,2026-07-08 19:09:24,ZWG,694.82,complex/text/complex_058.txt,complex/images/complex_058.jpg,true
+complex_059,complex,NMB Bank,NMB-TXN-91833107,SUCCESSFUL,2026-04-04 14:45:27,ZWG,116.83,complex/text/complex_059.txt,complex/images/complex_059.jpg,true
+complex_060,complex,CABS,FT034958849916,SUCCESSFUL,2026-07-12 20:16:31,USD,1398.72,complex/text/complex_060.txt,complex/images/complex_060.jpg,true
+complex_061,complex,First Capital Bank,FT297589086122,SUCCESSFUL,2026-06-30 12:02:20,USD,404.84,complex/text/complex_061.txt,complex/images/complex_061.jpg,true
+complex_062,complex,First Capital Bank,FT498477124907,SUCCESSFUL,2026-03-07 15:31:54,USD,409.83,complex/text/complex_062.txt,complex/images/complex_062.jpg,true
+complex_063,complex,Stanbic Bank,FT081876576694,SUCCESSFUL,2026-03-20 10:15:45,USD,214.57,complex/text/complex_063.txt,complex/images/complex_063.jpg,true
+complex_064,complex,First Capital Bank,FT044925588721,SUCCESSFUL,2026-06-07 08:51:20,USD,1370.11,complex/text/complex_064.txt,complex/images/complex_064.jpg,true
+complex_065,complex,Stanbic Bank,FT552372014571,SUCCESSFUL,2026-10-07 08:29:46,USD,388.67,complex/text/complex_065.txt,complex/images/complex_065.jpg,true
+complex_066,complex,Steward Bank,FT799712457573,SUCCESSFUL,2026-07-28 17:42:33,USD,468.10,complex/text/complex_066.txt,complex/images/complex_066.jpg,true
+complex_067,complex,CBZ Bank,CBZ4622621936,SUCCESSFUL,2026-01-25 20:53:45,USD,1223.00,complex/text/complex_067.txt,complex/images/complex_067.jpg,true
+complex_068,complex,CABS,FT880291203169,SUCCESSFUL,2026-09-02 17:02:10,ZWG,1336.51,complex/text/complex_068.txt,complex/images/complex_068.jpg,true
+complex_069,complex,ZB Bank,FT084829612509,SUCCESSFUL,2026-10-19 14:26:32,USD,549.92,complex/text/complex_069.txt,complex/images/complex_069.jpg,true
+complex_070,complex,CABS,FT926092870177,SUCCESSFUL,2026-09-08 08:10:21,ZWG,1284.80,complex/text/complex_070.txt,complex/images/complex_070.jpg,true
+complex_071,complex,ZB Bank,FT471619349447,SUCCESSFUL,2026-03-18 12:12:11,ZWG,392.16,complex/text/complex_071.txt,complex/images/complex_071.jpg,true
+complex_072,complex,Stanbic Bank,FT812501572048,SUCCESSFUL,2026-01-25 08:19:13,ZWG,1251.83,complex/text/complex_072.txt,complex/images/complex_072.jpg,true
+complex_073,complex,First Capital Bank,FT739130284592,SUCCESSFUL,2026-01-15 16:21:30,ZWG,472.11,complex/text/complex_073.txt,complex/images/complex_073.jpg,true
+complex_074,complex,ZB Bank,FT507343630707,SUCCESSFUL,2026-06-04 19:12:16,ZWG,682.87,complex/text/complex_074.txt,complex/images/complex_074.jpg,true
+complex_075,complex,CBZ Bank,CBZ7219616033,PENDING,2026-02-17 09:40:48,ZWG,1416.59,complex/text/complex_075.txt,complex/images/complex_075.jpg,true
+complex_076,complex,CABS,FT834654942468,SUCCESSFUL,2026-04-08 14:20:54,USD,459.51,complex/text/complex_076.txt,complex/images/complex_076.jpg,true
+complex_077,complex,CABS,FT951372144697,SUCCESSFUL,2026-05-29 18:31:16,ZWG,247.22,complex/text/complex_077.txt,complex/images/complex_077.jpg,true
+complex_078,complex,FBC Bank,FT436799575619,SUCCESSFUL,2026-10-08 20:52:04,USD,434.80,complex/text/complex_078.txt,complex/images/complex_078.jpg,true
+complex_079,complex,CBZ Bank,CBZ5641493288,SUCCESSFUL,2026-08-03 09:05:57,USD,1142.67,complex/text/complex_079.txt,complex/images/complex_079.jpg,true
+complex_080,complex,First Capital Bank,FT717614648835,SUCCESSFUL,2026-09-21 18:18:43,ZWG,617.88,complex/text/complex_080.txt,complex/images/complex_080.jpg,true
+complex_081,complex,Steward Bank,FT728857082893,SUCCESSFUL,2026-07-26 20:51:47,USD,226.70,complex/text/complex_081.txt,complex/images/complex_081.jpg,true
+complex_082,complex,Stanbic Bank,FT646993112759,SUCCESSFUL,2026-09-10 11:46:30,USD,264.95,complex/text/complex_082.txt,complex/images/complex_082.jpg,true
+complex_083,complex,FBC Bank,FT536758752071,SUCCESSFUL,2026-04-14 10:00:46,USD,57.96,complex/text/complex_083.txt,complex/images/complex_083.jpg,true
+complex_084,complex,NMB Bank,NMB-TXN-04126788,SUCCESSFUL,2026-03-29 17:51:48,ZWG,443.20,complex/text/complex_084.txt,complex/images/complex_084.jpg,true
+complex_085,complex,FBC Bank,FT207325553268,SUCCESSFUL,2026-04-06 20:28:35,ZWG,599.52,complex/text/complex_085.txt,complex/images/complex_085.jpg,true
+complex_086,complex,Stanbic Bank,FT341077490971,SUCCESSFUL,2026-01-06 16:56:32,ZWG,1451.97,complex/text/complex_086.txt,complex/images/complex_086.jpg,true
+complex_087,complex,FBC Bank,FT720208467047,SUCCESSFUL,2026-08-01 21:08:54,ZWG,176.77,complex/text/complex_087.txt,complex/images/complex_087.jpg,true
+complex_088,complex,NMB Bank,NMB-TXN-12858513,SUCCESSFUL,2026-05-03 16:23:15,ZWG,247.26,complex/text/complex_088.txt,complex/images/complex_088.jpg,true
+complex_089,complex,CBZ Bank,CBZ2040447599,SUCCESSFUL,2026-01-26 09:16:34,ZWG,1208.64,complex/text/complex_089.txt,complex/images/complex_089.jpg,true
+complex_090,complex,CABS,FT465244745618,SUCCESSFUL,2026-02-17 20:19:31,USD,449.22,complex/text/complex_090.txt,complex/images/complex_090.jpg,true
+complex_091,complex,CBZ Bank,CBZ5326616864,SUCCESSFUL,2026-08-20 09:51:40,ZWG,913.75,complex/text/complex_091.txt,complex/images/complex_091.jpg,true
+complex_092,complex,CABS,FT939173371098,SUCCESSFUL,2026-03-15 17:37:17,USD,673.01,complex/text/complex_092.txt,complex/images/complex_092.jpg,true
+complex_093,complex,CBZ Bank,CBZ0931232262,SUCCESSFUL,2026-03-27 08:55:39,USD,95.15,complex/text/complex_093.txt,complex/images/complex_093.jpg,true
+complex_094,complex,NMB Bank,NMB-TXN-89562054,PENDING,2026-02-04 11:11:15,ZWG,353.65,complex/text/complex_094.txt,complex/images/complex_094.jpg,true
+complex_095,complex,CABS,FT326050627620,SUCCESSFUL,2026-04-29 20:06:52,USD,520.01,complex/text/complex_095.txt,complex/images/complex_095.jpg,true
+complex_096,complex,CBZ Bank,CBZ5987202752,SUCCESSFUL,2026-01-29 12:40:36,ZWG,943.28,complex/text/complex_096.txt,complex/images/complex_096.jpg,true
+complex_097,complex,ZB Bank,FT789264683606,SUCCESSFUL,2026-09-05 08:32:42,USD,1298.58,complex/text/complex_097.txt,complex/images/complex_097.jpg,true
+complex_098,complex,Stanbic Bank,FT971103017862,SUCCESSFUL,2026-03-26 15:55:15,USD,1414.29,complex/text/complex_098.txt,complex/images/complex_098.jpg,true
+complex_099,complex,Stanbic Bank,FT323283727613,PENDING,2026-10-07 09:47:27,USD,80.34,complex/text/complex_099.txt,complex/images/complex_099.jpg,true
+complex_100,complex,FBC Bank,FT636208645251,PENDING,2026-05-19 20:34:33,ZWG,1003.02,complex/text/complex_100.txt,complex/images/complex_100.jpg,true
+complex_101,complex,Steward Bank,FT241061828081,SUCCESSFUL,2025-12-28 20:38:33,ZWG,180.94,complex/text/complex_101.txt,complex/images/complex_101.jpg,true
+complex_102,complex,CABS,FT249136997124,SUCCESSFUL,2026-04-24 15:24:18,ZWG,199.45,complex/text/complex_102.txt,complex/images/complex_102.jpg,true
+complex_103,complex,NMB Bank,NMB-TXN-16396055,SUCCESSFUL,2026-07-23 12:29:16,USD,1180.28,complex/text/complex_103.txt,complex/images/complex_103.jpg,true
+complex_104,complex,Stanbic Bank,FT671388552294,SUCCESSFUL,2026-07-16 12:51:44,ZWG,29.10,complex/text/complex_104.txt,complex/images/complex_104.jpg,true
+complex_105,complex,Stanbic Bank,FT667843682258,SUCCESSFUL,2026-06-10 11:49:07,ZWG,73.51,complex/text/complex_105.txt,complex/images/complex_105.jpg,true
+complex_106,complex,Stanbic Bank,FT095953729860,SUCCESSFUL,2026-03-03 07:50:07,ZWG,358.63,complex/text/complex_106.txt,complex/images/complex_106.jpg,true
+complex_107,complex,First Capital Bank,FT861205048211,SUCCESSFUL,2026-10-19 09:07:56,USD,825.37,complex/text/complex_107.txt,complex/images/complex_107.jpg,true
+complex_108,complex,FBC Bank,FT320863423589,SUCCESSFUL,2026-03-26 21:35:32,ZWG,29.20,complex/text/complex_108.txt,complex/images/complex_108.jpg,true
+complex_109,complex,ZB Bank,FT511314979221,SUCCESSFUL,2026-02-28 14:04:43,ZWG,176.22,complex/text/complex_109.txt,complex/images/complex_109.jpg,true
+complex_110,complex,NMB Bank,NMB-TXN-01168937,SUCCESSFUL,2026-06-25 10:08:43,ZWG,536.07,complex/text/complex_110.txt,complex/images/complex_110.jpg,true
+complex_111,complex,CBZ Bank,CBZ4718888688,SUCCESSFUL,2026-05-10 18:16:21,USD,499.03,complex/text/complex_111.txt,complex/images/complex_111.jpg,true
+complex_112,complex,Stanbic Bank,FT013529219468,SUCCESSFUL,2026-02-07 08:56:01,USD,298.60,complex/text/complex_112.txt,complex/images/complex_112.jpg,true
+complex_113,complex,Stanbic Bank,FT598686653169,SUCCESSFUL,2026-06-05 11:53:40,ZWG,282.29,complex/text/complex_113.txt,complex/images/complex_113.jpg,true
+complex_114,complex,First Capital Bank,FT969435090054,SUCCESSFUL,2026-10-20 17:47:24,ZWG,935.20,complex/text/complex_114.txt,complex/images/complex_114.jpg,true
+complex_115,complex,CABS,FT477744935604,SUCCESSFUL,2026-09-27 12:29:56,ZWG,1444.97,complex/text/complex_115.txt,complex/images/complex_115.jpg,true
+complex_116,complex,FBC Bank,FT679803328848,SUCCESSFUL,2026-07-17 11:58:21,ZWG,1227.39,complex/text/complex_116.txt,complex/images/complex_116.jpg,true
+complex_117,complex,FBC Bank,FT309102526952,SUCCESSFUL,2026-04-07 16:52:29,ZWG,185.34,complex/text/complex_117.txt,complex/images/complex_117.jpg,true
+complex_118,complex,ZB Bank,FT144159380620,PENDING,2026-02-04 19:23:39,USD,345.70,complex/text/complex_118.txt,complex/images/complex_118.jpg,true
+complex_119,complex,NMB Bank,NMB-TXN-98739887,PENDING,2026-09-19 10:06:37,USD,1169.98,complex/text/complex_119.txt,complex/images/complex_119.jpg,true
+complex_120,complex,Stanbic Bank,FT097262936597,SUCCESSFUL,2026-04-27 09:47:36,ZWG,1073.48,complex/text/complex_120.txt,complex/images/complex_120.jpg,true
+complex_121,complex,FBC Bank,FT851944591076,SUCCESSFUL,2026-02-18 12:24:25,USD,1370.18,complex/text/complex_121.txt,complex/images/complex_121.jpg,true
+complex_122,complex,NMB Bank,NMB-TXN-15061835,SUCCESSFUL,2026-01-30 11:17:41,USD,863.98,complex/text/complex_122.txt,complex/images/complex_122.jpg,true
+complex_123,complex,Steward Bank,FT584154799871,SUCCESSFUL,2026-01-18 20:57:08,USD,728.11,complex/text/complex_123.txt,complex/images/complex_123.jpg,true
+complex_124,complex,First Capital Bank,FT549806255795,SUCCESSFUL,2026-06-29 11:03:42,ZWG,1384.11,complex/text/complex_124.txt,complex/images/complex_124.jpg,true
+complex_125,complex,CABS,FT916173097759,SUCCESSFUL,2026-10-04 17:42:24,ZWG,1471.93,complex/text/complex_125.txt,complex/images/complex_125.jpg,true
+complex_126,complex,CABS,FT126472201043,SUCCESSFUL,2026-05-16 14:42:14,ZWG,115.48,complex/text/complex_126.txt,complex/images/complex_126.jpg,true
+complex_127,complex,Stanbic Bank,FT733118092690,SUCCESSFUL,2026-10-12 11:12:54,ZWG,719.43,complex/text/complex_127.txt,complex/images/complex_127.jpg,true
+complex_128,complex,ZB Bank,FT481237070444,SUCCESSFUL,2026-07-13 21:38:10,USD,752.88,complex/text/complex_128.txt,complex/images/complex_128.jpg,true
+complex_129,complex,CABS,FT783982542343,SUCCESSFUL,2026-07-01 08:22:38,USD,610.53,complex/text/complex_129.txt,complex/images/complex_129.jpg,true
+complex_130,complex,Steward Bank,FT266222943567,SUCCESSFUL,2026-01-12 15:07:31,ZWG,179.19,complex/text/complex_130.txt,complex/images/complex_130.jpg,true
+complex_131,complex,First Capital Bank,FT780662327856,SUCCESSFUL,2026-01-20 11:58:59,ZWG,91.51,complex/text/complex_131.txt,complex/images/complex_131.jpg,true
+complex_132,complex,Stanbic Bank,FT663785795438,SUCCESSFUL,2026-08-17 20:57:42,USD,1119.33,complex/text/complex_132.txt,complex/images/complex_132.jpg,true
+complex_133,complex,First Capital Bank,FT232019238735,SUCCESSFUL,2026-07-19 20:48:18,USD,153.45,complex/text/complex_133.txt,complex/images/complex_133.jpg,true
+complex_134,complex,NMB Bank,NMB-TXN-48946359,SUCCESSFUL,2026-08-10 20:01:39,USD,1128.69,complex/text/complex_134.txt,complex/images/complex_134.jpg,true
+complex_135,complex,First Capital Bank,FT162282440233,SUCCESSFUL,2026-08-15 09:43:48,ZWG,1237.23,complex/text/complex_135.txt,complex/images/complex_135.jpg,true
+complex_136,complex,Steward Bank,FT831983971969,SUCCESSFUL,2026-02-06 10:11:25,ZWG,441.29,complex/text/complex_136.txt,complex/images/complex_136.jpg,true
+complex_137,complex,Stanbic Bank,FT276690010086,SUCCESSFUL,2026-08-13 11:54:09,ZWG,493.18,complex/text/complex_137.txt,complex/images/complex_137.jpg,true
+complex_138,complex,Stanbic Bank,FT158477057998,SUCCESSFUL,2026-01-12 18:06:45,USD,903.09,complex/text/complex_138.txt,complex/images/complex_138.jpg,true
+complex_139,complex,ZB Bank,FT465180936203,SUCCESSFUL,2026-02-20 07:39:16,ZWG,727.19,complex/text/complex_139.txt,complex/images/complex_139.jpg,true
+complex_140,complex,First Capital Bank,FT467315564748,SUCCESSFUL,2026-08-31 17:59:13,USD,247.47,complex/text/complex_140.txt,complex/images/complex_140.jpg,true
+complex_141,complex,First Capital Bank,FT476332864698,PENDING,2026-04-07 08:27:17,USD,1213.01,complex/text/complex_141.txt,complex/images/complex_141.jpg,true
+complex_142,complex,First Capital Bank,FT910741392033,SUCCESSFUL,2026-02-24 11:47:01,USD,559.54,complex/text/complex_142.txt,complex/images/complex_142.jpg,true
+complex_143,complex,NMB Bank,NMB-TXN-68994851,SUCCESSFUL,2026-05-16 18:39:30,USD,1429.75,complex/text/complex_143.txt,complex/images/complex_143.jpg,true
+complex_144,complex,Steward Bank,FT609972400968,SUCCESSFUL,2026-09-07 08:39:26,ZWG,854.41,complex/text/complex_144.txt,complex/images/complex_144.jpg,true
+complex_145,complex,Steward Bank,FT876540215777,SUCCESSFUL,2026-06-08 08:52:31,USD,1377.02,complex/text/complex_145.txt,complex/images/complex_145.jpg,true
+complex_146,complex,FBC Bank,FT947553137821,SUCCESSFUL,2026-06-13 12:11:16,USD,903.69,complex/text/complex_146.txt,complex/images/complex_146.jpg,true
+complex_147,complex,CABS,FT035439910400,SUCCESSFUL,2026-02-10 11:56:04,USD,955.72,complex/text/complex_147.txt,complex/images/complex_147.jpg,true
+complex_148,complex,NMB Bank,NMB-TXN-32014129,SUCCESSFUL,2026-06-23 17:52:44,ZWG,392.59,complex/text/complex_148.txt,complex/images/complex_148.jpg,true
+complex_149,complex,Stanbic Bank,FT465461065901,SUCCESSFUL,2026-04-26 13:30:45,ZWG,872.17,complex/text/complex_149.txt,complex/images/complex_149.jpg,true
+complex_150,complex,CBZ Bank,CBZ3391345126,SUCCESSFUL,2026-04-28 09:02:47,ZWG,433.99,complex/text/complex_150.txt,complex/images/complex_150.jpg,true
+complex_151,complex,Steward Bank,FT307230932198,SUCCESSFUL,2026-02-09 07:25:01,USD,267.76,complex/text/complex_151.txt,complex/images/complex_151.jpg,true
+complex_152,complex,CBZ Bank,CBZ8619178857,SUCCESSFUL,2026-02-22 12:34:38,ZWG,792.49,complex/text/complex_152.txt,complex/images/complex_152.jpg,true
+complex_153,complex,CBZ Bank,CBZ2027672905,SUCCESSFUL,2026-06-24 11:22:06,ZWG,1084.81,complex/text/complex_153.txt,complex/images/complex_153.jpg,true
+complex_154,complex,ZB Bank,FT869200543850,SUCCESSFUL,2026-01-09 16:25:04,ZWG,436.15,complex/text/complex_154.txt,complex/images/complex_154.jpg,true
+complex_155,complex,Steward Bank,FT423342707501,SUCCESSFUL,2026-07-21 16:02:56,ZWG,704.82,complex/text/complex_155.txt,complex/images/complex_155.jpg,true
+complex_156,complex,ZB Bank,FT186722092353,SUCCESSFUL,2026-08-24 14:38:05,USD,723.09,complex/text/complex_156.txt,complex/images/complex_156.jpg,true
+complex_157,complex,FBC Bank,FT164799235630,SUCCESSFUL,2026-09-13 21:49:36,USD,395.42,complex/text/complex_157.txt,complex/images/complex_157.jpg,true
+complex_158,complex,CABS,FT301523528858,SUCCESSFUL,2026-05-14 11:46:34,ZWG,648.48,complex/text/complex_158.txt,complex/images/complex_158.jpg,true
+complex_159,complex,Steward Bank,FT355349267906,SUCCESSFUL,2026-04-11 21:27:51,USD,1223.68,complex/text/complex_159.txt,complex/images/complex_159.jpg,true
+complex_160,complex,NMB Bank,NMB-TXN-14929523,SUCCESSFUL,2026-09-23 16:32:02,ZWG,406.80,complex/text/complex_160.txt,complex/images/complex_160.jpg,true
+complex_161,complex,CABS,FT193371450080,SUCCESSFUL,2026-07-26 11:31:25,ZWG,642.93,complex/text/complex_161.txt,complex/images/complex_161.jpg,true
+complex_162,complex,Steward Bank,FT178759557536,SUCCESSFUL,2026-08-30 13:38:31,ZWG,635.60,complex/text/complex_162.txt,complex/images/complex_162.jpg,true
+complex_163,complex,Stanbic Bank,FT177440021087,SUCCESSFUL,2026-09-18 13:12:18,USD,1189.36,complex/text/complex_163.txt,complex/images/complex_163.jpg,true
+complex_164,complex,CABS,FT164230608953,SUCCESSFUL,2026-06-07 08:13:18,USD,219.37,complex/text/complex_164.txt,complex/images/complex_164.jpg,true
+complex_165,complex,CABS,FT083987735243,SUCCESSFUL,2026-02-26 13:52:57,USD,978.59,complex/text/complex_165.txt,complex/images/complex_165.jpg,true
+complex_166,complex,NMB Bank,NMB-TXN-30516328,SUCCESSFUL,2026-01-19 07:51:05,USD,533.92,complex/text/complex_166.txt,complex/images/complex_166.jpg,true
+complex_167,complex,FBC Bank,FT172115280765,SUCCESSFUL,2026-03-20 18:34:39,ZWG,668.53,complex/text/complex_167.txt,complex/images/complex_167.jpg,true
+complex_168,complex,NMB Bank,NMB-TXN-27834154,SUCCESSFUL,2026-04-27 16:12:39,USD,797.45,complex/text/complex_168.txt,complex/images/complex_168.jpg,true
+complex_169,complex,CBZ Bank,CBZ6460303924,SUCCESSFUL,2026-04-07 15:10:13,USD,425.44,complex/text/complex_169.txt,complex/images/complex_169.jpg,true
+complex_170,complex,CBZ Bank,CBZ4131611562,SUCCESSFUL,2026-05-28 09:02:22,ZWG,1044.74,complex/text/complex_170.txt,complex/images/complex_170.jpg,true
+complex_171,complex,NMB Bank,NMB-TXN-70000296,SUCCESSFUL,2026-07-19 09:38:46,ZWG,970.69,complex/text/complex_171.txt,complex/images/complex_171.jpg,true
+complex_172,complex,NMB Bank,NMB-TXN-07768128,SUCCESSFUL,2026-09-27 17:55:59,ZWG,854.06,complex/text/complex_172.txt,complex/images/complex_172.jpg,true
+complex_173,complex,ZB Bank,FT647733506191,SUCCESSFUL,2026-03-05 11:45:05,USD,552.86,complex/text/complex_173.txt,complex/images/complex_173.jpg,true
+complex_174,complex,CBZ Bank,CBZ1929959895,SUCCESSFUL,2026-04-17 09:28:42,USD,299.16,complex/text/complex_174.txt,complex/images/complex_174.jpg,true
+complex_175,complex,FBC Bank,FT975309050889,SUCCESSFUL,2026-02-14 12:35:01,USD,581.45,complex/text/complex_175.txt,complex/images/complex_175.jpg,true
+complex_176,complex,First Capital Bank,FT530345565052,SUCCESSFUL,2026-08-12 15:54:10,USD,702.66,complex/text/complex_176.txt,complex/images/complex_176.jpg,true
+complex_177,complex,Steward Bank,FT019206402788,SUCCESSFUL,2026-05-22 13:41:16,ZWG,1322.27,complex/text/complex_177.txt,complex/images/complex_177.jpg,true
+complex_178,complex,FBC Bank,FT783566034222,SUCCESSFUL,2026-03-27 16:36:24,USD,945.01,complex/text/complex_178.txt,complex/images/complex_178.jpg,true
+complex_179,complex,CBZ Bank,CBZ9521686759,SUCCESSFUL,2026-05-04 18:33:56,ZWG,1038.20,complex/text/complex_179.txt,complex/images/complex_179.jpg,true
+complex_180,complex,NMB Bank,NMB-TXN-56199473,SUCCESSFUL,2026-03-28 10:52:14,ZWG,868.37,complex/text/complex_180.txt,complex/images/complex_180.jpg,true
+complex_181,complex,First Capital Bank,FT130691813964,SUCCESSFUL,2026-04-02 07:45:38,ZWG,267.59,complex/text/complex_181.txt,complex/images/complex_181.jpg,true
+complex_182,complex,Stanbic Bank,FT271792928418,SUCCESSFUL,2026-01-30 21:48:20,ZWG,297.24,complex/text/complex_182.txt,complex/images/complex_182.jpg,true
+complex_183,complex,Steward Bank,FT393940402550,SUCCESSFUL,2026-08-16 18:33:19,ZWG,1169.11,complex/text/complex_183.txt,complex/images/complex_183.jpg,true
+complex_184,complex,NMB Bank,NMB-TXN-70825517,PENDING,2026-03-08 08:56:29,USD,716.83,complex/text/complex_184.txt,complex/images/complex_184.jpg,true
+complex_185,complex,Stanbic Bank,FT092060989177,SUCCESSFUL,2026-10-16 11:13:05,ZWG,1113.06,complex/text/complex_185.txt,complex/images/complex_185.jpg,true
+complex_186,complex,ZB Bank,FT392564345592,SUCCESSFUL,2026-08-01 17:02:55,ZWG,121.78,complex/text/complex_186.txt,complex/images/complex_186.jpg,true
+complex_187,complex,First Capital Bank,FT957962244323,SUCCESSFUL,2026-08-13 19:47:52,ZWG,17.03,complex/text/complex_187.txt,complex/images/complex_187.jpg,true
+complex_188,complex,NMB Bank,NMB-TXN-98791504,SUCCESSFUL,2026-06-17 11:14:16,USD,845.30,complex/text/complex_188.txt,complex/images/complex_188.jpg,true
+complex_189,complex,First Capital Bank,FT035557104103,SUCCESSFUL,2026-04-12 08:46:34,USD,1372.61,complex/text/complex_189.txt,complex/images/complex_189.jpg,true
+complex_190,complex,CBZ Bank,CBZ9535834250,SUCCESSFUL,2026-08-24 21:13:40,USD,706.14,complex/text/complex_190.txt,complex/images/complex_190.jpg,true
+complex_191,complex,Steward Bank,FT233691251561,SUCCESSFUL,2026-09-13 16:09:02,ZWG,291.56,complex/text/complex_191.txt,complex/images/complex_191.jpg,true
+complex_192,complex,First Capital Bank,FT032592277888,SUCCESSFUL,2026-07-04 18:04:41,USD,428.82,complex/text/complex_192.txt,complex/images/complex_192.jpg,true
+complex_193,complex,First Capital Bank,FT731385681831,SUCCESSFUL,2026-09-10 07:33:55,USD,120.83,complex/text/complex_193.txt,complex/images/complex_193.jpg,true
+complex_194,complex,Stanbic Bank,FT258992379720,SUCCESSFUL,2026-09-08 20:30:42,USD,1408.01,complex/text/complex_194.txt,complex/images/complex_194.jpg,true
+complex_195,complex,CBZ Bank,CBZ6479053937,SUCCESSFUL,2026-05-11 19:37:22,ZWG,490.79,complex/text/complex_195.txt,complex/images/complex_195.jpg,true
+complex_196,complex,Steward Bank,FT351007013747,SUCCESSFUL,2026-01-25 10:34:04,USD,764.86,complex/text/complex_196.txt,complex/images/complex_196.jpg,true
+complex_197,complex,CABS,FT555692717314,SUCCESSFUL,2026-05-08 14:01:25,USD,8.29,complex/text/complex_197.txt,complex/images/complex_197.jpg,true
+complex_198,complex,Stanbic Bank,FT425687002645,SUCCESSFUL,2026-06-01 14:03:40,ZWG,204.91,complex/text/complex_198.txt,complex/images/complex_198.jpg,true
+complex_199,complex,CABS,FT131113007035,SUCCESSFUL,2026-10-05 11:14:59,ZWG,865.59,complex/text/complex_199.txt,complex/images/complex_199.jpg,true
+complex_200,complex,First Capital Bank,FT093368200640,SUCCESSFUL,2026-07-12 17:52:16,USD,1482.81,complex/text/complex_200.txt,complex/images/complex_200.jpg,true

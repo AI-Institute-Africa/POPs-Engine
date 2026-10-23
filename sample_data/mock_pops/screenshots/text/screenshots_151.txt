@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 936.86
+Paid to: Choppies Supermarket
+Amount Transferred: USD 936.86
+Account: 5341229
+From: Memory Sibanda  (6723••••0779)
+Reference: FT021698351741
+Date: 2026-06-07 10:21:15
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

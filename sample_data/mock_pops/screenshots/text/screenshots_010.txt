@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1014.72
+Paid to: Rufaro Nyoni
+Amount Transferred: USD 1014.72
+Account: 652582830662
+From: Farai Sibanda  (9143••••1728)
+Reference: CBZ2440955357
+Date: 2026-04-23 13:15:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

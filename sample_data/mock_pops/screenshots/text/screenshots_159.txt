@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 907.67
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 907.67
+Account: 3795882
+From: Tendai Dube  (8452••••5772)
+Reference: FT663827968304
+Date: 2026-06-05 18:22:19
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

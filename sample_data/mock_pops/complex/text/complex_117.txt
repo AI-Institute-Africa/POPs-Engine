@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 185.34
+Paid to: Memory Gumbo
+Amount Transferred: ZWG 185.34
+Account: 118387206943
+From: Tafadzwa Moyo  (6202••••7641)
+Reference: FT309102526952
+Date: 2026-04-07 16:52:29
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 295.65
+Paid to: Farai Makoni
+Amount Transferred: ZWG 295.65
+Account: 503928609440
+From: Blessing Shumba  (1695••••7583)
+Reference: FT272915841772
+Date: 2026-07-19 12:41:58
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

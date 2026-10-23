@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 41.75
+Paid to: Blessing Sibanda
+Amount Transferred: ZWG 41.75
+Account: 912121912576
+From: Farai Makoni  (7172••••2554)
+Reference: FT996479731434
+Date: 2026-10-08 13:40:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

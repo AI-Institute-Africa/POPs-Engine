@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 39.68
+Paid to: Blessing Ncube
+Amount Transferred: USD 39.68
+Account: 381546515788
+From: Tinashe Sibanda  (4807••••2361)
+Reference: FT196804778747
+Date: 2026-09-01 20:10:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

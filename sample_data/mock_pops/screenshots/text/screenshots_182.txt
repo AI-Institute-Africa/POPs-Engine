@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 493.07
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: USD 493.07
+Account: 6884239
+From: Tinashe Mutasa  (9294••••5049)
+Reference: FT825721280334
+Date: 2026-07-07 21:51:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

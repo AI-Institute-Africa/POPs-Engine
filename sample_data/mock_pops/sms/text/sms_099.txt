@@ -1,0 +1,4 @@
+2026-06-04 20:53:56  EcoCash
+Wallet payment successful. ZWG 1197.62 sent to Chipo Moyo.
+Reference: PP6Q5RWA7L. Available balance: ZWG 514.28.
+This is a synthetic sample message, not a real transaction.

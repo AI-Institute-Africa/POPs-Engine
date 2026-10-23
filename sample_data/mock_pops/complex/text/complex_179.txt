@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1038.20
+Paid to: Nqobile Ndlovu
+Amount Transferred: ZWG 1038.20
+Account: 952952601920
+From: Thabo Shumba  (5404••••8399)
+Reference: CBZ9521686759
+Date: 2026-05-04 18:33:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

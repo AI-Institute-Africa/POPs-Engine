@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+PENDING  |  USD 671.94
+Paid to: Farai Shumba
+Amount Transferred: USD 671.94
+Account: 440315741318
+From: Tendai Moyo  (1287••••2967)
+Reference: FT634530715482
+Date: 2026-09-27 20:38:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

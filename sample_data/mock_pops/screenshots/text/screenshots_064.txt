@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 16.02
+Paid to: Delta Corporation
+Amount Transferred: ZWG 16.02
+Account: 0921243
+From: Anesu Nyoni  (6165••••2190)
+Reference: FT602348060124
+Date: 2026-01-13 11:57:57
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

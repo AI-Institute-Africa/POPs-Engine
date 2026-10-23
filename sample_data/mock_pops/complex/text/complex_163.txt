@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1189.36
+Paid to: Chipo Makoni
+Amount Transferred: USD 1189.36
+Account: 795869390931
+From: Rufaro Gumbo  (2659••••6484)
+Reference: FT177440021087
+Date: 2026-09-18 13:12:18
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

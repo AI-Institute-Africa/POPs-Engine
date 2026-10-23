@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+PENDING  |  ZWG 705.99
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 705.99
+Account: 2427872
+From: Rufaro Gumbo  (0333••••6515)
+Reference: CBZ0916852506
+Date: 2026-09-16 19:26:27
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

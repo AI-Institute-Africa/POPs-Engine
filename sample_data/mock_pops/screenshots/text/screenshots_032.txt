@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1352.61
+Paid to: Thabo Chuma
+Amount Transferred: USD 1352.61
+Account: 408055115453
+From: Rufaro Nyoni  (5325••••5399)
+Reference: FT354231619568
+Date: 2026-06-23 14:51:18
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

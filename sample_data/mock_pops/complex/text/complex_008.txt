@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 18.58
+Paid to: Anesu Makoni
+Amount Transferred: ZWG 18.58
+Account: 898147354247
+From: Nqobile Phiri  (7935••••0668)
+Reference: NMB-TXN-77773367
+Date: 2026-04-18 09:04:12
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

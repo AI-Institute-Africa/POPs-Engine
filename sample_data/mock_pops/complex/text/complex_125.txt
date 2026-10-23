@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 1471.93
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 1471.93
+Account: 0954195
+From: Memory Ncube  (9131••••1846)
+Reference: FT916173097759
+Date: 2026-10-04 17:42:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

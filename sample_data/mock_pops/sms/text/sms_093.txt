@@ -1,0 +1,4 @@
+2025-12-29 19:58:09  EcoCash
+Wallet payment successful. ZWG 62.99 sent to Chipo Gumbo.
+Reference: PPLSCIF548. Available balance: ZWG 904.71.
+This is a synthetic sample message, not a real transaction.

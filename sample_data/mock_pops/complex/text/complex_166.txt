@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 533.92
+Paid to: Tafadzwa Ndlovu
+Amount Transferred: USD 533.92
+Account: 781607975666
+From: Farai Makoni  (5794••••5516)
+Reference: NMB-TXN-30516328
+Date: 2026-01-19 07:51:05
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

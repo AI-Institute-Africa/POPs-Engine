@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+PENDING  |  USD 1325.86
+Paid to: Rufaro Zhou
+Amount Transferred: USD 1325.86
+Account: 163716910842
+From: Tendai Sibanda  (6527••••7079)
+Reference: CBZ4217258121
+Date: 2026-09-09 16:07:22
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

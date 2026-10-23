@@ -1,0 +1,4 @@
+2026-05-24 20:17:04  EcoCash
+Wallet payment successful. ZWG 174.51 sent to Memory Chuma.
+Reference: PP326UK88I. Available balance: ZWG 1727.88.
+This is a synthetic sample message, not a real transaction.

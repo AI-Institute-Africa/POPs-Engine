@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 367.81
+Paid to: Nqobile Shumba
+Amount Transferred: USD 367.81
+Account: 029556159909
+From: Tendai Sibanda  (8255••••9243)
+Reference: FT586557641181
+Date: 2026-02-02 10:01:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

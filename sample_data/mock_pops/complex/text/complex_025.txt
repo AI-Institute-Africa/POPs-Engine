@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1031.54
+Paid to: NetOne
+Amount Transferred: ZWG 1031.54
+Account: 7339716
+From: Memory Makoni  (0013••••7150)
+Reference: CBZ6853540873
+Date: 2026-06-06 20:19:34
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

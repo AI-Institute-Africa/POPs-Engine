@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1413.21
+Paid to: Chipo Maphosa
+Amount Transferred: USD 1413.21
+Account: 304159506028
+From: Farai Phiri  (8223••••9102)
+Reference: NMB-TXN-03108019
+Date: 2026-07-12 20:04:36
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

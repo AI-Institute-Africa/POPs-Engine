@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+PENDING  |  ZWG 802.63
+Paid to: Choppies Supermarket
+Amount Transferred: ZWG 802.63
+Account: 2527705
+From: Anesu Maphosa  (2151••••7661)
+Reference: FT149299481657
+Date: 2026-05-30 16:33:32
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

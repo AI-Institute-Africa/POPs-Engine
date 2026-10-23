@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 723.09
+Paid to: Tendai Ncube
+Amount Transferred: USD 723.09
+Account: 833685824481
+From: Blessing Chuma  (8074••••4046)
+Reference: FT186722092353
+Date: 2026-08-24 14:38:05
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

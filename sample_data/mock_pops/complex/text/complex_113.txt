@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 282.29
+Paid to: ZETDC
+Amount Transferred: ZWG 282.29
+Account: 5194951
+From: Anesu Ndlovu  (7580••••5309)
+Reference: FT598686653169
+Date: 2026-06-05 11:53:40
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

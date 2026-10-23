@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1383.68
+Paid to: NetOne
+Amount Transferred: ZWG 1383.68
+Account: 8322305
+From: Tendai Dube  (4768••••1044)
+Reference: FT570463448517
+Date: 2026-07-07 16:34:17
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

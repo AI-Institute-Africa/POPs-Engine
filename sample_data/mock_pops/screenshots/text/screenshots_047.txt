@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 259.01
+Paid to: ZOL Zimbabwe
+Amount Transferred: USD 259.01
+Account: 1176706
+From: Nqobile Chuma  (9956••••9945)
+Reference: CBZ5056416973
+Date: 2025-12-31 17:25:23
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

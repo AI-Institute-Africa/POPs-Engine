@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+PENDING  |  USD 1012.83
+Paid to: Delta Corporation
+Amount Transferred: USD 1012.83
+Account: 7837551
+From: Tariro Dube  (5628••••3436)
+Reference: NMB-TXN-82585216
+Date: 2026-04-23 20:44:54
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

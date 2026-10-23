@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 376.06
+Paid to: Blessing Shumba
+Amount Transferred: USD 376.06
+Account: 695365803730
+From: Chipo Makoni  (6581••••5559)
+Reference: CBZ5821263592
+Date: 2026-08-21 21:52:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

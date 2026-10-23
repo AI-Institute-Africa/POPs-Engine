@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 863.98
+Paid to: OK Zimbabwe
+Amount Transferred: USD 863.98
+Account: 1705661
+From: Tariro Sibanda  (4526••••4498)
+Reference: NMB-TXN-15061835
+Date: 2026-01-30 11:17:41
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

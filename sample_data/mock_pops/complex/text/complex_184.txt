@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+PENDING  |  USD 716.83
+Paid to: Tariro Dube
+Amount Transferred: USD 716.83
+Account: 104432084656
+From: Anesu Moyo  (6529••••9558)
+Reference: NMB-TXN-70825517
+Date: 2026-03-08 08:56:29
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

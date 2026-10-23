@@ -1,0 +1,4 @@
+2026-03-18 16:31:48  EcoCash
+Wallet payment successful. USD 157.57 sent to Chipo Makoni.
+Reference: PPWMM95FQ2. Available balance: USD 1143.45.
+This is a synthetic sample message, not a real transaction.

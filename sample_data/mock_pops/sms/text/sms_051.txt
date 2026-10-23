@@ -1,0 +1,4 @@
+2026-01-24 12:40:34  EcoCash
+Wallet payment successful. ZWG 316.87 sent to Tendai Gumbo.
+Reference: PPTCSDNYCE. Available balance: ZWG 1067.05.
+This is a synthetic sample message, not a real transaction.

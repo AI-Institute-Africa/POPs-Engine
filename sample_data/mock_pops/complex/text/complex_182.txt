@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 297.24
+Paid to: Tendai Gumbo
+Amount Transferred: ZWG 297.24
+Account: 224723153471
+From: Blessing Chuma  (9704••••2178)
+Reference: FT271792928418
+Date: 2026-01-30 21:48:20
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

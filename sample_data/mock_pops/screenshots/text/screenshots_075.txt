@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 322.76
+Paid to: Tinashe Shumba
+Amount Transferred: USD 322.76
+Account: 438002519966
+From: Memory Nyoni  (4670••••9669)
+Reference: FT904206428141
+Date: 2026-10-10 15:59:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

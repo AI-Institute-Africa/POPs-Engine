@@ -1,0 +1,4 @@
+2026-09-13 10:20:32  EcoCash
+Wallet payment successful. USD 75.88 sent to Choppies Supermarket.
+Reference: PPE769DQMI. Available balance: USD 2077.31.
+This is a synthetic sample message, not a real transaction.

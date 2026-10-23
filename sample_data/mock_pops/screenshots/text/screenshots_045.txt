@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 818.07
+Paid to: Farai Nyoni
+Amount Transferred: ZWG 818.07
+Account: 538894524814
+From: Tinashe Nyoni  (5783••••1841)
+Reference: FT457578669569
+Date: 2026-04-18 07:54:46
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 116.83
+Paid to: Memory Moyo
+Amount Transferred: ZWG 116.83
+Account: 278379773664
+From: Tendai Chuma  (9696••••1986)
+Reference: NMB-TXN-91833107
+Date: 2026-04-04 14:45:27
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

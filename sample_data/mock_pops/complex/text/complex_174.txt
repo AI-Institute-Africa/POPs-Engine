@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 299.16
+Paid to: Thabo Chuma
+Amount Transferred: USD 299.16
+Account: 618127026008
+From: Nqobile Dube  (5057••••9753)
+Reference: CBZ1929959895
+Date: 2026-04-17 09:28:42
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

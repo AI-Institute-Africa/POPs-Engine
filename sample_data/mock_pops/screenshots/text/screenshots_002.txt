@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1096.52
+Paid to: Tariro Shumba
+Amount Transferred: USD 1096.52
+Account: 678008937087
+From: Kudakwashe Ndlovu  (1855••••9025)
+Reference: NMB-TXN-44329668
+Date: 2026-10-14 13:32:17
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 449.22
+Paid to: Delta Corporation
+Amount Transferred: USD 449.22
+Account: 9594569
+From: Anesu Zhou  (8838••••7170)
+Reference: FT465244745618
+Date: 2026-02-17 20:19:31
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

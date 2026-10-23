@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 936.18
+Paid to: Anesu Mutasa
+Amount Transferred: ZWG 936.18
+Account: 087547596501
+From: Chipo Ndlovu  (0637••••3035)
+Reference: FT389382583703
+Date: 2026-02-27 12:29:21
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

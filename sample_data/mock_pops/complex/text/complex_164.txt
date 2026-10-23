@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 219.37
+Paid to: Delta Corporation
+Amount Transferred: USD 219.37
+Account: 1894534
+From: Tafadzwa Mutasa  (4352••••4907)
+Reference: FT164230608953
+Date: 2026-06-07 08:13:18
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

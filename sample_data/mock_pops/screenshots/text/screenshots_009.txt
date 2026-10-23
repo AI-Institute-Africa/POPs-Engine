@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 210.25
+Paid to: Chipo Ndlovu
+Amount Transferred: ZWG 210.25
+Account: 595120747849
+From: Tinashe Phiri  (6235••••5478)
+Reference: FT874343680521
+Date: 2026-08-08 21:31:05
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

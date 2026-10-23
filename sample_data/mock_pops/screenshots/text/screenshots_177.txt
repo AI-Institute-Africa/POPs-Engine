@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 204.04
+Paid to: Tariro Ncube
+Amount Transferred: USD 204.04
+Account: 109544161162
+From: Tafadzwa Maphosa  (6795••••4502)
+Reference: NMB-TXN-40074130
+Date: 2026-09-19 17:59:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

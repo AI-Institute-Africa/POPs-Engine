@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 176.23
+Paid to: Blessing Mutasa
+Amount Transferred: USD 176.23
+Account: 303311810704
+From: Anesu Moyo  (7032••••6597)
+Reference: FT898468289923
+Date: 2026-03-10 10:07:40
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

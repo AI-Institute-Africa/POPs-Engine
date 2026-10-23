@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 140.34
+Paid to: Tendai Zhou
+Amount Transferred: ZWG 140.34
+Account: 875266172128
+From: Farai Makoni  (0568••••4654)
+Reference: NMB-TXN-20193559
+Date: 2026-09-04 20:14:04
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

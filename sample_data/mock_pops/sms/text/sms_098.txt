@@ -1,0 +1,4 @@
+2026-07-10 14:15:50  EcoCash
+Wallet payment successful. USD 1126.50 sent to Rufaro Moyo.
+Reference: PP2ZMRO45C. Available balance: USD 337.72.
+This is a synthetic sample message, not a real transaction.

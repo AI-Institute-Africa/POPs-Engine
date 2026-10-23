@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1406.29
+Paid to: Delta Corporation
+Amount Transferred: ZWG 1406.29
+Account: 8436233
+From: Thabo Phiri  (9522••••0897)
+Reference: FT986607732408
+Date: 2026-01-06 12:00:53
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

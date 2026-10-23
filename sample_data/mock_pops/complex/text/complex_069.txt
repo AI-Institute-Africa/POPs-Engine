@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 549.92
+Paid to: Farai Dube
+Amount Transferred: USD 549.92
+Account: 026992810870
+From: Farai Sibanda  (6353••••3709)
+Reference: FT084829612509
+Date: 2026-10-19 14:26:32
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 845.30
+Paid to: NetOne
+Amount Transferred: USD 845.30
+Account: 9223469
+From: Memory Shumba  (6450••••0855)
+Reference: NMB-TXN-98791504
+Date: 2026-06-17 11:14:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

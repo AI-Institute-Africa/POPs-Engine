@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+PENDING  |  USD 1405.38
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: USD 1405.38
+Account: 5913540
+From: Tariro Gumbo  (5039••••6155)
+Reference: FT893087903946
+Date: 2026-08-30 08:34:52
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

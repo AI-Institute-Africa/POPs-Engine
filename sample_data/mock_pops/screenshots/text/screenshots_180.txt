@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 506.92
+Paid to: Tafadzwa Phiri
+Amount Transferred: USD 506.92
+Account: 120123866667
+From: Memory Makoni  (1284••••4065)
+Reference: FT951942494343
+Date: 2026-05-31 20:14:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

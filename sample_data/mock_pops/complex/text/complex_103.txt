@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1180.28
+Paid to: Kudakwashe Chuma
+Amount Transferred: USD 1180.28
+Account: 552790157749
+From: Tinashe Shumba  (8308••••2425)
+Reference: NMB-TXN-16396055
+Date: 2026-07-23 12:29:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

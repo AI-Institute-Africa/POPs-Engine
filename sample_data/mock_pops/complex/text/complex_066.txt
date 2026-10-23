@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 468.10
+Paid to: Farai Chuma
+Amount Transferred: USD 468.10
+Account: 226548251480
+From: Rufaro Maphosa  (8746••••2310)
+Reference: FT799712457573
+Date: 2026-07-28 17:42:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

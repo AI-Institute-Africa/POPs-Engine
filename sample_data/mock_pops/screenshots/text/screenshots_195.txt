@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 999.77
+Paid to: Rufaro Phiri
+Amount Transferred: USD 999.77
+Account: 036225301135
+From: Thabo Nyoni  (7238••••4124)
+Reference: CBZ2513459428
+Date: 2026-01-12 08:01:29
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

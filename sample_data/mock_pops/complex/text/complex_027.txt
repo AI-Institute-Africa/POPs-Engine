@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 856.95
+Paid to: Kudakwashe Phiri
+Amount Transferred: ZWG 856.95
+Account: 649842882783
+From: Tendai Sibanda  (0564••••9425)
+Reference: FT686443191397
+Date: 2026-05-13 20:25:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1431.00
+Paid to: Anesu Gumbo
+Amount Transferred: ZWG 1431.00
+Account: 093065431471
+From: Chipo Phiri  (9365••••0947)
+Reference: FT444402706962
+Date: 2026-02-16 09:13:05
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

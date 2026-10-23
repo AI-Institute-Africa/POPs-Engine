@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1275.82
+Paid to: ZETDC
+Amount Transferred: ZWG 1275.82
+Account: 2647013
+From: Rufaro Shumba  (0904••••6655)
+Reference: FT336171095137
+Date: 2026-08-25 21:00:35
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

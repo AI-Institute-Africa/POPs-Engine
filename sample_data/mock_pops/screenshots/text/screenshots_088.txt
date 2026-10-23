@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 143.41
+Paid to: Nqobile Shumba
+Amount Transferred: ZWG 143.41
+Account: 523757179074
+From: Tinashe Phiri  (3838••••6951)
+Reference: FT549852246174
+Date: 2026-10-18 13:45:51
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

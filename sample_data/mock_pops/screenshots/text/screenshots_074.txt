@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 1425.15
+Paid to: Tinashe Sibanda
+Amount Transferred: USD 1425.15
+Account: 242019461954
+From: Tinashe Maphosa  (9231••••0490)
+Reference: FT063989348296
+Date: 2026-02-22 15:56:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

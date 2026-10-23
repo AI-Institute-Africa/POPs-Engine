@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1426.46
+Paid to: Choppies Supermarket
+Amount Transferred: ZWG 1426.46
+Account: 5738966
+From: Farai Zhou  (4943••••1429)
+Reference: NMB-TXN-17169020
+Date: 2026-06-05 13:22:27
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

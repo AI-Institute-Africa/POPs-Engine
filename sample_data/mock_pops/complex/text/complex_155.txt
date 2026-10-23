@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 704.82
+Paid to: Tendai Ncube
+Amount Transferred: ZWG 704.82
+Account: 062855390665
+From: Farai Nyoni  (4219••••9355)
+Reference: FT423342707501
+Date: 2026-07-21 16:02:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

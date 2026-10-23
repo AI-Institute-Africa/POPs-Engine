@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 999.79
+Paid to: Nqobile Shumba
+Amount Transferred: ZWG 999.79
+Account: 258947466529
+From: Tafadzwa Maphosa  (2533••••4136)
+Reference: FT677002703034
+Date: 2026-06-20 08:55:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

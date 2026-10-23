@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 359.76
+Paid to: Tinashe Nyoni
+Amount Transferred: ZWG 359.76
+Account: 843234873178
+From: Tariro Makoni  (6122••••4620)
+Reference: FT423138974854
+Date: 2026-03-09 09:15:02
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

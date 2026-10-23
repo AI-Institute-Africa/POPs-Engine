@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 17.03
+Paid to: Anesu Zhou
+Amount Transferred: ZWG 17.03
+Account: 121503992314
+From: Tendai Gumbo  (8578••••4457)
+Reference: FT957962244323
+Date: 2026-08-13 19:47:52
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 175.11
+Paid to: Thabo Makoni
+Amount Transferred: USD 175.11
+Account: 366970192259
+From: Tinashe Shumba  (9548••••2714)
+Reference: FT623094669890
+Date: 2026-05-17 12:20:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

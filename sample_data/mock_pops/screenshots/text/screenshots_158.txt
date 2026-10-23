@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+PENDING  |  USD 903.73
+Paid to: Tariro Maphosa
+Amount Transferred: USD 903.73
+Account: 699903063349
+From: Tariro Ncube  (4974••••5942)
+Reference: FT608347247248
+Date: 2026-10-03 15:40:21
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

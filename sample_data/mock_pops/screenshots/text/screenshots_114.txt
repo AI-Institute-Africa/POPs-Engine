@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 203.15
+Paid to: Nqobile Mutasa
+Amount Transferred: USD 203.15
+Account: 438545283151
+From: Blessing Shumba  (6815••••6936)
+Reference: FT476470902245
+Date: 2026-05-30 14:18:37
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

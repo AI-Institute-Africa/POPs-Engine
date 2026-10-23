@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 929.32
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: ZWG 929.32
+Account: 0710992
+From: Anesu Zhou  (2759••••0339)
+Reference: FT157453418528
+Date: 2026-06-05 13:27:59
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

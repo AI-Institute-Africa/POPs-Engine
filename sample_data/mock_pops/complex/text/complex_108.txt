@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 29.20
+Paid to: Choppies Supermarket
+Amount Transferred: ZWG 29.20
+Account: 9655958
+From: Thabo Zhou  (9243••••6926)
+Reference: FT320863423589
+Date: 2026-03-26 21:35:32
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 798.48
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 798.48
+Account: 4042794
+From: Thabo Sibanda  (4872••••9968)
+Reference: FT739612750294
+Date: 2026-06-19 12:27:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

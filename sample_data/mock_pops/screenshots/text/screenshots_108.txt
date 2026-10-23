@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 92.58
+Paid to: Blessing Maphosa
+Amount Transferred: ZWG 92.58
+Account: 067372103725
+From: Tendai Maphosa  (0898••••8979)
+Reference: FT541958221157
+Date: 2026-06-01 07:18:08
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

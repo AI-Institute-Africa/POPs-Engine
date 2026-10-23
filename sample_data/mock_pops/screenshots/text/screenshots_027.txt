@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 702.48
+Paid to: Nqobile Ndlovu
+Amount Transferred: USD 702.48
+Account: 073968784895
+From: Anesu Ndlovu  (9326••••6597)
+Reference: FT973068078242
+Date: 2026-07-29 21:17:46
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

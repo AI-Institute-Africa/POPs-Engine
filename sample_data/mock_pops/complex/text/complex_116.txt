@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1227.39
+Paid to: Choppies Supermarket
+Amount Transferred: ZWG 1227.39
+Account: 7939948
+From: Anesu Ndlovu  (7223••••1940)
+Reference: FT679803328848
+Date: 2026-07-17 11:58:21
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,4 @@
+2026-01-30 15:34:26  EcoCash
+Wallet payment successful. USD 850.15 sent to Farai Nyoni.
+Reference: PPZJNOO0LT. Available balance: USD 764.65.
+This is a synthetic sample message, not a real transaction.

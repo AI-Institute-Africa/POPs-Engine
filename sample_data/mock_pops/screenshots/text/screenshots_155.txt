@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1476.68
+Paid to: Kudakwashe Ndlovu
+Amount Transferred: ZWG 1476.68
+Account: 765313765016
+From: Chipo Shumba  (0287••••1671)
+Reference: FT783449645428
+Date: 2026-05-07 16:09:38
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

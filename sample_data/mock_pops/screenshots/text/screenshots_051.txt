@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 73.89
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 73.89
+Account: 1768892
+From: Blessing Ndlovu  (2624••••3024)
+Reference: NMB-TXN-45601411
+Date: 2026-04-23 10:43:02
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

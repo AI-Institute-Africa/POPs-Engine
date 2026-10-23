@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 180.94
+Paid to: Thabo Ncube
+Amount Transferred: ZWG 180.94
+Account: 645609230846
+From: Tinashe Moyo  (0503••••0699)
+Reference: FT241061828081
+Date: 2025-12-28 20:38:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 728.82
+Paid to: ZETDC
+Amount Transferred: ZWG 728.82
+Account: 9940498
+From: Blessing Shumba  (4979••••9647)
+Reference: FT514880865651
+Date: 2026-09-27 14:33:30
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

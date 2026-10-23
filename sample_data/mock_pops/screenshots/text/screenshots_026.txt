@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1278.69
+Paid to: Thabo Mutasa
+Amount Transferred: ZWG 1278.69
+Account: 742350181553
+From: Thabo Chuma  (3196••••6257)
+Reference: FT732891388791
+Date: 2026-10-08 09:18:13
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

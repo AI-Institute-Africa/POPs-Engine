@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 727.19
+Paid to: Thabo Dube
+Amount Transferred: ZWG 727.19
+Account: 058937394698
+From: Tafadzwa Makoni  (9772••••5996)
+Reference: FT465180936203
+Date: 2026-02-20 07:39:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 506.88
+Paid to: Blessing Maphosa
+Amount Transferred: USD 506.88
+Account: 359107482914
+From: Tendai Shumba  (8547••••4698)
+Reference: FT531343091844
+Date: 2026-04-14 19:33:06
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

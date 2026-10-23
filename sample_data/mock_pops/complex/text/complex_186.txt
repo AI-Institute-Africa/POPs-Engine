@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 121.78
+Paid to: Tafadzwa Chuma
+Amount Transferred: ZWG 121.78
+Account: 851882966363
+From: Chipo Makoni  (0898••••2859)
+Reference: FT392564345592
+Date: 2026-08-01 17:02:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

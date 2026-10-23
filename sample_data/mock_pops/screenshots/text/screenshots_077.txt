@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1495.86
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 1495.86
+Account: 9098421
+From: Anesu Mutasa  (8808••••2805)
+Reference: FT886526359281
+Date: 2026-01-07 12:42:49
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

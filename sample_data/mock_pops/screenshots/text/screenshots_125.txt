@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 667.36
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: USD 667.36
+Account: 0208992
+From: Blessing Makoni  (2609••••1416)
+Reference: FT671262133483
+Date: 2026-10-09 13:01:27
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

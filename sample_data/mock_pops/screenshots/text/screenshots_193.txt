@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 723.18
+Paid to: Kudakwashe Maphosa
+Amount Transferred: ZWG 723.18
+Account: 554876651777
+From: Memory Ndlovu  (4098••••5479)
+Reference: FT574461152750
+Date: 2026-05-07 20:14:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

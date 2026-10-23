@@ -1,0 +1,4 @@
+2026-08-23 10:10:34  EcoCash
+Wallet payment successful. ZWG 674.11 sent to ZETDC.
+Reference: PPD0TYVX72. Available balance: ZWG 1166.45.
+This is a synthetic sample message, not a real transaction.

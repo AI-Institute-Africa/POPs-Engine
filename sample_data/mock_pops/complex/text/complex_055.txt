@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1238.03
+Paid to: Blessing Ncube
+Amount Transferred: ZWG 1238.03
+Account: 055944109944
+From: Anesu Chuma  (4642••••4660)
+Reference: FT221257176721
+Date: 2026-08-19 09:14:12
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

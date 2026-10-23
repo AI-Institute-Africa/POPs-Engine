@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 543.22
+Paid to: Econet Wireless
+Amount Transferred: ZWG 543.22
+Account: 6448026
+From: Farai Gumbo  (9435••••3334)
+Reference: FT311690921175
+Date: 2026-08-18 10:52:20
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

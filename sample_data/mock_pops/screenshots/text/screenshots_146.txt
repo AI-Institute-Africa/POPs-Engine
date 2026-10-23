@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1115.44
+Paid to: Anesu Shumba
+Amount Transferred: ZWG 1115.44
+Account: 048585728179
+From: Chipo Dube  (2417••••0316)
+Reference: CBZ4812573091
+Date: 2026-07-22 20:39:20
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

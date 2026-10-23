@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1413.86
+Paid to: Memory Sibanda
+Amount Transferred: ZWG 1413.86
+Account: 116486404637
+From: Rufaro Moyo  (8474••••3405)
+Reference: FT371074630776
+Date: 2026-05-16 21:29:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

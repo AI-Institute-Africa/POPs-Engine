@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+PENDING  |  ZWG 1416.59
+Paid to: Farai Mutasa
+Amount Transferred: ZWG 1416.59
+Account: 532036374424
+From: Thabo Maphosa  (9975••••1842)
+Reference: CBZ7219616033
+Date: 2026-02-17 09:40:48
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 8.29
+Paid to: Kudakwashe Ndlovu
+Amount Transferred: USD 8.29
+Account: 099443283313
+From: Anesu Ncube  (5281••••6002)
+Reference: FT555692717314
+Date: 2026-05-08 14:01:25
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

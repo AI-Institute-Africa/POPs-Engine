@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 57.93
+Paid to: Tendai Shumba
+Amount Transferred: ZWG 57.93
+Account: 697201607406
+From: Farai Ncube  (6244••••8209)
+Reference: FT966016103549
+Date: 2026-07-17 19:32:19
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

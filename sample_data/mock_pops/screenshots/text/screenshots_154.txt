@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+PENDING  |  ZWG 1251.07
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 1251.07
+Account: 4594667
+From: Blessing Ndlovu  (1507••••4130)
+Reference: FT693629096469
+Date: 2026-01-02 09:03:30
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

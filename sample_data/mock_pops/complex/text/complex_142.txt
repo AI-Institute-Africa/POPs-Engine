@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 559.54
+Paid to: Farai Phiri
+Amount Transferred: USD 559.54
+Account: 904331371764
+From: Memory Phiri  (5009••••0532)
+Reference: FT910741392033
+Date: 2026-02-24 11:47:01
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

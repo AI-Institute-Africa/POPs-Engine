@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1425.20
+Paid to: Kudakwashe Maphosa
+Amount Transferred: ZWG 1425.20
+Account: 494322189986
+From: Chipo Mutasa  (3975••••8095)
+Reference: NMB-TXN-41537393
+Date: 2026-04-19 15:17:08
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

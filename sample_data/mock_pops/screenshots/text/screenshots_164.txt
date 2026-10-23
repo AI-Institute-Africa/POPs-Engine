@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 926.34
+Paid to: Chipo Maphosa
+Amount Transferred: USD 926.34
+Account: 821516650229
+From: Tinashe Zhou  (9869••••0668)
+Reference: FT671860696858
+Date: 2026-06-08 13:48:53
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

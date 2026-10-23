@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1068.99
+Paid to: NetOne
+Amount Transferred: USD 1068.99
+Account: 2848695
+From: Tariro Ncube  (3704••••9665)
+Reference: NMB-TXN-70268193
+Date: 2026-07-01 14:54:22
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

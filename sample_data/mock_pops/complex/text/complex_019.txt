@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 598.13
+Paid to: Anesu Moyo
+Amount Transferred: ZWG 598.13
+Account: 424167125856
+From: Kudakwashe Ncube  (4942••••6561)
+Reference: FT764983288261
+Date: 2026-08-27 07:05:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

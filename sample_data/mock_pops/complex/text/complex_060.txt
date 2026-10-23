@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 1398.72
+Paid to: Delta Corporation
+Amount Transferred: USD 1398.72
+Account: 8244145
+From: Tafadzwa Chuma  (8626••••8672)
+Reference: FT034958849916
+Date: 2026-07-12 20:16:31
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

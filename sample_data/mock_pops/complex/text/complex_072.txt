@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1251.83
+Paid to: Tafadzwa Dube
+Amount Transferred: ZWG 1251.83
+Account: 059123685965
+From: Kudakwashe Chuma  (9641••••5783)
+Reference: FT812501572048
+Date: 2026-01-25 08:19:13
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

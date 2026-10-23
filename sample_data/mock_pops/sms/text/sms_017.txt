@@ -1,0 +1,4 @@
+2026-03-12 12:01:27  EcoCash
+Wallet payment successful. ZWG 1430.07 sent to Econet Wireless.
+Reference: PPDWWT0U2C. Available balance: ZWG 73.31.
+This is a synthetic sample message, not a real transaction.

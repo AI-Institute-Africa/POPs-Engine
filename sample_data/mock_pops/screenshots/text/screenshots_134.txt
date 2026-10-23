@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1398.86
+Paid to: Kudakwashe Phiri
+Amount Transferred: ZWG 1398.86
+Account: 051266098918
+From: Tariro Ncube  (3709••••1990)
+Reference: FT013709083623
+Date: 2026-09-02 11:57:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1384.11
+Paid to: Tariro Makoni
+Amount Transferred: ZWG 1384.11
+Account: 643071883156
+From: Nqobile Phiri  (6778••••5672)
+Reference: FT549806255795
+Date: 2026-06-29 11:03:42
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 558.41
+Paid to: Nqobile Dube
+Amount Transferred: ZWG 558.41
+Account: 254468670109
+From: Kudakwashe Gumbo  (2638••••5006)
+Reference: FT410837971401
+Date: 2026-03-08 19:45:22
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 682.87
+Paid to: NetOne
+Amount Transferred: ZWG 682.87
+Account: 4483639
+From: Anesu Zhou  (3183••••4061)
+Reference: FT507343630707
+Date: 2026-06-04 19:12:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

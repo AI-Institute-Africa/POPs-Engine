@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 875.20
+Paid to: Memory Ndlovu
+Amount Transferred: USD 875.20
+Account: 420176416810
+From: Tariro Gumbo  (5026••••7281)
+Reference: FT069482139328
+Date: 2026-07-31 15:35:40
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

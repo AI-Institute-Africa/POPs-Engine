@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1100.09
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 1100.09
+Account: 2754079
+From: Farai Makoni  (6852••••5986)
+Reference: FT363993433361
+Date: 2026-05-16 11:54:12
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

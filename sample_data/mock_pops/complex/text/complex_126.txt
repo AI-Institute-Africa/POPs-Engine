@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 115.48
+Paid to: Nqobile Maphosa
+Amount Transferred: ZWG 115.48
+Account: 758575816482
+From: Memory Maphosa  (7878••••6339)
+Reference: FT126472201043
+Date: 2026-05-16 14:42:14
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

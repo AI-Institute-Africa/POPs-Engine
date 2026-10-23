@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 52.04
+Paid to: Nqobile Mutasa
+Amount Transferred: USD 52.04
+Account: 535212537052
+From: Tendai Gumbo  (1369••••3863)
+Reference: FT338314559166
+Date: 2026-08-20 16:22:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

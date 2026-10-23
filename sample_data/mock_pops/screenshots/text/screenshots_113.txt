@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 566.34
+Paid to: Thabo Ndlovu
+Amount Transferred: USD 566.34
+Account: 725783681678
+From: Anesu Ncube  (9178••••7307)
+Reference: FT375274499315
+Date: 2026-08-21 17:06:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

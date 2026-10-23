@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 364.63
+Paid to: Farai Nyoni
+Amount Transferred: ZWG 364.63
+Account: 118036964734
+From: Nqobile Maphosa  (3851••••7385)
+Reference: NMB-TXN-84668477
+Date: 2026-02-04 09:20:08
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 176.22
+Paid to: Farai Gumbo
+Amount Transferred: ZWG 176.22
+Account: 727830073186
+From: Tendai Sibanda  (0799••••6578)
+Reference: FT511314979221
+Date: 2026-02-28 14:04:43
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 233.29
+Paid to: Econet Wireless
+Amount Transferred: USD 233.29
+Account: 2214418
+From: Rufaro Shumba  (4405••••6284)
+Reference: FT710244744602
+Date: 2026-06-28 11:31:12
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

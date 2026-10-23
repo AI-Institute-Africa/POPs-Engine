@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1254.47
+Paid to: Tinashe Ndlovu
+Amount Transferred: USD 1254.47
+Account: 720054740633
+From: Chipo Maphosa  (2325••••8132)
+Reference: FT228051041963
+Date: 2026-06-28 18:44:36
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

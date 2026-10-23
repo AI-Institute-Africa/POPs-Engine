@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 263.40
+Paid to: Nqobile Phiri
+Amount Transferred: USD 263.40
+Account: 785066907563
+From: Tinashe Moyo  (8654••••6884)
+Reference: FT152022875736
+Date: 2026-09-08 20:08:27
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

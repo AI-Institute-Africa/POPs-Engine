@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 123.01
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: ZWG 123.01
+Account: 2343716
+From: Kudakwashe Sibanda  (7308••••2238)
+Reference: NMB-TXN-87545124
+Date: 2026-08-05 21:20:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

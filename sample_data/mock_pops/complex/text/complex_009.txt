@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1353.30
+Paid to: Rufaro Zhou
+Amount Transferred: USD 1353.30
+Account: 689693061445
+From: Memory Moyo  (5892••••4021)
+Reference: FT222249216708
+Date: 2026-03-20 21:39:32
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 605.36
+Paid to: Tafadzwa Nyoni
+Amount Transferred: ZWG 605.36
+Account: 263052096743
+From: Tendai Ndlovu  (9028••••3658)
+Reference: FT692699753824
+Date: 2026-04-09 10:43:31
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

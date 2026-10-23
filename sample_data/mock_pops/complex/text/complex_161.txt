@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 642.93
+Paid to: Anesu Makoni
+Amount Transferred: ZWG 642.93
+Account: 959633013949
+From: Blessing Ncube  (3895••••3848)
+Reference: FT193371450080
+Date: 2026-07-26 11:31:25
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,4 @@
+2026-04-19 20:13:14  EcoCash
+Wallet payment successful. ZWG 844.43 sent to Farai Dube.
+Reference: PPO31N9IOO. Available balance: ZWG 1793.14.
+This is a synthetic sample message, not a real transaction.

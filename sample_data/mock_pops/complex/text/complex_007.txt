@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 481.51
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 481.51
+Account: 9186796
+From: Chipo Moyo  (7872••••8354)
+Reference: CBZ5440758028
+Date: 2026-01-15 16:39:59
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

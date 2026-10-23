@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 616.93
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: USD 616.93
+Account: 9234865
+From: Kudakwashe Ncube  (6370••••3370)
+Reference: CBZ5460997635
+Date: 2026-01-29 21:54:52
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

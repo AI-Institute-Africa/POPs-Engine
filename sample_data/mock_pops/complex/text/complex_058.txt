@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 694.82
+Paid to: Blessing Gumbo
+Amount Transferred: ZWG 694.82
+Account: 354615573279
+From: Thabo Dube  (0827••••9384)
+Reference: FT890795572288
+Date: 2026-07-08 19:09:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

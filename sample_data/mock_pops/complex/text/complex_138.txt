@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 903.09
+Paid to: Anesu Makoni
+Amount Transferred: USD 903.09
+Account: 562944188571
+From: Tafadzwa Gumbo  (4893••••5302)
+Reference: FT158477057998
+Date: 2026-01-12 18:06:45
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 433.99
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 433.99
+Account: 7606608
+From: Chipo Dube  (4391••••3386)
+Reference: CBZ3391345126
+Date: 2026-04-28 09:02:47
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

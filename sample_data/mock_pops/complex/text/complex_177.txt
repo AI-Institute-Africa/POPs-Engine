@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1322.27
+Paid to: Blessing Maphosa
+Amount Transferred: ZWG 1322.27
+Account: 345705680690
+From: Tafadzwa Maphosa  (8291••••9838)
+Reference: FT019206402788
+Date: 2026-05-22 13:41:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

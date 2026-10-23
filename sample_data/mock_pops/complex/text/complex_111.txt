@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 499.03
+Paid to: Tariro Maphosa
+Amount Transferred: USD 499.03
+Account: 661409497554
+From: Thabo Nyoni  (9154••••0023)
+Reference: CBZ4718888688
+Date: 2026-05-10 18:16:21
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

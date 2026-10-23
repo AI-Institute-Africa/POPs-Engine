@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1349.78
+Paid to: ZOL Zimbabwe
+Amount Transferred: USD 1349.78
+Account: 7065424
+From: Tafadzwa Maphosa  (7330••••1682)
+Reference: FT242256972542
+Date: 2026-03-21 17:24:01
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

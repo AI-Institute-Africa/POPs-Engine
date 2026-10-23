@@ -1,0 +1,4 @@
+2026-10-07 12:19:20  EcoCash
+Wallet payment successful. USD 318.22 sent to Tendai Makoni.
+Reference: PP4GA2MP4W. Available balance: USD 1082.14.
+This is a synthetic sample message, not a real transaction.

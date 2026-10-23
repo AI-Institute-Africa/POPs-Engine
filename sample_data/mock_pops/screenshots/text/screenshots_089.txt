@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 908.09
+Paid to: NetOne
+Amount Transferred: USD 908.09
+Account: 7471892
+From: Tariro Zhou  (7363••••0976)
+Reference: FT732054362708
+Date: 2026-01-11 09:54:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

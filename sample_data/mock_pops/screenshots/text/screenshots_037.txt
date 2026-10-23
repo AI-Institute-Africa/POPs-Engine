@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 822.76
+Paid to: Nqobile Ncube
+Amount Transferred: USD 822.76
+Account: 073715382203
+From: Farai Dube  (6154••••2144)
+Reference: FT297006983179
+Date: 2026-01-26 14:39:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

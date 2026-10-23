@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 463.78
+Paid to: Thabo Makoni
+Amount Transferred: USD 463.78
+Account: 288581067266
+From: Tariro Dube  (2536••••4773)
+Reference: NMB-TXN-30516073
+Date: 2026-07-17 10:00:06
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

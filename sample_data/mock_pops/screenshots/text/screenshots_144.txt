@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1140.34
+Paid to: Kudakwashe Moyo
+Amount Transferred: ZWG 1140.34
+Account: 084871241759
+From: Tinashe Phiri  (4601••••2536)
+Reference: FT707235285194
+Date: 2026-02-07 16:35:52
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

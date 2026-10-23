@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 829.77
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: ZWG 829.77
+Account: 2954549
+From: Nqobile Gumbo  (0779••••8088)
+Reference: FT540255580704
+Date: 2026-02-04 11:59:52
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

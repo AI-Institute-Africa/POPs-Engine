@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1256.13
+Paid to: NetOne
+Amount Transferred: USD 1256.13
+Account: 0165717
+From: Tariro Zhou  (5346••••1357)
+Reference: FT164539667445
+Date: 2026-04-29 10:33:10
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

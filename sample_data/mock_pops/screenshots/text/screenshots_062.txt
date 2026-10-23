@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 680.01
+Paid to: ZETDC
+Amount Transferred: USD 680.01
+Account: 1319042
+From: Memory Makoni  (7070••••6655)
+Reference: NMB-TXN-67945887
+Date: 2026-01-09 19:35:23
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

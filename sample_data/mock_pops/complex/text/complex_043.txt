@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 192.72
+Paid to: NetOne
+Amount Transferred: USD 192.72
+Account: 3728655
+From: Rufaro Maphosa  (7539••••7314)
+Reference: NMB-TXN-47579454
+Date: 2026-07-22 21:59:58
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

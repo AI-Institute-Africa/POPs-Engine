@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1386.93
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 1386.93
+Account: 6026183
+From: Memory Phiri  (0065••••9435)
+Reference: NMB-TXN-04571432
+Date: 2026-02-27 12:07:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

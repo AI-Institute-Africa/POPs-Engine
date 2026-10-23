@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1340.19
+Paid to: Anesu Dube
+Amount Transferred: USD 1340.19
+Account: 063003442137
+From: Kudakwashe Sibanda  (8736••••1500)
+Reference: FT839706104148
+Date: 2026-03-12 20:03:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

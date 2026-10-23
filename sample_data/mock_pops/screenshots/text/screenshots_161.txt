@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 444.48
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 444.48
+Account: 9017001
+From: Kudakwashe Nyoni  (0185••••4461)
+Reference: FT061473792413
+Date: 2025-12-28 10:49:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

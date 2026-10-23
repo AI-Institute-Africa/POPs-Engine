@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 695.64
+Paid to: Tinashe Ncube
+Amount Transferred: ZWG 695.64
+Account: 032899039418
+From: Chipo Gumbo  (7594••••3810)
+Reference: FT417563502334
+Date: 2026-01-10 11:59:46
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

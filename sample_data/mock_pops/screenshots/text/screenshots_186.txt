@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1094.91
+Paid to: Chipo Moyo
+Amount Transferred: ZWG 1094.91
+Account: 891057113163
+From: Tendai Phiri  (0648••••3216)
+Reference: FT799880283852
+Date: 2026-05-28 21:52:12
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

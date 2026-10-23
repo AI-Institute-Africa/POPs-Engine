@@ -1,0 +1,4 @@
+2026-06-10 08:11:41  EcoCash
+Wallet payment successful. ZWG 999.66 sent to Tafadzwa Makoni.
+Reference: PPFJ6R7OH6. Available balance: ZWG 2160.71.
+This is a synthetic sample message, not a real transaction.

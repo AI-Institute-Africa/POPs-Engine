@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1223.68
+Paid to: Chipo Mutasa
+Amount Transferred: USD 1223.68
+Account: 689551642356
+From: Tendai Phiri  (3321••••2402)
+Reference: FT355349267906
+Date: 2026-04-11 21:27:51
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

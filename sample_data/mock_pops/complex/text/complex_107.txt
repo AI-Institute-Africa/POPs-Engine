@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 825.37
+Paid to: Tendai Ncube
+Amount Transferred: USD 825.37
+Account: 685446820229
+From: Thabo Moyo  (8251••••9780)
+Reference: FT861205048211
+Date: 2026-10-19 09:07:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

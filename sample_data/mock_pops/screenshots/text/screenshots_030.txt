@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1316.99
+Paid to: Delta Corporation
+Amount Transferred: ZWG 1316.99
+Account: 9603734
+From: Kudakwashe Chuma  (9220••••4305)
+Reference: CBZ8871450955
+Date: 2026-09-10 08:44:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 58.10
+Paid to: ZETDC
+Amount Transferred: USD 58.10
+Account: 0729061
+From: Blessing Maphosa  (6056••••0948)
+Reference: FT745356491527
+Date: 2026-05-17 07:42:57
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

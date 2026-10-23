@@ -1,0 +1,4 @@
+2026-08-07 11:27:10  EcoCash
+Wallet payment successful. ZWG 1007.02 sent to Nqobile Makoni.
+Reference: PP5M4LITCB. Available balance: ZWG 1974.50.
+This is a synthetic sample message, not a real transaction.

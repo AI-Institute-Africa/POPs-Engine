@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1400.50
+Paid to: Delta Corporation
+Amount Transferred: USD 1400.50
+Account: 8007336
+From: Chipo Sibanda  (4749••••6457)
+Reference: FT745244414662
+Date: 2026-03-05 08:41:02
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

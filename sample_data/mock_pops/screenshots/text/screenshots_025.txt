@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1456.91
+Paid to: Nqobile Ncube
+Amount Transferred: ZWG 1456.91
+Account: 174063145953
+From: Kudakwashe Ndlovu  (8819••••6450)
+Reference: NMB-TXN-13546099
+Date: 2026-05-21 19:51:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

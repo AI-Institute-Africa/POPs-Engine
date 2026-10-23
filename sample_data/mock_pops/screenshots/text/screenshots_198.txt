@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 150.54
+Paid to: NetOne
+Amount Transferred: USD 150.54
+Account: 6757499
+From: Tafadzwa Mutasa  (4064••••5873)
+Reference: FT204404271492
+Date: 2026-09-11 08:49:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

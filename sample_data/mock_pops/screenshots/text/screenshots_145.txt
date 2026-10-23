@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1117.71
+Paid to: Tariro Mutasa
+Amount Transferred: ZWG 1117.71
+Account: 065839553527
+From: Anesu Dube  (7197••••7822)
+Reference: FT724339147869
+Date: 2026-06-22 19:01:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

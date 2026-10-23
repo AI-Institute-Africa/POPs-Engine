@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 392.59
+Paid to: Econet Wireless
+Amount Transferred: ZWG 392.59
+Account: 5417854
+From: Tafadzwa Zhou  (8315••••7553)
+Reference: NMB-TXN-32014129
+Date: 2026-06-23 17:52:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

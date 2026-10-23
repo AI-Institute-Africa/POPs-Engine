@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 395.42
+Paid to: ZOL Zimbabwe
+Amount Transferred: USD 395.42
+Account: 7776135
+From: Tafadzwa Chuma  (9400••••1668)
+Reference: FT164799235630
+Date: 2026-09-13 21:49:36
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

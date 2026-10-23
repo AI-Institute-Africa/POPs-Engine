@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 673.01
+Paid to: Thabo Mutasa
+Amount Transferred: USD 673.01
+Account: 618353020955
+From: Rufaro Phiri  (3219••••7826)
+Reference: FT939173371098
+Date: 2026-03-15 17:37:17
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

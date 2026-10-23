@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 280.72
+Paid to: Farai Phiri
+Amount Transferred: ZWG 280.72
+Account: 716827593614
+From: Tinashe Ndlovu  (7165••••6912)
+Reference: FT593614935170
+Date: 2026-09-26 20:33:22
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

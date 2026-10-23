@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 845.03
+Paid to: Anesu Shumba
+Amount Transferred: ZWG 845.03
+Account: 785672619635
+From: Kudakwashe Moyo  (1479••••3834)
+Reference: FT281660045095
+Date: 2026-07-29 11:49:06
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

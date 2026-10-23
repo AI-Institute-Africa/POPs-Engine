@@ -1,0 +1,4 @@
+2026-04-21 14:11:29  EcoCash
+Wallet payment successful. ZWG 1013.01 sent to Memory Mutasa.
+Reference: PPJXEHFU8U. Available balance: ZWG 1598.85.
+This is a synthetic sample message, not a real transaction.

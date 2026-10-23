@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1496.10
+Paid to: Econet Wireless
+Amount Transferred: USD 1496.10
+Account: 8509996
+From: Nqobile Mutasa  (6070••••6095)
+Reference: FT621600892901
+Date: 2026-06-23 13:21:54
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

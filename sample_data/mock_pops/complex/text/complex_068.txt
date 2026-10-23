@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 1336.51
+Paid to: Rufaro Zhou
+Amount Transferred: ZWG 1336.51
+Account: 824925757035
+From: Tafadzwa Chuma  (5411••••5186)
+Reference: FT880291203169
+Date: 2026-09-02 17:02:10
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

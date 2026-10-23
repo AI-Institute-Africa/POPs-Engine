@@ -1,0 +1,4 @@
+2026-01-12 15:50:55  EcoCash
+Wallet payment successful. USD 623.80 sent to Delta Corporation.
+Reference: PP4CEQ9GO4. Available balance: USD 379.90.
+This is a synthetic sample message, not a real transaction.

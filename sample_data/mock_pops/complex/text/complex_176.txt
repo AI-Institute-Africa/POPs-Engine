@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 702.66
+Paid to: Tafadzwa Phiri
+Amount Transferred: USD 702.66
+Account: 013767049986
+From: Tendai Chuma  (9750••••2256)
+Reference: FT530345565052
+Date: 2026-08-12 15:54:10
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

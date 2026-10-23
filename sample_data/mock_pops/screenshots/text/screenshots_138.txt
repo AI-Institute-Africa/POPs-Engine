@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+PENDING  |  ZWG 1216.87
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 1216.87
+Account: 8641163
+From: Tariro Maphosa  (1884••••1528)
+Reference: FT004968788495
+Date: 2026-01-06 20:39:41
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

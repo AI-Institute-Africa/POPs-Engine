@@ -1,0 +1,4 @@
+2026-04-06 16:38:25  EcoCash
+Wallet payment successful. USD 357.27 sent to Nqobile Zhou.
+Reference: PPR6UY0K9D. Available balance: USD 930.89.
+This is a synthetic sample message, not a real transaction.

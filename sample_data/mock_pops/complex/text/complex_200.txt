@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1482.81
+Paid to: Nqobile Sibanda
+Amount Transferred: USD 1482.81
+Account: 530800691424
+From: Tendai Shumba  (0680••••0461)
+Reference: FT093368200640
+Date: 2026-07-12 17:52:16
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

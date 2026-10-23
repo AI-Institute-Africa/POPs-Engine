@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 1284.80
+Paid to: Delta Corporation
+Amount Transferred: ZWG 1284.80
+Account: 8917972
+From: Memory Makoni  (2132••••3751)
+Reference: FT926092870177
+Date: 2026-09-08 08:10:21
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

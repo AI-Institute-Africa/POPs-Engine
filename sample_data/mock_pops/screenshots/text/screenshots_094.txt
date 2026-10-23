@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 386.56
+Paid to: Tafadzwa Moyo
+Amount Transferred: ZWG 386.56
+Account: 863851639741
+From: Thabo Phiri  (6246••••8644)
+Reference: FT066992384135
+Date: 2026-05-16 10:19:25
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 91.51
+Paid to: Kudakwashe Dube
+Amount Transferred: ZWG 91.51
+Account: 375824301965
+From: Chipo Zhou  (6607••••3256)
+Reference: FT780662327856
+Date: 2026-01-20 11:58:59
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

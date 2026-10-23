@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 536.07
+Paid to: Chipo Zhou
+Amount Transferred: ZWG 536.07
+Account: 198831145726
+From: Anesu Mutasa  (2005••••9497)
+Reference: NMB-TXN-01168937
+Date: 2026-06-25 10:08:43
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

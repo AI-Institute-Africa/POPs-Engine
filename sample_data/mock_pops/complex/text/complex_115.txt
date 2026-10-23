@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 1444.97
+Paid to: Thabo Chuma
+Amount Transferred: ZWG 1444.97
+Account: 678914574354
+From: Nqobile Makoni  (4835••••3621)
+Reference: FT477744935604
+Date: 2026-09-27 12:29:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

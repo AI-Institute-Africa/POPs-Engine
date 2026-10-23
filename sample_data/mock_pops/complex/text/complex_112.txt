@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 298.60
+Paid to: Rufaro Moyo
+Amount Transferred: USD 298.60
+Account: 351685854993
+From: Blessing Shumba  (3019••••8165)
+Reference: FT013529219468
+Date: 2026-02-07 08:56:01
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

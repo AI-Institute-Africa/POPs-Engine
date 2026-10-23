@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 256.32
+Paid to: ZOL Zimbabwe
+Amount Transferred: USD 256.32
+Account: 2764273
+From: Nqobile Sibanda  (2011••••1310)
+Reference: FT836649339126
+Date: 2026-05-19 08:14:49
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

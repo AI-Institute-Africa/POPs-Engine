@@ -1,0 +1,4 @@
+2026-06-06 13:10:51  EcoCash
+Wallet payment successful. ZWG 745.97 sent to Kudakwashe Chuma.
+Reference: PP7GO3GAMC. Available balance: ZWG 1851.95.
+This is a synthetic sample message, not a real transaction.

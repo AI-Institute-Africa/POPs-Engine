@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 828.81
+Paid to: Tariro Ndlovu
+Amount Transferred: USD 828.81
+Account: 148156485463
+From: Tariro Chuma  (5887••••2210)
+Reference: FT452189092541
+Date: 2026-03-16 07:22:47
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

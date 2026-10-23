@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1103.46
+Paid to: Econet Wireless
+Amount Transferred: ZWG 1103.46
+Account: 4163315
+From: Thabo Dube  (8896••••9290)
+Reference: NMB-TXN-91540879
+Date: 2026-01-05 15:24:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

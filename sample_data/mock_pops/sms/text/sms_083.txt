@@ -1,0 +1,4 @@
+2026-02-14 07:10:12  EcoCash
+Wallet payment successful. USD 1261.86 sent to Tinashe Shumba.
+Reference: PP3YMZ2J0K. Available balance: USD 108.68.
+This is a synthetic sample message, not a real transaction.

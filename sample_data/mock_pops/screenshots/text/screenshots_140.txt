@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 1495.78
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 1495.78
+Account: 7791275
+From: Farai Dube  (8259••••4876)
+Reference: FT018968463639
+Date: 2026-03-26 12:12:43
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

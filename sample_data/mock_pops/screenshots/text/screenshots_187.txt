@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 422.75
+Paid to: Nqobile Gumbo
+Amount Transferred: ZWG 422.75
+Account: 969764581349
+From: Chipo Maphosa  (9485••••3763)
+Reference: FT398890169415
+Date: 2026-08-12 11:34:51
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

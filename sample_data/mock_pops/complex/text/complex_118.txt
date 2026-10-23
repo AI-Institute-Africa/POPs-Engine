@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+PENDING  |  USD 345.70
+Paid to: OK Zimbabwe
+Amount Transferred: USD 345.70
+Account: 1807736
+From: Memory Phiri  (7350••••5946)
+Reference: FT144159380620
+Date: 2026-02-04 19:23:39
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

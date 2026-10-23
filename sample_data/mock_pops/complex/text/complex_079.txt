@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1142.67
+Paid to: Kudakwashe Mutasa
+Amount Transferred: USD 1142.67
+Account: 139748035145
+From: Nqobile Shumba  (1094••••8711)
+Reference: CBZ5641493288
+Date: 2026-08-03 09:05:57
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

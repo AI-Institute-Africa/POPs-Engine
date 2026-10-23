@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+PENDING  |  ZWG 516.29
+Paid to: Delta Corporation
+Amount Transferred: ZWG 516.29
+Account: 4284442
+From: Memory Makoni  (1326••••2895)
+Reference: NMB-TXN-01168956
+Date: 2026-02-02 10:08:40
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

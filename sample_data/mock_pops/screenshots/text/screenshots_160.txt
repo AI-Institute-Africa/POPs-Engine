@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 944.07
+Paid to: Memory Dube
+Amount Transferred: USD 944.07
+Account: 092607648730
+From: Memory Phiri  (9061••••3888)
+Reference: FT749915886868
+Date: 2026-01-20 08:26:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

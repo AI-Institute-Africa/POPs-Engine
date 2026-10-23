@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1381.77
+Paid to: Kudakwashe Mutasa
+Amount Transferred: ZWG 1381.77
+Account: 003163692564
+From: Tinashe Makoni  (6046••••2451)
+Reference: NMB-TXN-81456262
+Date: 2026-06-02 13:03:20
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

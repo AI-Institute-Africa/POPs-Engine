@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  ZWG 648.48
+Paid to: Delta Corporation
+Amount Transferred: ZWG 648.48
+Account: 8144054
+From: Tinashe Chuma  (3850••••2973)
+Reference: FT301523528858
+Date: 2026-05-14 11:46:34
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

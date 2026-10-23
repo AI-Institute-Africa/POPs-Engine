@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+PENDING  |  ZWG 514.50
+Paid to: Econet Wireless
+Amount Transferred: ZWG 514.50
+Account: 3379461
+From: Thabo Zhou  (7006••••6499)
+Reference: FT148852420390
+Date: 2026-02-04 13:20:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

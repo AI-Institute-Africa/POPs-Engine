@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 719.43
+Paid to: Choppies Supermarket
+Amount Transferred: ZWG 719.43
+Account: 5603797
+From: Tinashe Ncube  (3823••••7708)
+Reference: FT733118092690
+Date: 2026-10-12 11:12:54
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1169.11
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: ZWG 1169.11
+Account: 4373450
+From: Memory Chuma  (2657••••1936)
+Reference: FT393940402550
+Date: 2026-08-16 18:33:19
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

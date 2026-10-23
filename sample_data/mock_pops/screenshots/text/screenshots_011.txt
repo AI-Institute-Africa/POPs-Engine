@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 614.78
+Paid to: Tafadzwa Ndlovu
+Amount Transferred: USD 614.78
+Account: 780863452082
+From: Kudakwashe Nyoni  (2838••••8884)
+Reference: FT956669197248
+Date: 2026-07-20 11:41:13
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

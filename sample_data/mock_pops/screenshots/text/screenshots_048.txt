@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 778.55
+Paid to: Farai Maphosa
+Amount Transferred: ZWG 778.55
+Account: 806093535983
+From: Tariro Sibanda  (6577••••5111)
+Reference: FT409984406747
+Date: 2026-09-12 16:43:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

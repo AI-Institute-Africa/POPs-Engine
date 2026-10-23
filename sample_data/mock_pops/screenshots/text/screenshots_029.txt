@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 996.00
+Paid to: Rufaro Zhou
+Amount Transferred: USD 996.00
+Account: 082561543341
+From: Tendai Sibanda  (5132••••6186)
+Reference: CBZ1475142852
+Date: 2026-05-02 21:20:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

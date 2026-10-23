@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 952.09
+Paid to: Nqobile Makoni
+Amount Transferred: ZWG 952.09
+Account: 035927319805
+From: Tendai Ndlovu  (5877••••4112)
+Reference: FT435015889873
+Date: 2026-03-09 08:53:39
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

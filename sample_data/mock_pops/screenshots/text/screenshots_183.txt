@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 586.83
+Paid to: Tariro Sibanda
+Amount Transferred: USD 586.83
+Account: 701466615916
+From: Tafadzwa Gumbo  (2579••••9029)
+Reference: NMB-TXN-14979048
+Date: 2026-04-18 18:34:39
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

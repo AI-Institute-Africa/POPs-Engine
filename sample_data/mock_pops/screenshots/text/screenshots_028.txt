@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 537.45
+Paid to: Thabo Nyoni
+Amount Transferred: USD 537.45
+Account: 359329001268
+From: Tafadzwa Moyo  (9938••••4812)
+Reference: FT037479548616
+Date: 2026-01-07 16:59:17
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 358.63
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 358.63
+Account: 2412365
+From: Rufaro Zhou  (5784••••0598)
+Reference: FT095953729860
+Date: 2026-03-03 07:50:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

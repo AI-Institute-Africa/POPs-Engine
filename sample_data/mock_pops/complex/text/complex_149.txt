@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 872.17
+Paid to: Tariro Ndlovu
+Amount Transferred: ZWG 872.17
+Account: 628036893791
+From: Kudakwashe Ndlovu  (2452••••8613)
+Reference: FT465461065901
+Date: 2026-04-26 13:30:45
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

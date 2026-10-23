@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+PENDING  |  USD 1213.01
+Paid to: NetOne
+Amount Transferred: USD 1213.01
+Account: 6328771
+From: Memory Nyoni  (8986••••7705)
+Reference: FT476332864698
+Date: 2026-04-07 08:27:17
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

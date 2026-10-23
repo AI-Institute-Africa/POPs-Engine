@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1112.38
+Paid to: OK Zimbabwe
+Amount Transferred: USD 1112.38
+Account: 8761525
+From: Tafadzwa Chuma  (6021••••5107)
+Reference: FT375476101291
+Date: 2026-08-10 18:30:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

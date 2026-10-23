@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1113.06
+Paid to: Chipo Sibanda
+Amount Transferred: ZWG 1113.06
+Account: 565196220390
+From: Rufaro Mutasa  (9278••••6531)
+Reference: FT092060989177
+Date: 2026-10-16 11:13:05
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

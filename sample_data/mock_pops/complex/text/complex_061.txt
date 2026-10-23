@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 404.84
+Paid to: Delta Corporation
+Amount Transferred: USD 404.84
+Account: 1578299
+From: Kudakwashe Ncube  (5112••••3895)
+Reference: FT297589086122
+Date: 2026-06-30 12:02:20
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

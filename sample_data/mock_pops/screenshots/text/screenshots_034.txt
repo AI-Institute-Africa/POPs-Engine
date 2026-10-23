@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1400.77
+Paid to: Chipo Mutasa
+Amount Transferred: ZWG 1400.77
+Account: 180683554226
+From: Memory Sibanda  (3674••••9700)
+Reference: FT522829077274
+Date: 2026-07-10 21:48:32
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,4 @@
+2026-09-13 12:45:01  EcoCash
+Wallet payment successful. USD 550.99 sent to Anesu Ndlovu.
+Reference: PPRAUPGKZA. Available balance: USD 1072.91.
+This is a synthetic sample message, not a real transaction.

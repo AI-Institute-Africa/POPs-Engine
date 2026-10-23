@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1436.52
+Paid to: NetOne
+Amount Transferred: ZWG 1436.52
+Account: 6606337
+From: Kudakwashe Shumba  (8269••••8426)
+Reference: NMB-TXN-14558432
+Date: 2026-04-03 08:13:49
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

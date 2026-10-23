@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 247.26
+Paid to: Chipo Zhou
+Amount Transferred: ZWG 247.26
+Account: 882102923844
+From: Thabo Gumbo  (4151••••6178)
+Reference: NMB-TXN-12858513
+Date: 2026-05-03 16:23:15
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

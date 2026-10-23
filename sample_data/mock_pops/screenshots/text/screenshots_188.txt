@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 561.89
+Paid to: Tinashe Mutasa
+Amount Transferred: USD 561.89
+Account: 126762368434
+From: Thabo Zhou  (5662••••4689)
+Reference: FT294207928295
+Date: 2026-06-20 15:45:49
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

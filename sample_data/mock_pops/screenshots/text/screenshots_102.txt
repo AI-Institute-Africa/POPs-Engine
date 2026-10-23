@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 292.80
+Paid to: NetOne
+Amount Transferred: USD 292.80
+Account: 2584956
+From: Tafadzwa Phiri  (9015••••2297)
+Reference: CBZ1088575526
+Date: 2026-06-07 16:11:26
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

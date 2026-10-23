@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 71.81
+Paid to: Blessing Chuma
+Amount Transferred: ZWG 71.81
+Account: 890914518600
+From: Tafadzwa Nyoni  (1188••••8907)
+Reference: FT007301939894
+Date: 2026-01-16 20:59:42
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

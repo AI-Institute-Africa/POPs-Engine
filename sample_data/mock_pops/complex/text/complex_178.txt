@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 945.01
+Paid to: Farai Sibanda
+Amount Transferred: USD 945.01
+Account: 969041867527
+From: Blessing Ncube  (6825••••7647)
+Reference: FT783566034222
+Date: 2026-03-27 16:36:24
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

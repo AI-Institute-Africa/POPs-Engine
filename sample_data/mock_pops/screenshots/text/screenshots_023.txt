@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 802.29
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: USD 802.29
+Account: 0233436
+From: Tafadzwa Nyoni  (1923••••9540)
+Reference: FT439704026576
+Date: 2026-02-19 13:12:27
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

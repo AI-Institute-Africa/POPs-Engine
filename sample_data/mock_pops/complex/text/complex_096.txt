@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 943.28
+Paid to: Memory Makoni
+Amount Transferred: ZWG 943.28
+Account: 399201613593
+From: Anesu Zhou  (4759••••9213)
+Reference: CBZ5987202752
+Date: 2026-01-29 12:40:36
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

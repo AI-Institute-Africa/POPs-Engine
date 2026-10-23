@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 214.57
+Paid to: ZOL Zimbabwe
+Amount Transferred: USD 214.57
+Account: 9394523
+From: Rufaro Mutasa  (6663••••8746)
+Reference: FT081876576694
+Date: 2026-03-20 10:15:45
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

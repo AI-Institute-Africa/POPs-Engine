@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1429.37
+Paid to: Choppies Supermarket
+Amount Transferred: USD 1429.37
+Account: 0187835
+From: Farai Zhou  (3012••••3966)
+Reference: FT066460475562
+Date: 2026-01-27 07:56:02
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

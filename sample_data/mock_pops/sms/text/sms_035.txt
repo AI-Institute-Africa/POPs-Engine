@@ -1,0 +1,4 @@
+2026-06-09 07:02:48  EcoCash
+Wallet payment successful. USD 606.59 sent to NetOne.
+Reference: PPTGJRKPKT. Available balance: USD 2446.47.
+This is a synthetic sample message, not a real transaction.

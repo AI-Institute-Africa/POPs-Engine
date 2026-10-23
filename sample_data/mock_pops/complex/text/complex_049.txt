@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1080.44
+Paid to: Rufaro Chuma
+Amount Transferred: ZWG 1080.44
+Account: 848301782512
+From: Tariro Gumbo  (1575••••5108)
+Reference: NMB-TXN-57721085
+Date: 2026-08-28 19:57:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

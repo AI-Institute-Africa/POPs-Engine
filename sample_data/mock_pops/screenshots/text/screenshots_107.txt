@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 199.93
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: ZWG 199.93
+Account: 9244000
+From: Nqobile Ncube  (7539••••1032)
+Reference: FT055599972237
+Date: 2026-01-16 08:58:18
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

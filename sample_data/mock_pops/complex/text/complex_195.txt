@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 490.79
+Paid to: Thabo Sibanda
+Amount Transferred: ZWG 490.79
+Account: 307546487456
+From: Rufaro Chuma  (7125••••2029)
+Reference: CBZ6479053937
+Date: 2026-05-11 19:37:22
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

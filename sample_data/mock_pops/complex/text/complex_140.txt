@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 247.47
+Paid to: Tinashe Phiri
+Amount Transferred: USD 247.47
+Account: 690728886152
+From: Tafadzwa Moyo  (1886••••7455)
+Reference: FT467315564748
+Date: 2026-08-31 17:59:13
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

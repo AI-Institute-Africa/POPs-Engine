@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 727.56
+Paid to: Chipo Maphosa
+Amount Transferred: ZWG 727.56
+Account: 277580226731
+From: Anesu Dube  (2237••••5842)
+Reference: FT604396637703
+Date: 2026-07-31 13:10:51
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

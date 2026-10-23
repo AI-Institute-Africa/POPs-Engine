@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 493.18
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 493.18
+Account: 9430581
+From: Kudakwashe Ndlovu  (7404••••4501)
+Reference: FT276690010086
+Date: 2026-08-13 11:54:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

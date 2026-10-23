@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1453.24
+Paid to: Tafadzwa Zhou
+Amount Transferred: ZWG 1453.24
+Account: 962406947932
+From: Tendai Moyo  (2012••••1880)
+Reference: FT227808282977
+Date: 2026-03-21 20:52:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

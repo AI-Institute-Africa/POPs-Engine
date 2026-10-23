@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 834.39
+Paid to: Rufaro Phiri
+Amount Transferred: USD 834.39
+Account: 386143471121
+From: Kudakwashe Nyoni  (7579••••7986)
+Reference: FT326041566786
+Date: 2026-08-02 11:01:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

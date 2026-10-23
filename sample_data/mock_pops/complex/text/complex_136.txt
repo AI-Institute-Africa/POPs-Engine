@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 441.29
+Paid to: Thabo Nyoni
+Amount Transferred: ZWG 441.29
+Account: 575427340577
+From: Anesu Gumbo  (9812••••2801)
+Reference: FT831983971969
+Date: 2026-02-06 10:11:25
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

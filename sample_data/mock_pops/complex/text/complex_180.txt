@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 868.37
+Paid to: Anesu Nyoni
+Amount Transferred: ZWG 868.37
+Account: 241728458154
+From: Anesu Gumbo  (1280••••5724)
+Reference: NMB-TXN-56199473
+Date: 2026-03-28 10:52:14
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

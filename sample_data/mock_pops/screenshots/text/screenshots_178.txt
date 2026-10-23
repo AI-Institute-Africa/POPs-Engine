@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+PENDING  |  USD 281.41
+Paid to: Rufaro Maphosa
+Amount Transferred: USD 281.41
+Account: 490909324040
+From: Farai Chuma  (4859••••1361)
+Reference: FT590924690288
+Date: 2026-02-16 13:36:00
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

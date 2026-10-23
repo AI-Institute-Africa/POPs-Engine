@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 650.67
+Paid to: Tinashe Dube
+Amount Transferred: ZWG 650.67
+Account: 537837815421
+From: Tinashe Gumbo  (9069••••7581)
+Reference: FT250450483861
+Date: 2026-01-07 09:09:30
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

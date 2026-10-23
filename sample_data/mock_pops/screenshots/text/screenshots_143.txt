@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 592.00
+Paid to: Tinashe Shumba
+Amount Transferred: USD 592.00
+Account: 218099160988
+From: Tendai Sibanda  (5688••••4804)
+Reference: FT740210130384
+Date: 2025-12-28 18:42:58
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

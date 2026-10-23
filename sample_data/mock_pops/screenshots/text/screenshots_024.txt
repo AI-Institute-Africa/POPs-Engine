@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 344.43
+Paid to: Econet Wireless
+Amount Transferred: USD 344.43
+Account: 8632016
+From: Tendai Gumbo  (4759••••7256)
+Reference: FT385105569097
+Date: 2026-09-14 14:14:25
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

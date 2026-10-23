@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 783.09
+Paid to: Tariro Moyo
+Amount Transferred: USD 783.09
+Account: 848770634763
+From: Tafadzwa Moyo  (5432••••7567)
+Reference: CBZ5961520180
+Date: 2026-06-02 15:13:42
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

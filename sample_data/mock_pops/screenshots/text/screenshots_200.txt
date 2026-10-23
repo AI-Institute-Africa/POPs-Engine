@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 1433.66
+Paid to: Tafadzwa Sibanda
+Amount Transferred: USD 1433.66
+Account: 873728066793
+From: Tariro Maphosa  (2934••••0282)
+Reference: FT006021203503
+Date: 2026-10-14 09:02:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

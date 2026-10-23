@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 854.06
+Paid to: Nqobile Sibanda
+Amount Transferred: ZWG 854.06
+Account: 962737247412
+From: Anesu Moyo  (1903••••3636)
+Reference: NMB-TXN-07768128
+Date: 2026-09-27 17:55:59
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

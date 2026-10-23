@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 264.95
+Paid to: Choppies Supermarket
+Amount Transferred: USD 264.95
+Account: 0047808
+From: Farai Moyo  (1299••••5725)
+Reference: FT646993112759
+Date: 2026-09-10 11:46:30
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

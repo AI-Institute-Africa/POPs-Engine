@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 658.38
+Paid to: ZOL Zimbabwe
+Amount Transferred: ZWG 658.38
+Account: 4244466
+From: Blessing Chuma  (0306••••0516)
+Reference: NMB-TXN-61305169
+Date: 2026-09-25 13:36:07
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

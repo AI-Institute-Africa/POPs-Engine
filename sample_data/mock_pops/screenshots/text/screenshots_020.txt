@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1451.41
+Paid to: Memory Dube
+Amount Transferred: USD 1451.41
+Account: 217125158134
+From: Tariro Zhou  (0172••••9070)
+Reference: FT146438581928
+Date: 2026-08-12 16:54:01
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 409.83
+Paid to: ZOL Zimbabwe
+Amount Transferred: USD 409.83
+Account: 0825461
+From: Blessing Phiri  (0632••••4978)
+Reference: FT498477124907
+Date: 2026-03-07 15:31:54
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

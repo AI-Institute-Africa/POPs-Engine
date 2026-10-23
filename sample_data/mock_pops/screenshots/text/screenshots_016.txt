@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 223.08
+Paid to: ZETDC
+Amount Transferred: ZWG 223.08
+Account: 2061706
+From: Blessing Phiri  (8442••••6566)
+Reference: NMB-TXN-93097072
+Date: 2026-06-18 09:10:41
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

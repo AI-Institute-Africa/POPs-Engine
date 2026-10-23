@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 154.83
+Paid to: Tariro Phiri
+Amount Transferred: USD 154.83
+Account: 121695760639
+From: Farai Phiri  (0414••••9443)
+Reference: FT195135473201
+Date: 2026-08-24 18:56:12
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

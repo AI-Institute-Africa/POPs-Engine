@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 785.90
+Paid to: Tariro Ndlovu
+Amount Transferred: USD 785.90
+Account: 245177910100
+From: Thabo Sibanda  (5919••••8109)
+Reference: FT534877699522
+Date: 2026-06-14 14:23:30
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

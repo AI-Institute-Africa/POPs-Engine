@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 231.47
+Paid to: Delta Corporation
+Amount Transferred: ZWG 231.47
+Account: 3832762
+From: Thabo Maphosa  (2848••••1127)
+Reference: FT153372041264
+Date: 2026-01-23 13:44:34
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1235.48
+Paid to: NetOne
+Amount Transferred: ZWG 1235.48
+Account: 0385731
+From: Blessing Ncube  (0985••••4219)
+Reference: FT606536138244
+Date: 2026-01-22 08:28:48
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

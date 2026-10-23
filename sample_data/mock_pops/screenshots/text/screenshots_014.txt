@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 433.24
+Paid to: NetOne
+Amount Transferred: USD 433.24
+Account: 1787159
+From: Chipo Zhou  (1533••••4057)
+Reference: FT092470585896
+Date: 2026-10-03 08:12:53
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

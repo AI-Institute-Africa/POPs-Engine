@@ -1,0 +1,10 @@
+========================================
+NMB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 318.38
+Paid to: Tendai Shumba
+Amount Transferred: ZWG 318.38
+Account: 569695309053
+From: Tafadzwa Zhou  (6269••••3413)
+Reference: NMB-TXN-87586766
+Date: 2026-10-14 16:26:56
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

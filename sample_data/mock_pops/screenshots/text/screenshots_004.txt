@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 719.44
+Paid to: Farai Phiri
+Amount Transferred: ZWG 719.44
+Account: 614240949844
+From: Kudakwashe Phiri  (1739••••2121)
+Reference: FT555735747501
+Date: 2026-04-17 13:20:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

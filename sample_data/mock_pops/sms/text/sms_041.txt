@@ -1,0 +1,4 @@
+2026-08-09 07:26:12  EcoCash
+Wallet payment successful. USD 670.99 sent to Thabo Chuma.
+Reference: PPWGU3BNE5. Available balance: USD 972.20.
+This is a synthetic sample message, not a real transaction.

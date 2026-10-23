@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 204.91
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: ZWG 204.91
+Account: 5786063
+From: Thabo Nyoni  (6038••••8560)
+Reference: FT425687002645
+Date: 2026-06-01 14:03:40
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

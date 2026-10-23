@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 610.53
+Paid to: Tafadzwa Ncube
+Amount Transferred: USD 610.53
+Account: 471322477334
+From: Memory Phiri  (6151••••2468)
+Reference: FT783982542343
+Date: 2026-07-01 08:22:38
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

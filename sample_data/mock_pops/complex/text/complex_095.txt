@@ -1,0 +1,10 @@
+========================================
+CABS  •  Payment receipt
+SUCCESSFUL  |  USD 520.01
+Paid to: Kudakwashe Makoni
+Amount Transferred: USD 520.01
+Account: 784275426371
+From: Memory Chuma  (6039••••3922)
+Reference: FT326050627620
+Date: 2026-04-29 20:06:52
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

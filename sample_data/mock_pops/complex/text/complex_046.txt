@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+PENDING  |  ZWG 446.54
+Paid to: Nqobile Sibanda
+Amount Transferred: ZWG 446.54
+Account: 679622422112
+From: Blessing Moyo  (5213••••3524)
+Reference: FT969594448540
+Date: 2026-09-24 13:41:41
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1234.39
+Paid to: Econet Wireless
+Amount Transferred: USD 1234.39
+Account: 7742268
+From: Anesu Ndlovu  (4263••••9368)
+Reference: FT629325045175
+Date: 2026-04-24 14:42:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

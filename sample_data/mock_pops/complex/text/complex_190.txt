@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 706.14
+Paid to: Tariro Maphosa
+Amount Transferred: USD 706.14
+Account: 269506835927
+From: Tafadzwa Gumbo  (8875••••8525)
+Reference: CBZ9535834250
+Date: 2026-08-24 21:13:40
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

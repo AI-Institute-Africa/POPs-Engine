@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 482.33
+Paid to: Rufaro Mutasa
+Amount Transferred: USD 482.33
+Account: 161195831003
+From: Kudakwashe Ndlovu  (6183••••9933)
+Reference: CBZ8254002572
+Date: 2026-01-02 13:49:03
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

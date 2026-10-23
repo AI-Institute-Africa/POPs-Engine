@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1233.30
+Paid to: Anesu Makoni
+Amount Transferred: USD 1233.30
+Account: 372684016753
+From: Nqobile Makoni  (7341••••7166)
+Reference: FT947706532918
+Date: 2026-08-11 19:25:09
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

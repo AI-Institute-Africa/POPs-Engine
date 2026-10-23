@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+PENDING  |  ZWG 1003.02
+Paid to: Rufaro Mutasa
+Amount Transferred: ZWG 1003.02
+Account: 466073520483
+From: Kudakwashe Ncube  (8604••••7244)
+Reference: FT636208645251
+Date: 2026-05-19 20:34:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

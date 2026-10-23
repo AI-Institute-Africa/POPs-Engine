@@ -1,0 +1,4 @@
+2026-08-14 14:08:47  EcoCash
+Wallet payment successful. ZWG 297.15 sent to Thabo Shumba.
+Reference: PPE51P4VLV. Available balance: ZWG 1718.66.
+This is a synthetic sample message, not a real transaction.

@@ -1,0 +1,4 @@
+2026-01-04 21:26:24  EcoCash
+Wallet payment successful. ZWG 1099.18 sent to Anesu Zhou.
+Reference: PPEEF44V8A. Available balance: ZWG 860.18.
+This is a synthetic sample message, not a real transaction.

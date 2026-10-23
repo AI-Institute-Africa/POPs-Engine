@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 29.10
+Paid to: Tafadzwa Sibanda
+Amount Transferred: ZWG 29.10
+Account: 433326317360
+From: Chipo Mutasa  (1548••••9559)
+Reference: FT671388552294
+Date: 2026-07-16 12:51:44
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 372.99
+Paid to: OK Zimbabwe
+Amount Transferred: ZWG 372.99
+Account: 2005657
+From: Memory Nyoni  (3956••••1025)
+Reference: FT116340082619
+Date: 2026-07-01 21:46:50
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

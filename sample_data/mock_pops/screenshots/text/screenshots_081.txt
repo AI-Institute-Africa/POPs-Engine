@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 844.84
+Paid to: OK Zimbabwe
+Amount Transferred: USD 844.84
+Account: 5370637
+From: Nqobile Gumbo  (7759••••2464)
+Reference: FT777306421630
+Date: 2026-03-02 09:19:36
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

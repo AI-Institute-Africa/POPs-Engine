@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1290.69
+Paid to: Kudakwashe Nyoni
+Amount Transferred: USD 1290.69
+Account: 207870104587
+From: Blessing Mutasa  (7493••••3639)
+Reference: FT859393155586
+Date: 2026-06-17 17:35:26
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

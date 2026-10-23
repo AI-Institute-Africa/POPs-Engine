@@ -1,0 +1,10 @@
+========================================
+CBZ Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1154.79
+Paid to: Rufaro Mutasa
+Amount Transferred: USD 1154.79
+Account: 924154288148
+From: Farai Phiri  (2901••••0335)
+Reference: CBZ7611838881
+Date: 2026-07-01 10:30:33
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

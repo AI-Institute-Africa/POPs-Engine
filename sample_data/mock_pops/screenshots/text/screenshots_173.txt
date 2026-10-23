@@ -1,0 +1,10 @@
+========================================
+Steward Bank  •  Payment receipt
+SUCCESSFUL  |  USD 532.37
+Paid to: Memory Mutasa
+Amount Transferred: USD 532.37
+Account: 259693225408
+From: Tafadzwa Maphosa  (2478••••9887)
+Reference: FT406532955983
+Date: 2026-03-01 20:17:05
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

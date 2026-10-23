@@ -1,0 +1,10 @@
+========================================
+FBC Bank  •  Payment receipt
+SUCCESSFUL  |  USD 101.06
+Paid to: Kudakwashe Zhou
+Amount Transferred: USD 101.06
+Account: 140092809302
+From: Thabo Mutasa  (5859••••5710)
+Reference: FT795106329757
+Date: 2026-08-08 08:27:45
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 1164.90
+Paid to: Tariro Nyoni
+Amount Transferred: ZWG 1164.90
+Account: 375997399980
+From: Farai Ndlovu  (7953••••6128)
+Reference: FT939347968323
+Date: 2026-10-10 15:28:35
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

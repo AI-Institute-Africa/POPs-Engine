@@ -1,0 +1,10 @@
+========================================
+First Capital Bank  •  Payment receipt
+SUCCESSFUL  |  USD 120.83
+Paid to: Tariro Moyo
+Amount Transferred: USD 120.83
+Account: 145416167844
+From: Thabo Ndlovu  (1689••••3296)
+Reference: FT731385681831
+Date: 2026-09-10 07:33:55
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -1,0 +1,10 @@
+========================================
+ZB Bank  •  Payment receipt
+SUCCESSFUL  |  ZWG 436.15
+Paid to: Tariro Moyo
+Amount Transferred: ZWG 436.15
+Account: 550442501560
+From: Kudakwashe Maphosa  (6984••••3174)
+Reference: FT869200543850
+Date: 2026-01-09 16:25:04
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT

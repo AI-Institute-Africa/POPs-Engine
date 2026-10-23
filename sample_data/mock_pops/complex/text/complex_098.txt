@@ -1,0 +1,10 @@
+========================================
+Stanbic Bank  •  Payment receipt
+SUCCESSFUL  |  USD 1414.29
+Paid to: Liquid Intelligent Technologies
+Amount Transferred: USD 1414.29
+Account: 0685500
+From: Thabo Nyoni  (7503••••3814)
+Reference: FT971103017862
+Date: 2026-03-26 15:55:15
+SYNTHETIC SAMPLE - NOT A REAL PAYMENT
