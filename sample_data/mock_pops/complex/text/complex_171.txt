@@ -6,5 +6,5 @@ Amount Transferred: ZWG 970.69
 Account: 5231286
 From: Thabo Makoni  (3923••••4131)
 Reference: NMB-TXN-70000296
-Date: 2026-07-19 09:38:46
+Date: 2026-07-20 09:38:46
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

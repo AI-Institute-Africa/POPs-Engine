@@ -6,5 +6,5 @@ Amount Transferred: USD 879.44
 Account: 2996844
 From: Nqobile Maphosa  (3410••••6181)
 Reference: NMB-TXN-78445377
-Date: 2026-01-11 07:53:53
+Date: 2026-01-12 07:53:53
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

@@ -6,5 +6,5 @@ Amount Transferred: ZWG 323.93
 Account: 170344449894
 From: Anesu Sibanda  (8913••••7627)
 Reference: NMB-TXN-10588758
-Date: 2026-02-02 18:50:43
+Date: 2026-02-03 18:50:43
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

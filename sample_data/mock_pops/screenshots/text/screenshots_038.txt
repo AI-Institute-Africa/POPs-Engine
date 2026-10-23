@@ -6,5 +6,5 @@ Amount Transferred: ZWG 123.01
 Account: 2343716
 From: Kudakwashe Sibanda  (7308••••2238)
 Reference: NMB-TXN-87545124
-Date: 2026-08-05 21:20:09
+Date: 2026-08-06 21:20:09
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

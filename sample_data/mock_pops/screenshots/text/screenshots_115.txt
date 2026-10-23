@@ -6,5 +6,5 @@ Amount Transferred: USD 662.23
 Account: 4996130
 From: Thabo Moyo  (9212••••4974)
 Reference: CBZ8614509183
-Date: 2026-06-02 11:42:34
+Date: 2026-06-03 11:42:34
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

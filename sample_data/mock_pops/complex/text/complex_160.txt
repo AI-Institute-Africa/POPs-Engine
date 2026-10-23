@@ -6,5 +6,5 @@ Amount Transferred: ZWG 406.80
 Account: 6900062
 From: Anesu Maphosa  (4529••••7929)
 Reference: NMB-TXN-14929523
-Date: 2026-09-23 16:32:02
+Date: 2026-09-24 16:32:02
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

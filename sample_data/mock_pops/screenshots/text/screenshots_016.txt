@@ -6,5 +6,5 @@ Amount Transferred: ZWG 223.08
 Account: 2061706
 From: Blessing Phiri  (8442••••6566)
 Reference: NMB-TXN-93097072
-Date: 2026-06-18 09:10:41
+Date: 2026-06-19 09:10:41
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

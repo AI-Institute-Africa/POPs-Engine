@@ -47,6 +47,25 @@ p50/p95 latency for each model. The targets are 98% on known templates and 90% o
 
 ## v2: open-weights models to download, fine-tune and plug in
 
+### Prepare the synthetic sample set
+
+The repository includes 500 generated examples (200 app-style screenshots, 100 mobile-wallet SMS
+examples and 200 complex receipt images). Rebuild the images and create deterministic, category-
+stratified 80/10/10 JSONL splits with:
+
+```bash
+python scripts/generate_mock_pops.py
+python scripts/prepare_training_data.py
+```
+
+The resulting `sample_data/mock_pops/training_splits/{train,validation,test}.jsonl` rows point to
+images relative to `sample_data/mock_pops` and carry `target` objects using the exact
+`ReceiptFields` keys. The current split is 400/50/50. Use these examples to validate a trainer and
+its input pipeline; the records are synthetic, visibly watermarked and generated from a small set
+of layouts. They are not a measure of real receipt accuracy and should not be used to train a fraud
+detector. Before fine-tuning or making accuracy claims, add reviewer-verified, consented receipts
+and reserve a separate held-out set of real layouts.
+
 When to fine-tune at all is set by blueprint §12.1: a high-volume channel is below target, you have
 a few hundred reviewer-corrected examples per major layout, and the tuned model beats the best
 pretrained one on the held-out set.

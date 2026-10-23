@@ -6,5 +6,5 @@ Amount Transferred: USD 322.92
 Account: 723062350982
 From: Nqobile Phiri  (3724••••5960)
 Reference: NMB-TXN-69048121
-Date: 2026-10-18 10:37:38
+Date: 2026-10-19 10:37:38
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT

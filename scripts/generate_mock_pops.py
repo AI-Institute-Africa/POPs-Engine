@@ -83,8 +83,8 @@ def make_receipt(index: int, category: str) -> tuple[str, dict[str, str]]:
 
     return "\n".join(body), {
         "id": f"{category}_{index:03d}", "category": category, "bank": bank, "reference": reference,
-        "status": status, "date_time": date, "currency": currency,
-        "amount": amount,
+        "status": status.lower() if is_sms else status, "date_time": date, "currency": currency,
+        "amount": amount, "sender": "" if is_sms else sender, "beneficiary": beneficiary,
         "text_file": f"{category}/text/{category}_{index:03d}.txt",
         "image_file": f"{category}/images/{category}_{index:03d}.jpg",
         "synthetic": "true",
@@ -214,7 +214,7 @@ def main() -> None:
     with manifest_path.open("w", newline="", encoding="utf-8") as manifest_file:
         writer = csv.DictWriter(manifest_file, fieldnames=[
             "id", "category", "bank", "reference", "status", "date_time", "currency",
-            "amount", "text_file", "image_file", "synthetic",
+            "amount", "sender", "beneficiary", "text_file", "image_file", "synthetic",
         ])
         writer.writeheader()
         for category, count, text_dir, image_dir in (
@@ -237,7 +237,8 @@ def main() -> None:
         "200 app-style payment screenshots: screenshots/text and screenshots/images.\n"
         "100 mobile-wallet SMS examples: sms/text and sms/images.\n"
         "200 varied, scan-style complex receipt images: complex/text and complex/images.\n"
-        "manifest.csv maps each record to its text and image files.\n",
+        "manifest.csv maps each record to its text, image and generated labels.\n"
+        "Run scripts/prepare_training_data.py to create deterministic train/validation/test JSONL.\n",
         encoding="utf-8",
     )
     print(f"Generated {SCREENSHOT_COUNT} screenshots and {SMS_COUNT} SMS examples in {OUTPUT_DIR}")

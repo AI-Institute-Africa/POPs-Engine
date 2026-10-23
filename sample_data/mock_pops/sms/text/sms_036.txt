@@ -1,4 +1,4 @@
-2026-04-20 09:36:54  EcoCash
+2026-04-21 09:36:54  EcoCash
 Wallet payment successful. ZWG 457.54 sent to Farai Moyo.
 Reference: PPYKU55YDS. Available balance: ZWG 555.43.
 This is a synthetic sample message, not a real transaction.

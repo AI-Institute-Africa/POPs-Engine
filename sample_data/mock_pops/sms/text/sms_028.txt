@@ -1,4 +1,4 @@
-2026-03-02 12:08:34  EcoCash
+2026-03-03 12:08:34  EcoCash
 Wallet payment successful. ZWG 1089.71 sent to Tinashe Ndlovu.
 Reference: PPGYBV4IH7. Available balance: ZWG 1691.65.
 This is a synthetic sample message, not a real transaction.

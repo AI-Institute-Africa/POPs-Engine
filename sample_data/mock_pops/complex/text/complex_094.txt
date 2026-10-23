@@ -6,5 +6,5 @@ Amount Transferred: ZWG 353.65
 Account: 122729872732
 From: Kudakwashe Dube  (8142••••9198)
 Reference: NMB-TXN-89562054
-Date: 2026-02-04 11:11:15
+Date: 2026-02-05 11:11:15
 SYNTHETIC SAMPLE - NOT A REAL PAYMENT
