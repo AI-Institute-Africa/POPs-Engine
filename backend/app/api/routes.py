@@ -52,7 +52,9 @@ from app.core.security import (
     verify_evidence_signature,
 )
 from app.credits.statements import ImportError_, import_statement, profiles
-from app.intake.files import RejectedFile
+from app.extraction import preprocess
+from app.extraction.service import build_readers, extract
+from app.intake.files import RejectedFile, prepare
 from app.intake.scan import ScannerUnavailable
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
@@ -250,6 +252,74 @@ def obligation_balance(obligation_id: uuid.UUID, db: DB, p: Any_) -> BalanceOut:
 
 
 # --- claims -----------------------------------------------------------------------------------
+
+
+@router.post("/claims/preview", tags=["claims"])
+async def preview_claim_files(
+    db: DB,
+    p: Any_,
+    file: Annotated[list[UploadFile] | None, File()] = None,
+) -> dict:
+    """Read attached evidence before claim submission so the payer can confirm legibility."""
+    uploads = file or []
+    if not uploads:
+        raise HTTPException(422, "attach at least one proof to read it")
+    if len(uploads) > 5:
+        raise HTTPException(422, "up to 5 files can be checked at once")
+
+    settings = get_settings()
+    policy = load_policy(db, p.org_id)
+    readers = build_readers()
+    files_out = []
+    for upload in uploads:
+        data = await upload.read(settings.max_upload_bytes + 1)
+        try:
+            prepared = prepare(data, settings.max_upload_bytes)
+        except RejectedFile as exc:
+            raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
+
+        quality_problems = []
+        for page in prepared.pages:
+            quality_problems.extend(
+                preprocess.assess(page).problems(
+                    policy.config.min_image_side_px, policy.config.min_sharpness
+                )
+            )
+        result = extract(
+            prepared.pages,
+            data,
+            critical=[],
+            single_reader_min_conf=policy.config.single_reader_min_confidence,
+            readers=readers,
+            text=prepared.text,
+            layout=prepared.page_layout,
+        )
+        fields = [
+            {"name": name, "value": field.raw, "confidence": field.confidence}
+            for name, field in result.fields.items()
+            if field.raw
+        ]
+        recognized = {field["name"] for field in fields}
+        has_readable_text = bool(
+            recognized.intersection({"amount", "transaction_id", "date", "status", "provider", "sender"})
+        )
+        files_out.append(
+            {
+                "name": upload.filename or "Proof",
+                "content_type": prepared.content_type,
+                "width": prepared.image.width,
+                "height": prepared.image.height,
+                "fields": fields,
+                "quality_issues": sorted(set(quality_problems)),
+                "reader_errors": list(result.failures.values()),
+                "readable": has_readable_text and not quality_problems,
+            }
+        )
+
+    return {
+        "readable": all(item["readable"] for item in files_out),
+        "files": files_out,
+    }
 
 
 @router.post("/claims", response_model=ClaimOut, status_code=201, tags=["claims"])

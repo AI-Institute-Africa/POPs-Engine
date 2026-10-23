@@ -5,6 +5,18 @@ import { useI18n } from "../i18n";
 import { useToast } from "../toast";
 
 type Recent = { claim_id: string; code: string; when: string };
+type Preview = {
+  readable: boolean;
+  files: {
+    name: string;
+    width: number;
+    height: number;
+    fields: { name: string; value: string; confidence: number }[];
+    quality_issues: string[];
+    reader_errors: string[];
+    readable: boolean;
+  }[];
+};
 
 const RECENT_KEY = "validate-recent";
 
@@ -190,6 +202,8 @@ export default function Scan() {
   const file = files[0] ?? null;
   const [pasted, setPasted] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [filePreview, setFilePreview] = useState<Preview | null>(null);
+  const [fileVerified, setFileVerified] = useState(false);
   const [drag, setDrag] = useState(false);
   const [code, setCode] = useState("");
   const [claimantRef, setClaimantRef] = useState("");
@@ -200,6 +214,8 @@ export default function Scan() {
   const [recent, setRecent] = useState<Recent[]>(() => loadRecent());
   const cameraRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const replaceUploadRef = useRef(false);
+  const fileSelectionVersion = useRef(0);
   const notifiedRef = useRef<string | null>(null);
 
   const obligations = useQuery({
@@ -268,30 +284,55 @@ export default function Scan() {
     },
   });
 
-  const pick = (list: FileList | null | undefined) => {
-    setFormError(null);
+  const readFiles = useMutation({
+    mutationFn: async () => {
+      const version = fileSelectionVersion.current;
+      const fd = new FormData();
+      files.forEach((f) => fd.append("file", f));
+      return { version, preview: await post<Preview>("/claims/preview", fd) };
+    },
+    onSuccess: ({ version, preview }) => {
+      if (version !== fileSelectionVersion.current) return;
+      setFilePreview(preview);
+      setFileVerified(false);
+      setFormError(null);
+    },
+    onError: (e) => setFormError((e as Error).message),
+  });
+
+  const pick = (list: FileList | null | undefined, replace = false) => {
     const picked = Array.from(list ?? []);
     if (!picked.length) return;
     if (picked.some((f) => f.size > 20 * 1024 * 1024)) {
       setFormError("That file is over 20 MB. Please upload a smaller photo or PDF.");
       return;
     }
-    const next = [...files, ...picked].slice(0, 5);
-    if (files.length + picked.length > 5) setFormError("Up to 5 files per payment.");
+    setFormError(null);
+    setFilePreview(null);
+    setFileVerified(false);
+    readFiles.reset();
+    fileSelectionVersion.current += 1;
+    const next = (replace ? picked : [...files, ...picked]).slice(0, 5);
+    if (!replace && files.length + picked.length > 5) setFormError("Up to 5 files per payment.");
     setFiles(next);
-    if (!files.length) {
+    if (replace || !files.length) {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(next[0].type.startsWith("image/") ? URL.createObjectURL(next[0]) : null);
     }
   };
 
   const clearFile = () => {
+    fileSelectionVersion.current += 1;
     setFiles([]);
+    setFilePreview(null);
+    setFileVerified(false);
+    readFiles.reset();
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
   };
 
-  const canSubmit = (files.length > 0 || pasted.trim().length > 0) && !!obligation && claimantRef.trim().length >= 2 && !submit.isPending;
+  const canSubmit = (files.length > 0 || pasted.trim().length > 0) &&
+    (!files.length || fileVerified) && !!obligation && claimantRef.trim().length >= 2 && !submit.isPending;
 
   return (
     <section className="scan">
@@ -342,6 +383,9 @@ export default function Scan() {
                 >
                   ↻ Retake
                 </button>
+                <button type="button" className="ghost small" onClick={() => { replaceUploadRef.current = true; uploadRef.current?.click(); }}>
+                  Re-upload
+                </button>
                 <button type="button" className="ghost small" onClick={clearFile}>
                   ✕
                 </button>
@@ -355,6 +399,54 @@ export default function Scan() {
                   <strong>{t("drop.drag")}</strong> {t("drop.or")}
                 </p>
               </>
+            )}
+
+            {files.length > 0 && !filePreview && (
+              <div className="image-check">
+                <p className="muted small">Read the attachment and check that its payment details are clear before sending.</p>
+                <button type="button" className="secondary" disabled={readFiles.isPending} onClick={() => readFiles.mutate()}>
+                  {readFiles.isPending ? "Reading attachment…" : "Read attachment"}
+                </button>
+              </div>
+            )}
+            {filePreview && (
+              <div className={`image-check ${filePreview.readable ? "image-check-ok" : "image-check-needs-retake"}`}>
+                {filePreview.readable ? (
+                  <>
+                    <strong>Check the details the reader found</strong>
+                    {filePreview.files.map((item, index) => (
+                      <div className="image-readout" key={`${item.name}-${index}`}>
+                        <span className="muted small">{item.name} · {item.width} × {item.height}</span>
+                        {item.fields.length > 0 ? (
+                          <dl className="image-fields">
+                            {item.fields.map((field) => (
+                              <div key={field.name}><dt>{field.name.replace(/_/g, " ")}</dt><dd>{field.value}</dd></div>
+                            ))}
+                          </dl>
+                        ) : <span className="muted small">No payment details detected in this attachment.</span>}
+                      </div>
+                    ))}
+                    <button type="button" className={fileVerified ? "secondary verified" : "secondary"} onClick={() => setFileVerified((v) => !v)}>
+                      {fileVerified ? "✓ Proof verified" : "Verify: preview and payment details are readable"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <strong>This proof is hard to read. Please upload a clearer copy.</strong>
+                    {filePreview.files.map((item, index) => (
+                      <p className="muted small" key={`${item.name}-${index}`}>
+                        {item.name}: {item.quality_issues.length ? item.quality_issues.join(", ") : "payment details weren’t detected"}
+                      </p>
+                    ))}
+                    <div className="inline">
+                      {files.some((f) => f.type.startsWith("image/")) && (
+                        <button type="button" className="secondary" onClick={() => { clearFile(); cameraRef.current?.click(); }}>Retake photo</button>
+                      )}
+                      <button type="button" className="secondary" onClick={() => { replaceUploadRef.current = true; uploadRef.current?.click(); }}>Re-upload</button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             <div className="capture-row">
@@ -381,7 +473,7 @@ export default function Scan() {
               accept="image/*"
               capture="environment"
               hidden
-              onChange={(e) => pick(e.target.files)}
+              onChange={(e) => { pick(e.target.files); e.currentTarget.value = ""; }}
             />
             <input
               ref={uploadRef}
@@ -389,7 +481,12 @@ export default function Scan() {
               multiple
               accept="image/*,.heic,.heif,application/pdf,.docx,.eml,message/rfc822,.txt,text/plain"
               hidden
-              onChange={(e) => pick(e.target.files)}
+              onChange={(e) => {
+                const replace = replaceUploadRef.current;
+                replaceUploadRef.current = false;
+                pick(e.target.files, replace);
+                e.currentTarget.value = "";
+              }}
             />
             <p className="muted small">Photos, screenshots, PDFs, Word files and forwarded emails (.eml). Add up to 5 files for one payment.</p>
           </div>

@@ -242,6 +242,24 @@ dl.meta dt { color: var(--muted); }
 
 .file-row { display: flex; gap: 12px; align-items: center; }
 .file-row .grow { flex: 1; }
+.image-check {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  display: grid;
+  gap: 8px;
+}
+.image-check-ok { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.image-check-needs-retake { border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+.image-check .inline { display: flex; gap: 8px; flex-wrap: wrap; }
+.image-readout { display: grid; gap: 4px; padding: 8px 0; border-top: 1px solid var(--line); }
+.image-fields { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px 12px; }
+.image-fields div { min-width: 0; }
+.image-fields dt { color: var(--muted); text-transform: capitalize; font-size: 12px; }
+.image-fields dd { margin: 1px 0 0; overflow-wrap: anywhere; }
+.verified { border-color: var(--ok); color: var(--ok); }
 .file-icon {
   width: 42px;
   height: 42px;
