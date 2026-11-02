@@ -7,7 +7,7 @@ import sys
 
 import httpx
 
-from app.devtools import ecocash_fields, make_receipt, statement_csv
+from app.devtools import dmy, ecocash_fields, make_receipt, statement_csv
 
 base = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 c = httpx.Client(base_url=base, timeout=60)
@@ -90,7 +90,7 @@ claim(
             "Txn ID: PP251021.1450.E55501",
             "Amount: USD 400.00",
             "Paid to: COGNIFY MAIN",
-            "21/10/2026 14:50",
+            dmy("14:50"),
         ],
     ),
 )
@@ -107,25 +107,25 @@ r = c.post(
             statement_csv(
                 [
                     {
-                        "date": "21/10/2026 14:35",
+                        "date": dmy("14:35"),
                         "narrative": "EcoCash merchant credit",
                         "reference": "PP251021.1432.A12345",
                         "credit": "40.00",
                     },
                     {
-                        "date": "21/10/2026 15:03",
+                        "date": dmy("15:03"),
                         "narrative": "EcoCash merchant credit",
                         "reference": "PP251021.1501.B77881",
                         "credit": "40.00",
                     },
                     {
-                        "date": "21/10/2026 16:00",
+                        "date": dmy("16:00"),
                         "narrative": f"school fees {d['payment_code']}",
                         "reference": "FT2629400012",
                         "credit": "40.00",
                     },
                     {
-                        "date": "21/10/2026 14:51",
+                        "date": dmy("14:51"),
                         "narrative": "EcoCash merchant credit",
                         "reference": "PP251021.1450.E55501",
                         "credit": "40.00",
@@ -183,7 +183,7 @@ for i, line in enumerate(
         "Txn ID: PP251021.1900.G80002",
         "Amount: USD 40.00",
         "Paid to: COGNIFY MAIN",
-        "21/10/2026 19:00",
+        dmy("19:00"),
     ]
 ):
     pg.insert_text((72, 72 + 24 * i), line, fontsize=14)

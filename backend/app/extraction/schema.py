@@ -21,22 +21,37 @@ FIELD_NAMES = (
 class ReceiptFields(BaseModel):
     """Strict schema the VLM must fill. Every value is a verbatim string copied from the image."""
 
-    provider: str | None = Field(None, description="Payment provider or bank, e.g. EcoCash, CBZ")
+    provider: str | None = Field(
+        None,
+        description="Payment provider or bank, e.g. EcoCash, M-Pesa, Mpesa, Airtel Money, MTN MoMo, CBZ, Stanbic, Equity, KCB",
+    )
     document_type: str | None = Field(
         None,
         description="mobile_money_receipt | bank_transfer | gateway_receipt | pos_slip | "
         "deposit_slip | sms_notice | statement | handwritten | other",
     )
     transaction_id: str | None = Field(
-        None, description="Transaction ID / reference / approval code"
+        None,
+        description="Transaction ID / reference / approval code / MPESA code / confirmation number",
     )
-    amount: str | None = Field(None, description="Amount paid exactly as printed, e.g. '40.00'")
-    currency: str | None = Field(None, description="Currency as printed, e.g. USD, ZiG, $")
+    amount: str | None = Field(
+        None, description="Amount paid exactly as printed, e.g. '40.00', '1,000.50'"
+    )
+    currency: str | None = Field(
+        None,
+        description="Currency as printed, e.g. USD, ZAR, KES, TZS, UGX, NGN, GHS, ZMW, ZWG, ZiG, $",
+    )
     date: str | None = Field(None, description="Transaction date and time as printed")
-    sender: str | None = Field(None, description="Payer name or number")
-    beneficiary: str | None = Field(None, description="Recipient name, merchant code or account")
-    status: str | None = Field(None, description="Status as printed, e.g. Successful, Pending")
-    narrative: str | None = Field(None, description="Reference/narrative text the payer entered")
+    sender: str | None = Field(None, description="Payer name or number / sender details")
+    beneficiary: str | None = Field(
+        None, description="Recipient name, merchant code, paybill/till number or account"
+    )
+    status: str | None = Field(
+        None, description="Status as printed, e.g. Successful, Completed, Success, Pending"
+    )
+    narrative: str | None = Field(
+        None, description="Reference/narrative/text the payer entered or remarks"
+    )
     tampering_notes: str | None = Field(
         None,
         description="Visible signs this image was edited or fabricated (mismatched fonts or "

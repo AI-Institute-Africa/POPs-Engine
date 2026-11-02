@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.claims.facts import build_facts, guardrail_fields
+from app.core.config import get_settings
 from app.fraud import risk
 from app.models import (
     Allocation,
@@ -27,7 +28,13 @@ from app.models import (
     Obligation,
     VerificationRun,
 )
-from app.policy.engine import Policy, PolicyConfig, load_policy
+from app.policy.engine import (
+    Policy,
+    PolicyConfig,
+    approval_tier,
+    evidence_tier_for_source,
+    load_policy,
+)
 from app.reconcile.matching import find_candidates
 
 LEVELS = {"low": 0, "medium": 1, "high": 2, None: 0}
@@ -60,6 +67,8 @@ def what_if(
     rows = []
     levels_now: dict[str, int] = defaultdict(int)
     levels_replay: dict[str, int] = defaultdict(int)
+    auto_matched = auto_ok = 0
+    auto_blockers: dict[str, int] = defaultdict(int)
     try:
         for c in claims:
             ob = session.get(Obligation, c.obligation_id)
@@ -70,6 +79,12 @@ def what_if(
             a = risk.assess(session, c, ob, policy, facts, cands, guardrail_fields(session, c))
             levels_now[c.risk_level or "low"] += 1
             levels_replay[a.level] += 1
+            if best is not None:
+                failures = _auto_approve_blockers(session, policy, c, ob, facts, best, a)
+                auto_matched += 1
+                auto_ok += int(not failures)
+                for f in failures:
+                    auto_blockers[f] += 1
             kinds = []
             matched_now = c.candidate_credit_id is not None
             if best and not matched_now and c.state not in (ClaimState.REJECTED,):
@@ -113,8 +128,54 @@ def what_if(
         "claims_replayed": len(claims),
         "changes": dict(changes),
         "risk_levels": {"now": dict(levels_now), "replay": dict(levels_replay)},
+        # an estimate that assumes each invoice and credit were unused when the claim
+        # arrived; blockers say which rule held the rest back
+        "auto_approve": {
+            "claims_with_a_match": auto_matched,
+            "would_auto_approve": auto_ok,
+            "blockers": dict(sorted(auto_blockers.items(), key=lambda kv: -kv[1])),
+        },
         "changed_claims": rows,
     }
+
+
+def _auto_approve_blockers(
+    session: Session, policy: Policy, claim: Claim, ob: Obligation, facts: Any, best: Any, a: Any
+) -> list[str]:
+    """Which auto-approval rules would hold this past claim back under `policy`."""
+    from app.review.auto import Inputs, rule_failures
+
+    credit = session.get(Credit, best.credit_id)
+    assert credit is not None
+    resolved = {
+        "AWAITING_CREDIT",
+        "NO_CREDIT_FOUND",
+        "SUSPECTED_FAKE",
+        "AUTO_APPROVED",
+        "PARTIAL_PAYMENT",
+        "OVERPAYMENT",
+    }
+    reasons = [r for r in claim.reason_codes if r not in resolved]
+    if a.level == "high":
+        reasons.append("SUSPECTED_FAKE")
+    tier = evidence_tier_for_source(credit.source)
+    return rule_failures(
+        policy.config,
+        Inputs(
+            channel=claim.channel,
+            approval_tier=str(approval_tier(reasons, tier, True)),
+            evidence_tier=str(tier),
+            credit_source=credit.source,
+            risk_score=a.score,
+            open_high_alert=a.level == "high",
+            human_started=False,
+            amount_minor=facts.amount_minor,
+            currency=facts.currency or ob.currency,
+            outstanding_minor=ob.amount_minor,
+            credit_available_minor=credit.amount_minor,
+        ),
+        kill_switch=get_settings().auto_approve_disabled,
+    )
 
 
 def accuracy(session: Session, org_id: uuid.UUID, since_days: int = 90) -> dict[str, Any]:

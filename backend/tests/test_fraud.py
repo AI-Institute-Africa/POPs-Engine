@@ -11,7 +11,7 @@ from sqlalchemy import select
 from app.core.config import get_settings
 from app.entitlements import outbox
 from app.models import FraudAlert, OutboxEvent
-from tests.conftest import ecocash_fields, login, make_receipt
+from tests.conftest import dmy, ecocash_fields, login, make_receipt
 from tests.test_flow import TXN, _import, _obligation, _stmt_row, _submit
 
 
@@ -200,7 +200,7 @@ def test_money_never_arrived_after_statement_coverage(client):
     claim = _submit(client, sub, ob, make_receipt(ecocash_fields(), meta={"Software": "Canva"}))
     assert _internal(client, claim["claim_id"])["risk_level"] == "medium"
     # statements now cover a week after the receipt's date, with no matching payment
-    _import(client, rev, [_stmt_row(txn="OTHER-1", amount="15.00", date="28/10/2026 10:00")])
+    _import(client, rev, [_stmt_row(txn="OTHER-1", amount="15.00", date=dmy("10:00", 7))])
     c = _internal(client, claim["claim_id"])
     assert "NO_CREDIT_FOUND" in c["reason_codes"]
     assert {"NO_CREDIT_AFTER_STATEMENT", "EDITING_SOFTWARE"} <= _codes(c)
@@ -223,7 +223,10 @@ def test_confirmed_money_dampens_file_only_signals(client):
 def test_future_dated_receipt(client):
     sub = login(client, "submitter")
     claim = _submit(
-        client, sub, _obligation(client, sub), make_receipt(ecocash_fields(date="21/10/2031 14:32"))
+        client,
+        sub,
+        _obligation(client, sub),
+        make_receipt(ecocash_fields(date=dmy("14:32", 365 * 5))),
     )
     assert "FUTURE_DATE" in _codes(_internal(client, claim["claim_id"]))
 
@@ -262,7 +265,7 @@ def _forged_jpeg() -> bytes:
     img = noise(700, 900)
     d = ImageDraw.Draw(img)
     for i, t in enumerate(
-        ["EcoCash", "Payment Successful", f"Txn ID: {TXN}", "Amount: USD 40.00", "21/10/2026 14:32"]
+        ["EcoCash", "Payment Successful", f"Txn ID: {TXN}", "Amount: USD 40.00", dmy("14:32")]
     ):
         d.text((40, 60 + i * 90), t, fill=(20, 20, 20), font=font)
     b = io.BytesIO()
@@ -308,8 +311,12 @@ def test_admin_alert_webhook_delivery(client, session, monkeypatch):
     http = httpx.Client(
         transport=httpx.MockTransport(lambda req: sent.append(req) or httpx.Response(200))
     )
-    assert outbox.deliver_pending(session, client=http) == 2  # one per claim in the reuse pair
-    body = sent[0].read().decode()
-    assert sent[0].url.host == "hooks.slack.test"
-    assert "Suspected fake proof of payment" in body and "REUSED_RECEIPT" in body
-    assert "Tendai" not in body and "learner-1" not in body  # no personal data in alerts
+    # per claim in the reuse pair: one fraud alert and one "needs review" notice
+    assert outbox.deliver_pending(session, client=http) == 4
+    bodies = [r.read().decode() for r in sent]
+    assert {r.url.host for r in sent} == {"hooks.slack.test"}
+    fraud = [b for b in bodies if "Suspected fake proof of payment" in b]
+    assert len(fraud) == 2 and all("REUSED_RECEIPT" in b for b in fraud)
+    assert sum("needs review" in b for b in bodies) == 2
+    for body in bodies:
+        assert "Tendai" not in body and "learner-1" not in body  # no personal data in alerts

@@ -8,8 +8,24 @@ evidence. It confirms money only from the recipient's side (bank statements, ale
 callbacks, attested manual credits), and lets deterministic rules and a constrained ledger, not
 AI, decide what can be approved.
 
-This is **slice 1 (review-only MVP)**. There is no auto-approval path. Every allocation needs a
-finance reviewer, and the reviewer can only confirm a credit that passes every hard gate.
+By default every allocation needs a finance reviewer, and the reviewer can only confirm a credit
+that passes every hard gate. Three optional features are **off until an organisation's payment
+policy turns them on**, and none of them lets the AI decide:
+
+- **Rules-based auto-approval** of small, exactly-paid claims that an independent source confirmed
+  and nothing about looked suspicious, with a sampled human audit and a kill switch:
+  [`docs/auto-approval.md`](docs/auto-approval.md).
+- **Provisional access**: time-boxed, capped access while a receipt waits for the money, reported to
+  the host system by signed events and a polling endpoint:
+  [`docs/provisional-access.md`](docs/provisional-access.md).
+- **Admin notifications** for every claim that needs a person, with reminders when it waits too
+  long, and neutral **WhatsApp outcome messages** to payers:
+  [`docs/configuration.md`](docs/configuration.md#admin-notifications).
+
+Admins can also record money that arrived outside a statement and allocate it to an invoice with no
+payer claim (typed last-4, separation of duties, two approvers above the high-value limit).
+Reviewers see **near-miss reference hints** (advisory; the gate stays exact), and finance can download
+allocations as a CSV: [`docs/matching-and-export.md`](docs/matching-and-export.md).
 
 ## How a claim flows
 
@@ -17,7 +33,9 @@ finance reviewer, and the reviewer can only confirm a credit that passes every h
 upload ─► intake (type sniff, SHA-256, pHash) ─► quality check ─► VLM + OCR readers ─► agreement
         ─► normalise + typed-field cross-check ─► duplicate & consumed-reference checks
         ─► reconcile against credits (hard gates, then ranking) ─► state + evidence tier + Green/Amber/Red
-        ─► reviewer console ─► confirm (type last 4 of txn ID) ─► atomic allocation ─► Cognify webhook
+        ─► [optional: provisional access while waiting]
+        ─► reviewer console ─► confirm (type last 4 of txn ID) ─► atomic allocation ─► host webhook
+           (or, if the policy allows and every rule passes, the auto-approval rule instead)
 
 statement CSV / manual credit ─► normalised credits ─► credit-first re-match of waiting claims
 ```
@@ -131,9 +149,11 @@ Docker volume in this stack; production uses S3-compatible storage (`POPS_STORAG
 ### Local development
 
 ```bash
-# backend (needs PostgreSQL 16; tesseract optional — without it claims go to review)
+# backend (needs Python 3.12 and PostgreSQL 16; tesseract optional — without it claims go to review)
+# Python 3.12 is what CI and Docker run; a venv built on another minor version carries wheels
+# that fail to import (see .python-version)
 cd backend
-python -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
+python3.12 -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
 createdb pops && alembic upgrade head
 export POPS_ENV=dev POPS_PIPELINE_MODE=inline POPS_VLM_BACKEND=fake
 uvicorn app.main:app --reload
@@ -197,6 +217,10 @@ docker compose -f docker-compose.yml -f docker-compose.donut-demo.yml up --build
 .venv\Scripts\python.exe scripts/seed_live_demo.py
 ```
 
+The Donut model was trained on synthetic receipts only. Treat it as a demo reader: benchmark it on
+real, labelled receipts and run it in shadow mode before it decides anything (see
+[`docs/models.md`](docs/models.md)).
+
 Open the console at <http://localhost:5173>. The seed command prints a payment code and a
 synthetic screenshot, SMS, and complex proof image to upload. API docs are at
 <http://localhost:8000/docs>. Use the review console to inspect extraction; synthetic uploads
@@ -211,6 +235,7 @@ Calibrate them from real samples without code changes: `POPS_PROVIDER_TEMPLATES_
 
 ## Not in this slice
 
-Auto-approval and provisional access (Phase 5), outcome replies to WhatsApp payers, gateway
-webhooks and the EcoCash API (Phase 3), a trained fraud model on top of the
-tamper risk flags (Phase 4), reader fine-tuning (§12).
+Gateway webhooks and the EcoCash API (Phase 3), a trained fraud model on top of the tamper risk
+flags (Phase 4), reader fine-tuning (§12), WhatsApp message templates (outcome replies are plain
+text, so they need the 24-hour window), and a console login (the engine is embedded in host systems
+that authenticate callers themselves).

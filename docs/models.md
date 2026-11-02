@@ -99,6 +99,21 @@ pretrained one on the held-out set.
 
 Avoid LayoutLMv3 (non-commercial weights). Donut works but has been overtaken by the VLMs above.
 
+**Donut status.** The checkpoint in `var/models/donut-pops` was fine-tuned on the synthetic receipts
+in `sample_data/mock_pops` (1 epoch, frozen encoder on CPU), so its reported loss says nothing about
+real receipts. Its per-field confidence is the geometric mean of the model's own token
+probabilities. That ranks shaky fields below firm ones but is not calibrated. Before relying on it:
+export a labelled set of real receipts (`scripts/export_labelled_set.py`), compare it with the
+Ollama reader using `scripts/benchmark_reader.py`, set the confidence floors from that result, and
+run it with `POPS_SHADOW_MODE_ENABLED=true` first.
+
+Measured on the first 20 receipts of the synthetic held-out split (CPU, ~12 s per receipt): 4 of
+20 produced malformed JSON (the reader fails closed on those), and across the 16 that parsed,
+exact-match was 0/16 for `transaction_id`, `amount` and `provider`, 1/16 for `date`, and 16/16 for
+the easy fields `document_type` and `status`. Mean field confidence was 0.94 for correct values
+and 0.52 for wrong ones, so the confidence does separate them. The checkpoint is not fit to
+read critical fields; it needs far more training data and epochs, and a real held-out set.
+
 ### Fine-tune → serve → plug in
 
 1. **Labels come from the console.** Every reviewer correction is stored as an `extracted_fields`

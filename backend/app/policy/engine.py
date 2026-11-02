@@ -7,7 +7,7 @@ The defaults below seed the platform policy row; organisations may override with
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -41,8 +41,15 @@ DEFAULT_FRAUD_WEIGHTS: dict[str, int] = {
 
 
 class PolicyConfig(BaseModel):
-    # automation is off in slice 1; there is no code path that reads this as true
+    # Rules-based approval of clear claims (app/review/auto.py). The AI never approves:
+    # the readers only extract, and these deterministic rules decide. Off by default;
+    # enabling needs a cap per currency and the channels it applies to.
     auto_approve_enabled: bool = False
+    auto_approve_max_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 5_000})
+    auto_approve_channels: list[str] = Field(default_factory=list)
+    auto_approve_min_tier: str = "E2"  # E2 = merchant alert, E3 = bank statement
+    auto_approve_max_risk: int = Field(default=15, ge=0, le=100)  # fake-proof score
+    auto_approve_audit_pct: int = Field(default=5, ge=0, le=100)  # sampled for a human
     # our receiving accounts / merchant codes; a credit must land on one of these
     beneficiary_aliases: list[str] = Field(default_factory=lambda: ["MAIN"])
     success_statuses: list[str] = Field(default_factory=lambda: ["success"])
@@ -56,6 +63,8 @@ class PolicyConfig(BaseModel):
     second_approver_above_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 50_000})
     # who may record attested manual credits
     manual_credit_min_role: str = "approver"
+    # who may allocate a recorded, unclaimed credit to an obligation without a payer claim
+    manual_allocation_min_role: str = "approver"
     # pilot scoping: claims on other channels go to review with CHANNEL_NOT_IN_PILOT (None = all)
     enabled_channels: list[str] | None = None
     critical_fields: list[str] = Field(
@@ -70,6 +79,17 @@ class PolicyConfig(BaseModel):
     ranking_weights: dict[str, float] = Field(
         default_factory=lambda: {"R": 0.35, "A": 0.25, "B": 0.20, "T": 0.10, "P": 0.10}
     )
+    # provisional (time-boxed, capped) access while a receipt waits for the money. Off by
+    # default. Caps are per currency in minor units; a currency with no cap is never
+    # eligible (fail closed). The host system decides what the access means.
+    provisional_enabled: bool = False
+    provisional_ttl_hours: int = Field(default=24, gt=0, le=24 * 14)
+    provisional_max_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 5_000})
+    provisional_learner_cap_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 10_000})
+    provisional_org_daily_cap_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 10_000})
+    # minutes a claim may wait for a human before admins are nudged again, one nudge per
+    # level (ascending)
+    review_sla_minutes: list[int] = Field(default_factory=lambda: [60, 240, 1440])
     # tamper forensics (blueprint 8, layer 6): a risk flag only. A hit routes the claim to a
     # reviewer; it can never approve, reject or allocate on its own.
     tamper_enabled: bool = True
@@ -80,11 +100,49 @@ class PolicyConfig(BaseModel):
     def _legacy_single_limit(cls, v: Any) -> Any:
         return {"USD": v} if isinstance(v, int) else v
 
-    @field_validator("manual_credit_min_role")
+    @field_validator(
+        "provisional_max_minor",
+        "provisional_learner_cap_minor",
+        "provisional_org_daily_cap_minor",
+        "auto_approve_max_minor",
+    )
+    @classmethod
+    def _positive_caps(cls, v: dict[str, int]) -> dict[str, int]:
+        if any(n <= 0 for n in v.values()):
+            raise ValueError("provisional caps must be positive minor-unit amounts")
+        return v
+
+    @field_validator("auto_approve_min_tier")
+    @classmethod
+    def _tier_with_independent_confirmation(cls, v: str) -> str:
+        if v not in ("E2", "E3"):
+            raise ValueError(
+                "auto_approve_min_tier must be E2 or E3: a receipt alone is never enough"
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _auto_approve_is_scoped(self) -> "PolicyConfig":
+        if self.auto_approve_enabled and not (
+            self.auto_approve_channels and self.auto_approve_max_minor
+        ):
+            raise ValueError(
+                "auto_approve_enabled needs auto_approve_channels and auto_approve_max_minor"
+            )
+        return self
+
+    @field_validator("review_sla_minutes")
+    @classmethod
+    def _ascending_positive(cls, v: list[int]) -> list[int]:
+        if any(m <= 0 for m in v) or v != sorted(set(v)):
+            raise ValueError("review_sla_minutes must be positive and strictly ascending")
+        return v
+
+    @field_validator("manual_credit_min_role", "manual_allocation_min_role")
     @classmethod
     def _known_role(cls, v: str) -> str:
         if v not in ("reviewer", "approver", "admin"):
-            raise ValueError("manual_credit_min_role must be reviewer, approver or admin")
+            raise ValueError("role must be reviewer, approver or admin")
         return v
 
     def fraud_weight(self, code: str) -> int:

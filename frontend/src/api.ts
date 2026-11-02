@@ -22,6 +22,7 @@ export type Claim = {
   risk_score: number | null;
   risk_level: string | null;
   risk_signals: { code: string; weight: number; reason: string; evidence: Record<string, unknown> }[];
+  provisional_until: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -35,6 +36,7 @@ export type Obligation = {
   currency: string;
   payment_code: string;
   external_ref: string | null;
+  due_date: string | null;
   created_at: string;
 };
 
@@ -75,6 +77,8 @@ export type Candidate = {
   gates: Gate[];
   components: Record<string, number>;
   reference_kind: string;
+  // the reference nearly matches this credit's; advisory only, the gate is still an exact match
+  near_miss: { kind: "lookalike_characters" | "typo"; distance: number } | null;
 };
 
 // Tamper forensics (risk flag only — it can send a claim to review, never approve one)
@@ -171,12 +175,23 @@ export function setSession(tok: string | null, role?: string) {
 
 // Validate has no login screen. In dev the API exposes POST /auth/dev-login, so we
 // quietly pick up an admin token on first load and the pages simply work.
+// Dev only (the server refuses /auth/dev-login in production). Open the console with
+// `?as=approver` or `?as=approver:second@example.com` to try a different role or a second approver.
+function devIdentity(): { role: string; email: string } {
+  const as = new URLSearchParams(window.location.search).get("as");
+  if (as) {
+    const [role, email] = as.split(":");
+    if (role in RANK) return { role, email: email || `${role}@local.dev` };
+  }
+  return { role: "admin", email: "validate@local.dev" };
+}
+
 export async function ensureSession(): Promise<boolean> {
-  if (token()) return true;
+  const asRequested = new URLSearchParams(window.location.search).has("as");
+  if (token() && !asRequested) return true;
   try {
     const r = await post<{ access_token: string; role: string }>("/auth/dev-login", {
-      email: "validate@local.dev",
-      role: "admin",
+      ...devIdentity(),
       org_name: "Cognify",
     });
     setSession(r.access_token, r.role);
@@ -218,6 +233,29 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, msg);
   }
   return res.json() as Promise<T>;
+}
+
+// Download a file the API serves behind the session token (a plain link cannot send it).
+export async function download(path: string): Promise<void> {
+  const t = token();
+  const res = await fetch(`${API}${path}`, { headers: t ? { Authorization: `Bearer ${t}` } : {} });
+  if (!res.ok) {
+    let msg = res.statusText;
+    try {
+      const d = (await res.json()).detail;
+      msg = typeof d === "string" ? d : d?.message ?? JSON.stringify(d);
+    } catch {
+      /* non-JSON error */
+    }
+    throw new ApiError(res.status, msg);
+  }
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "download.csv";
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export const post = <T,>(path: string, body: unknown) =>

@@ -24,8 +24,11 @@ class ProviderTemplate:
 
 
 GENERIC_TXN = [
-    r"(?:txn|trans(?:action)?)\s*(?:id|ref(?:erence)?|no\.?|number)\s*[:#.]?\s*([A-Z0-9][A-Z0-9.\-]{5,30})",
-    r"(?:ref(?:erence)?|approval\s*code)\s*(?:no\.?|number)?\s*[:#]?\s*([A-Z0-9][A-Z0-9.\-]{5,30})",
+    r"(?:txn|trans(?:action)?)\s*(?:id|ref(?:erence)?|no\.?|number|code)\s*[:#.]?\s*([A-Z0-9][A-Z0-9.\-\/]{4,40})",
+    r"(?:ref(?:erence)?|approval\s*code|confirmation\s*(?:code|no)|receipt\s*(?:no|number))\s*(?:no\.?|number)?\s*[:#]?\s*([A-Z0-9][A-Z0-9.\-\/]{4,40})",
+    r"(?:mno\s*ref|mpesa\s*code|transaction\s*reference|trn)\s*[:#.]?\s*([A-Z0-9][A-Z0-9.\-\/]{4,40})",
+    r"\b([A-Z]{2,4}\d{6,12})\b",
+    r"\b(\d{10,18})\b",
 ]
 
 BUILTIN_TEMPLATES: list[ProviderTemplate] = [
@@ -37,6 +40,18 @@ BUILTIN_TEMPLATES: list[ProviderTemplate] = [
     ),
     ProviderTemplate("ONEMONEY", "mobile_money_receipt", ["onemoney", "one money"]),
     ProviderTemplate("INNBUCKS", "mobile_money_receipt", ["innbucks"]),
+    ProviderTemplate("MPESA", "mobile_money_receipt", ["mpesa", "m-pesa", "safaricom"]),
+    ProviderTemplate(
+        "AIRTELMONEY", "mobile_money_receipt", ["airtel money", "airtelmoney", "airtel"]
+    ),
+    ProviderTemplate("MTN_MOMO", "mobile_money_receipt", ["mtn momo", "mtn mobile money", "mtn"]),
+    ProviderTemplate("ORANGEMONEY", "mobile_money_receipt", ["orange money", "orangemoney"]),
+    ProviderTemplate("TIGOCASH", "mobile_money_receipt", ["tigo cash", "tigocash", "tigo"]),
+    ProviderTemplate("VODACOMM_PESA", "mobile_money_receipt", ["vodacom mpesa", "vodacom"]),
+    ProviderTemplate("ESEWA", "mobile_money_receipt", ["esewa"]),
+    ProviderTemplate("KHALTI", "mobile_money_receipt", ["khalti"]),
+    ProviderTemplate("UPI", "mobile_money_receipt", ["upi", "bhim upi"]),
+    ProviderTemplate("PAYTM", "mobile_money_receipt", ["paytm"]),
     ProviderTemplate("CBZ", "bank_transfer", ["cbz"]),
     ProviderTemplate("STANBIC", "bank_transfer", ["stanbic"]),
     ProviderTemplate("FBC", "bank_transfer", ["fbc bank", "fbc"]),
@@ -44,9 +59,19 @@ BUILTIN_TEMPLATES: list[ProviderTemplate] = [
     ProviderTemplate("CABS", "bank_transfer", ["cabs"]),
     ProviderTemplate("ZB", "bank_transfer", ["zb bank"]),
     ProviderTemplate("NMB", "bank_transfer", ["nmb"]),
+    ProviderTemplate("ABSA", "bank_transfer", ["absa"]),
+    ProviderTemplate("ECOBANK", "bank_transfer", ["ecobank"]),
+    ProviderTemplate("GTBANK", "bank_transfer", ["gtbank", "gt bank"]),
+    ProviderTemplate("ACCESSBANK", "bank_transfer", ["access bank", "accessbank"]),
+    ProviderTemplate("UBA", "bank_transfer", ["uba"]),
+    ProviderTemplate("FIRSTBANK", "bank_transfer", ["first bank", "firstbank"]),
+    ProviderTemplate("ZENITHBANK", "bank_transfer", ["zenith bank", "zenithbank"]),
     ProviderTemplate("ZIPIT", "bank_transfer", ["zipit"]),
     ProviderTemplate("RTGS", "bank_transfer", ["rtgs"]),
+    ProviderTemplate("SWIFT", "bank_transfer", ["swift", "wire transfer"]),
     ProviderTemplate("PAYNOW", "gateway_receipt", ["paynow"]),
+    ProviderTemplate("PAYPAL", "gateway_receipt", ["paypal"]),
+    ProviderTemplate("STRIPE", "gateway_receipt", ["stripe"]),
 ]
 
 

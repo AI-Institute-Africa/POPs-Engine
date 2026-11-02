@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from app.intake.files import RejectedFile, prepare
 from app.models import VerificationRun
-from tests.conftest import ecocash_fields, login, make_receipt
+from tests.conftest import dmy, ecocash_fields, login, make_receipt
 from tests.test_flow import TXN, _import, _obligation, _stmt_row
 
 RECEIPT_TEXT = [
@@ -21,7 +21,7 @@ RECEIPT_TEXT = [
     f"Txn ID: {TXN}",
     "Amount: USD 40.00",
     "Paid to: COGNIFY MAIN",
-    "21/10/2026 14:32",
+    dmy("14:32"),
 ]
 
 
@@ -187,9 +187,9 @@ def test_pdf_bank_statement_is_imported_and_matches(client):
     pdf = _pdf_statement(
         [
             ["DATE", "Narrative", "Reference", "Credit", "Debit", "Currency"],
-            ["20/10/2026 08:00", "Bank charges", "", "", "2.00", "USD"],
-            ["21/10/2026 14:35", "EcoCash payment", TXN, "40.00", "", "USD"],
-            ["21/10/2026 16:00", "Transfer in", "FT26294XYZ", "15.00", "", "USD"],
+            [dmy("08:00", -1), "Bank charges", "", "", "2.00", "USD"],
+            [dmy("14:35"), "EcoCash payment", TXN, "40.00", "", "USD"],
+            [dmy("16:00"), "Transfer in", "FT26294XYZ", "15.00", "", "USD"],
         ]
     )
     r = client.post(

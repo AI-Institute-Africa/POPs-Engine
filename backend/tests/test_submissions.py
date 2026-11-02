@@ -6,12 +6,12 @@ from email.message import EmailMessage
 from sqlalchemy import select
 
 from app.models import ExtractedField
-from tests.conftest import login, make_receipt
+from tests.conftest import dmy, login, make_receipt, rfc2822
 from tests.test_documents import RECEIPT_TEXT, _internal, _pdf
 from tests.test_flow import TXN, _import, _obligation, _stmt_row
 
 SMS = (
-    f"Confirmed. {TXN}. You have paid USD 40.00 to COGNIFY MAIN on 21/10/2026 14:32. "
+    f"Confirmed. {TXN}. You have paid USD 40.00 to COGNIFY MAIN on {dmy('14:32')}. "
     "EcoCash Payment Successful. Txn ID: " + TXN + " Amount: USD 40.00"
 )
 
@@ -67,7 +67,7 @@ def test_forwarded_email_body_and_attachment_are_read(client, session):
     msg["From"] = "payer@gmail.com"
     msg["To"] = "fees@cognify.example"
     msg["Subject"] = "Fwd: proof of payment"
-    msg["Date"] = "Wed, 21 Oct 2026 15:00:00 +0200"
+    msg["Date"] = rfc2822("15:00")
     msg.set_content("Hi, please find my proof of payment attached.")
     # the fake readers only see the top-level file, so the receipt rides as a digital PDF
     msg.add_attachment(

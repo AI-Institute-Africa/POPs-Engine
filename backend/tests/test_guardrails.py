@@ -262,7 +262,7 @@ def test_policy_publish_validate_and_deactivate(client):
         headers=admin,
         json={"version": "v3", "config": {"auto_approve_enabled": True}},
     )
-    assert auto.status_code == 422
+    assert auto.status_code == 422 and "auto_approve_channels" in auto.text
     ok = client.post(
         "/admin/policy",
         headers=admin,

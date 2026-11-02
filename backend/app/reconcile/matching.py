@@ -19,6 +19,7 @@ from app.models import Credit, Obligation
 from app.normalise.fields import normalise_name, normalise_reference
 from app.payment_codes.codes import find_codes
 from app.policy.engine import PolicyConfig
+from app.reconcile.near import near_reference
 
 
 @dataclass
@@ -51,6 +52,8 @@ class Candidate:
     available_minor: int
     reference_kind: str  # txn_id | payment_code | none
     components: dict[str, float] = field(default_factory=dict)
+    # advisory only: the reference is almost, but not exactly, the recorded one
+    near_miss: dict[str, Any] | None = None
 
     @property
     def passed(self) -> bool:
@@ -97,6 +100,10 @@ def evaluate(
 ) -> Candidate:
     available = credit_available(session, credit)
     ref_kind = _reference_kind(facts, credit)
+    # a hint for reviewers; the reference gate below stays an exact match
+    near_miss = (
+        near_reference(facts.reference, credit.reference_norm) if ref_kind == "none" else None
+    )
     gates = [
         Gate(
             "currency",
@@ -148,6 +155,7 @@ def evaluate(
         available_minor=available,
         reference_kind=ref_kind,
         components=comps,
+        near_miss=near_miss,
     )
 
 

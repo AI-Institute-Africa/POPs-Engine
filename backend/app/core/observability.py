@@ -33,6 +33,12 @@ SHADOW_ERRORS = Counter("pops_shadow_errors_total", "Shadow proposer failures (f
 FRAUD_ALERTS = Counter("pops_fraud_alerts_total", "Suspected-fake alerts raised", ["level"])
 ALERTS_RECEIVED = Counter("pops_alerts_received_total", "SMS/email alerts", ["kind", "status"])
 STALE_ALERT_SOURCES = Gauge("pops_stale_alert_sources", "Alert forwarders not checking in")
+PROVISIONAL_EXPOSURE = Gauge(
+    "pops_provisional_exposure_minor", "Value of active provisional access", ["currency"]
+)
+PROVISIONAL_EVENTS = Counter(
+    "pops_provisional_events_total", "Provisional access lifecycle", ["event"]
+)
 UPLOADS_REJECTED = Counter("pops_uploads_rejected_total", "Rejected uploads", ["reason"])
 STUCK_CLAIMS = Gauge("pops_stuck_claims", "Claims stuck in RECEIVED/PROCESSING")
 OUTBOX_PENDING = Gauge("pops_outbox_pending", "Undelivered Cognify events")

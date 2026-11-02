@@ -36,6 +36,8 @@ Tokens are kept in `sessionStorage`, never `localStorage`.
 | `POPS_CLAMAV_HOST`, `POPS_CLAMAV_PORT` | –, 3310 | clamd INSTREAM scanning. If the scanner is unreachable, uploads get `503` + `Retry-After` (fail closed). |
 | `POPS_RATE_LIMIT_UPLOADS_PER_MINUTE` | 30 | Per authenticated caller. |
 | `POPS_RATE_LIMIT_CLAIMS_PER_CLAIMANT_PER_DAY` | 20 | Per learner/payer reference within an organisation. Limits are kept in Redis. |
+| `POPS_RATE_LIMIT_PREVIEWS_PER_MINUTE` | 20 | Per authenticated caller, for `POST /claims/preview` (it runs the readers before any claim exists). |
+| `POPS_AUTO_APPROVE_DISABLED` | `false` | Global kill switch for rules-based auto-approval; overrides every policy (see [`auto-approval.md`](auto-approval.md)). |
 | `POPS_MAX_UPLOAD_BYTES` | 10 MB | Per file. A claim may carry up to 5 files (repeat the `file` form field) and/or a pasted `text` field of up to 20,000 characters. |
 
 ## Pipeline resilience
@@ -108,6 +110,30 @@ The AI proposer obeys the same guardrail kill switch / external-processing block
 allowlist as the AI reader: when the reader is off, only the deterministic rules baseline keeps
 proposing. Thresholds for the forensics live in `app/extraction/tamper.py` (robust z-scores over
 per-cell ELA residual and noise MAD) and are exposed as `tamper` on the review detail payload.
+
+## Admin notifications
+
+Admins are told about events through a Slack/Teams/Google-Chat style webhook and/or email. Events are
+queued in the outbox (retried every 30 s) and carry ids and reason codes only, never payer names,
+numbers or amounts.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `POPS_ADMIN_ALERT_WEBHOOK_URL` | – | Incoming webhook that accepts a top-level `text`. |
+| `POPS_SMTP_HOST`, `POPS_SMTP_PORT`, `POPS_SMTP_USER`, `POPS_SMTP_PASSWORD`, `POPS_SMTP_FROM` | –, 587, –, –, `pops-engine@localhost` | SMTP relay (STARTTLS). |
+| `POPS_ADMIN_ALERT_EMAILS` | `[]` | JSON list of recipients. |
+
+What admins receive:
+
+- `fraud.suspected`: a claim scored 60+ for fake-proof risk.
+- `ops.review_pending`: **any** claim that starts waiting for a human (`PENDING_REVIEW` or
+  `DUPLICATE_HOLD`). Sent once per wait. A suspected fake also sends `fraud.suspected`.
+- `ops.review_overdue`: a reminder when a claim has waited past an SLA level. Levels are the payment
+  policy's `review_sla_minutes` (default `[60, 240, 1440]`, positive and ascending); one reminder per
+  level, checked every 5 minutes.
+- `ops.alert_source_stale`, `ops.alert_credit_disputed`: payment-alert forwarder problems.
+- `ops.provisional_expired` and the daily `ops.exposure_report`: see
+  [`provisional-access.md`](provisional-access.md).
 
 ## Observability
 

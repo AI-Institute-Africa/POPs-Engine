@@ -22,6 +22,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -156,6 +157,12 @@ class Claim(Base):
     risk_signals: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
     pipeline_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_pipeline_error: Mapped[str | None] = mapped_column(Text)
+    # when the claim began waiting for a human (PENDING_REVIEW / DUPLICATE_HOLD), and how
+    # many review-SLA nudges admins have already had for that wait
+    review_entered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_escalation: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # set while the payer holds provisional access for this claim (app/provisional)
+    provisional_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     correlation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=_uuid)
     created_at: Mapped[datetime] = _created()
     updated_at: Mapped[datetime] = mapped_column(
@@ -410,6 +417,45 @@ class GuardrailRule(Base):
     removed_by: Mapped[str | None] = mapped_column(String(80))
     removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = (Index("ix_guardrails_org_active", "org_id", "removed_at"),)
+
+
+class ProvisionalGrant(Base):
+    """Time-boxed, capped access granted while a receipt waits for the money to show up.
+
+    The engine only reports it (events and GET /obligations/{id}/access); the host system decides
+    what access means. It ends as confirmed (the claim was approved), revoked (rejected, reversed,
+    suspected fake) or expired (no credit appeared in time).
+    """
+
+    __tablename__ = "provisional_grants"
+    grant_id: Mapped[uuid.UUID] = _pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    obligation_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("obligations.obligation_id"), nullable=False
+    )
+    claim_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("claims.claim_id"), nullable=False)
+    learner_ref: Mapped[str] = mapped_column(String(120), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False)
+    exposure_minor: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(10), nullable=False, default="active")
+    granted_at: Mapped[datetime] = _created()
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resolved_reason: Mapped[str | None] = mapped_column(String(40))
+    __table_args__ = (
+        CheckConstraint(
+            "status in ('active','confirmed','revoked','expired')", name="provisional_status"
+        ),
+        CheckConstraint("exposure_minor > 0", name="provisional_exposure_positive"),
+        Index(
+            "uq_provisional_active_claim",
+            "claim_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
+        Index("ix_provisional_org_status", "org_id", "status"),
+        Index("ix_provisional_obligation", "obligation_id"),
+    )
 
 
 class FraudAlert(Base):

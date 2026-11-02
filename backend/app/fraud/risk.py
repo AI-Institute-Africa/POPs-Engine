@@ -38,6 +38,7 @@ from app.models import (
     OutboxEvent,
 )
 from app.policy.engine import Policy
+from app.provisional.service import revoke_for_claim
 from app.reconcile.matching import Candidate, ClaimFacts
 
 EDITORS = re.compile(
@@ -412,6 +413,7 @@ def apply(session: Session, claim: Claim, a: Assessment, actor: str) -> FraudAle
     if alert.status == "open" and alert.level == "high":
         reasons.append(SUSPECTED_FAKE)
         claim.approval_tier = ApprovalTier.RED
+        revoke_for_claim(session, claim, "suspected_fake")
     claim.reason_codes = reasons
     if notify:
         obs.FRAUD_ALERTS.labels(a.level).inc()

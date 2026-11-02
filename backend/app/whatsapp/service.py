@@ -73,25 +73,35 @@ def download_media(media_id: str) -> bytes:
         return data.content
 
 
-def send_reply(to: str, text: str) -> None:
-    """Best effort: a failed reply is logged, never retried into a duplicate claim."""
+def send_reply(
+    to: str, text: str, *, raise_on_error: bool = False, client: httpx.Client | None = None
+) -> None:
+    """Reply to a sender. By default best effort: a failed reply is logged, never retried
+    into a duplicate claim. The outbox passes raise_on_error so it can retry outcomes, and
+    its own client so deliveries share one connection pool."""
     s = get_settings()
     if not (s.whatsapp_access_token and s.whatsapp_phone_number_id):
         return
+    http = client or _http()
     try:
-        with _http() as http:
-            r = http.post(
-                f"{s.whatsapp_graph_url}/{s.whatsapp_phone_number_id}/messages",
-                json={
-                    "messaging_product": "whatsapp",
-                    "to": to,
-                    "type": "text",
-                    "text": {"body": text},
-                },
-            )
-            r.raise_for_status()
+        r = http.post(
+            f"{s.whatsapp_graph_url}/{s.whatsapp_phone_number_id}/messages",
+            headers={"Authorization": f"Bearer {s.whatsapp_access_token}"},
+            json={
+                "messaging_product": "whatsapp",
+                "to": to,
+                "type": "text",
+                "text": {"body": text},
+            },
+        )
+        r.raise_for_status()
     except httpx.HTTPError:
         log.warning("WhatsApp reply to %s failed", to[-4:], exc_info=True)
+        if raise_on_error:
+            raise
+    finally:
+        if client is None:
+            http.close()
 
 
 def _hash(value: str) -> str:

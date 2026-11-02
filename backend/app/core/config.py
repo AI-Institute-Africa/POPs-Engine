@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEV_JWT_SECRET = "dev-only-change-me"  # noqa: S105
+DEV_JWT_SECRET = "dev-only-change-me-dev-only-change-me"  # noqa: S105
 DEV_WEBHOOK_SECRET = "dev-webhook-secret"  # noqa: S105
 
 
@@ -54,6 +54,12 @@ class Settings(BaseSettings):
     # upload rate limits (per authenticated caller, and per claimant across callers)
     rate_limit_uploads_per_minute: int = 30
     rate_limit_claims_per_claimant_per_day: int = 20
+    # legibility previews run the readers (the vision model costs money) before any
+    # claim exists
+    rate_limit_previews_per_minute: int = 20
+
+    # global kill switch for rules-based auto-approval; overrides every organisation's policy
+    auto_approve_disabled: bool = False
 
     # extraction readers: ollama | donut | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"

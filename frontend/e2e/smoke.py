@@ -59,5 +59,61 @@ with sync_playwright() as p:
     page.screenshot(path=f"{out}/2-guardrails.png", full_page=True)
     page.locator(".rule", has_text="AI kill switch").first.get_by_role("button", name="Remove").click()
     expect(page.locator(".reader")).to_contain_text("AI reader: on")
+
+    # review queue: open a claim whose money has matched, type the last four characters, confirm
+    page.get_by_role("link", name="Review queue").click()
+    expect(page.get_by_role("heading", name="Review queue")).to_be_visible()
+    matched = page.locator("tbody tr", has_text="FINANCIALLY CONFIRMED").first
+    expect(matched).to_be_visible()
+    page.screenshot(path=f"{out}/6-queue.png", full_page=True)
+    matched.get_by_role("link").first.click()
+    candidate = page.locator(".candidate").first
+    expect(candidate).to_be_visible()
+    # the card reads "<provider> · <transaction id>"; confirming means typing its last four
+    ref = candidate.locator("span", has_text="·").first.inner_text().split("·")[-1].strip()
+    assert len(ref) >= 4, f"the candidate credit should show its transaction id, got {ref!r}"
+    page.get_by_placeholder("Last 4 of txn ID (from source)").fill(ref[-4:])
+    page.get_by_role("button", name="Confirm credit 1").click()
+    expect(page.locator(".toast", has_text="Confirmed: APPROVED")).to_be_visible()
+    page.screenshot(path=f"{out}/7-claim-confirmed.png", full_page=True)
+
+    # an invoice with no payer and no claim, to receive money that arrived outside a statement
+    page.goto(f"{base}/obligations")
+    page.get_by_placeholder("Learner ref").fill("e2e-learner")
+    page.get_by_role("button", name="Create").click()
+    expect(page.locator("tbody tr", has_text="e2e-learner")).to_be_visible()
+
+    # record a received payment, then have a *different* approver allocate it to that invoice
+    page.goto(f"{base}/credits")
+    page.get_by_label("Transaction ID").fill("MAN-E2E-0001")
+    page.get_by_label("Amount").fill("12.34")
+    page.get_by_label("Received at").fill("2026-11-02T10:00")
+    page.get_by_label("Where you saw it").fill("Merchant portal, checked by the smoke test")
+    page.get_by_role("button", name="Record payment").click()
+    expect(page.locator(".toast", has_text="Credit recorded")).to_be_visible()
+    expect(page.locator("tbody tr", has_text="MAN-E2E-0001").first).to_be_visible()
+    page.goto(f"{base}/credits?as=approver:second@local.dev")
+    row = page.locator("tbody tr", has_text="MAN-E2E-0001").first
+    row.get_by_role("button", name="Allocate…").click()
+    form = page.locator(".allocate-row")
+    invoice = form.get_by_label("Invoice")
+    option = invoice.locator("option", has_text="e2e-learner").first
+    invoice.select_option(value=option.get_attribute("value"))
+    form.get_by_label("Last four characters of the transaction ID").fill("0001")
+    form.get_by_role("button", name="Allocate").click()
+    expect(page.locator(".toast", has_text="Allocated")).to_be_visible()
+    # the allocations export downloads as a spreadsheet that includes what was just allocated
+    with page.expect_download() as download:
+        page.get_by_role("button", name="Download CSV").click()
+    exported = open(download.value.path(), encoding="utf-8-sig").read()
+    assert "MAN-E2E-0001" in exported and "allocation" in exported, exported[:300]
+    page.screenshot(path=f"{out}/8-credits.png", full_page=True)
+
+    # the host-facing views render
+    page.goto(f"{base}/auto")
+    expect(page.get_by_role("heading", name="Automatic approvals")).to_be_visible()
+    page.goto(f"{base}/exposure?as=admin")
+    expect(page.get_by_role("heading", name="Provisional access")).to_be_visible()
+    page.screenshot(path=f"{out}/9-exposure.png", full_page=True)
     browser.close()
 print("smoke ok")

@@ -74,6 +74,8 @@ class ClaimOut(Out):
     risk_score: int | None = None
     risk_level: str | None = None
     risk_signals: list[dict[str, Any]] = []
+    # set while access is open provisionally; neutral wording, never risk information
+    provisional_until: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -106,6 +108,16 @@ class CreditOut(Out):
     narrative: str | None
     created_by: str
     available_minor: int | None = None
+
+
+class AllocateIn(BaseModel):
+    """Allocate a recorded credit to an obligation with no payer claim."""
+
+    obligation_id: uuid.UUID
+    amount_minor: int | None = Field(None, gt=0, description="default: as much as is allowed")
+    txn_last4: str = Field(min_length=1, max_length=12)
+    note: str | None = None
+    request_id: uuid.UUID | None = Field(None, description="send the same id when retrying")
 
 
 class ImportOut(BaseModel):
@@ -151,6 +163,8 @@ class CandidateOut(BaseModel):
     gates: list[dict[str, Any]]
     components: dict[str, float]
     reference_kind: str
+    # the reference nearly matches this credit's; advisory, the gate is still exact
+    near_miss: dict[str, Any] | None = None
 
 
 class DecisionOut(Out):
@@ -219,8 +233,22 @@ class ConfirmOut(BaseModel):
     needs_second_approval: bool
 
 
+class AllocateOut(BaseModel):
+    allocation: "AllocationOut | None"
+    needs_second_approval: bool
+    outstanding_minor: int
+    payment_status: str
+
+
 class RejectIn(BaseModel):
     reason: str
+    note: str | None = None
+
+
+class AuditVerdictIn(BaseModel):
+    """A reviewer's verdict on an automatic approval: ok, or overturned."""
+
+    verdict: str
     note: str | None = None
 
 

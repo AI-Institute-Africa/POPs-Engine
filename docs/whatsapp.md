@@ -28,8 +28,10 @@ secret); unsigned or forged requests get `401`.
 | The payment SMS forwarded as text, with the code in it | A pasted-text claim (`PASTED_TEXT` signal). |
 | Anything without a code | A reply asking for the code. No claim. |
 
-Replies only acknowledge receipt ("we will confirm once the money reaches our account"). They
-never say a payment is verified and never reveal fraud scores. Meta redelivers webhooks; each
+The first reply only acknowledges receipt ("we will confirm once the money reaches our
+account"). Later, the payer is told the outcome once: confirmed, partly recorded, not confirmed
+(never why), more information needed, or provisional access open until a time. Messages never
+reveal fraud scores or suspicion. Meta redelivers webhooks; each
 message ID is handled once. Payment codes are globally unique, so one number can serve several
 organisations; set `POPS_WHATSAPP_ORG_ID` to accept only one organisation's codes.
 
@@ -38,5 +40,8 @@ organisations; set `POPS_WHATSAPP_ORG_ID` to accept only one organisation's code
 - Each photo is its own claim. Two photos of one payment sent as separate messages become two
   claims (reviewers see the second as a duplicate reference). Ask payers to send one photo, or
   use the web form, which accepts up to 5 files per payment.
-- Status updates (delivered/read) are ignored. Outcome notifications back to the payer are not
-  sent yet; Cognify receives the usual `entitlement.updated` webhook.
+- Status updates (delivered/read) are ignored. Outcome messages go out through the same retried
+  outbox as other events (`payer.outcome`, one per claim per outcome) and are plain text, so Meta's
+  24-hour customer-service window applies: a reply to a payer who last wrote more than 24 hours
+  ago is refused by WhatsApp and retried up to 10 times, then marked failed. Approved message
+  templates are not supported yet. The host system still receives the usual `entitlement.updated`.

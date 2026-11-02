@@ -1,6 +1,7 @@
 """HTTP API. Every query is scoped to the caller's organisation; the frontend is never trusted."""
 
 import uuid
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -10,7 +11,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.schemas import (
+    AllocateIn,
+    AllocateOut,
     AllocationOut,
+    AuditVerdictIn,
     BalanceOut,
     CandidateOut,
     ClaimOut,
@@ -55,10 +59,12 @@ from app.credits.statements import ImportError_, import_statement, profiles
 from app.extraction import preprocess
 from app.extraction.service import build_readers, extract
 from app.intake.files import RejectedFile, prepare
-from app.intake.scan import ScannerUnavailable
+from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
 from app.ledger import service as ledger
+from app.ledger.admin import AllocationError, allocate_credit
+from app.ledger.export import TooManyRows, export_csv
 from app.models import (
     Allocation,
     AuditEvent,
@@ -77,8 +83,10 @@ from app.models import (
 from app.normalise.fields import normalise_reference
 from app.payment_codes.codes import find_codes, new_code
 from app.policy.engine import load_policy
+from app.provisional.service import access_state
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
+from app.review.auto import list_auto_approved, record_verdict
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
 
 router = APIRouter()
@@ -90,15 +98,21 @@ Admin = Annotated[Principal, Depends(require(Role.ADMIN))]
 
 
 # never shown to submitters (Cognify, and through it payers): no accusation from a score
-INTERNAL_REASONS = {"SUSPECTED_FAKE"}
+INTERNAL_REASONS = {"SUSPECTED_FAKE", "AUTO_APPROVED"}
 
 
 def claim_out(c: Claim, internal: bool = False) -> ClaimOut:
+    messages = explain(c.reason_codes)
+    if c.provisional_until is not None:
+        messages.append(
+            f"Access is open until {c.provisional_until:%Y-%m-%d %H:%M} UTC "
+            "while we confirm your payment."
+        )
     out = ClaimOut.model_validate(
         {
             **{k: getattr(c, k) for k in ClaimOut.model_fields if hasattr(c, k)},
             "outcome": OUTCOME[ClaimState(c.state)],
-            "messages": explain(c.reason_codes),
+            "messages": messages,
         }
     )
     if not internal:
@@ -138,6 +152,20 @@ def _obligation(db: Session, p: Principal, obligation_id: uuid.UUID) -> Obligati
     if o is None:
         raise HTTPException(404, "obligation not found")
     return o
+
+
+def _limit_previews(p: Principal) -> None:
+    try:
+        ratelimit.check(
+            "previews", str(p.user_id), get_settings().rate_limit_previews_per_minute, 60
+        )
+    except ratelimit.RateLimited as exc:
+        obs.UPLOADS_REJECTED.labels("RATE_LIMIT_PREVIEWS").inc()
+        raise HTTPException(
+            429,
+            {"code": "RATE_LIMITED", "message": "too many checks; slow down"},
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
 
 
 def _review_error(exc: review.ReviewError) -> HTTPException:
@@ -187,8 +215,17 @@ def dev_login(body: DevLoginIn, db: DB) -> TokenOut:
 
 
 @router.get("/me", tags=["auth"])
-def me(p: Any_) -> dict:
-    return {"user_id": p.user_id, "org_id": p.org_id, "role": p.role, "email": p.email}
+def me(db: DB, p: Any_) -> dict:
+    cfg = load_policy(db, p.org_id).config
+    return {
+        "user_id": p.user_id,
+        "org_id": p.org_id,
+        "role": p.role,
+        "email": p.email,
+        # derived from the org's policy so a client need not read the admin-only policy
+        "can_record_manual_credit": p.at_least(Role(cfg.manual_credit_min_role)),
+        "can_allocate": p.at_least(Role(cfg.manual_allocation_min_role)),
+    }
 
 
 # --- obligations ------------------------------------------------------------------------------
@@ -246,6 +283,12 @@ def list_obligations(
     return list(db.scalars(q.order_by(Obligation.created_at.desc()).limit(limit)))
 
 
+@router.get("/obligations/{obligation_id}/access", tags=["obligations"])
+def obligation_access(obligation_id: uuid.UUID, db: DB, p: Any_) -> dict:
+    """Is this obligation paid, provisionally open, or neither? For hosts that poll."""
+    return access_state(db, _obligation(db, p, obligation_id))
+
+
 @router.get("/obligations/{obligation_id}/balance", response_model=BalanceOut, tags=["obligations"])
 def obligation_balance(obligation_id: uuid.UUID, db: DB, p: Any_) -> BalanceOut:
     return _balance_out(ledger.balance(db, _obligation(db, p, obligation_id)))
@@ -266,6 +309,7 @@ async def preview_claim_files(
         raise HTTPException(422, "attach at least one proof to read it")
     if len(uploads) > 5:
         raise HTTPException(422, "up to 5 files can be checked at once")
+    _limit_previews(p)
 
     settings = get_settings()
     policy = load_policy(db, p.org_id)
@@ -273,8 +317,25 @@ async def preview_claim_files(
     files_out = []
     for upload in uploads:
         data = await upload.read(settings.max_upload_bytes + 1)
+        # same gate as a real submission: nothing is parsed before the malware scan (fail closed)
         try:
+            scan(data)
             prepared = prepare(data, settings.max_upload_bytes)
+        except InfectedFile as exc:
+            obs.UPLOADS_REJECTED.labels("MALWARE_DETECTED").inc()
+            raise HTTPException(
+                422, {"code": "MALWARE_DETECTED", "message": "the file failed the malware scan"}
+            ) from exc
+        except ScannerUnavailable as exc:
+            obs.UPLOADS_REJECTED.labels("SCANNER_UNAVAILABLE").inc()
+            raise HTTPException(
+                503,
+                {
+                    "code": "SCANNER_UNAVAILABLE",
+                    "message": "upload could not be scanned; try again shortly",
+                },
+                headers={"Retry-After": "30"},
+            ) from exc
         except RejectedFile as exc:
             raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
 
@@ -301,7 +362,9 @@ async def preview_claim_files(
         ]
         recognized = {field["name"] for field in fields}
         has_readable_text = bool(
-            recognized.intersection({"amount", "transaction_id", "date", "status", "provider", "sender"})
+            recognized.intersection(
+                {"amount", "transaction_id", "date", "status", "provider", "sender"}
+            )
         )
         files_out.append(
             {
@@ -528,7 +591,15 @@ def _confirmed_count(db: Session, org_id: uuid.UUID) -> int:
     return len(
         db.scalars(
             select(Claim.claim_id).where(
-                Claim.org_id == org_id, Claim.state == ClaimState.FINANCIALLY_CONFIRMED
+                Claim.org_id == org_id,
+                # matched to money; the auto rule may already have approved them
+                Claim.state.in_(
+                    [
+                        ClaimState.FINANCIALLY_CONFIRMED,
+                        ClaimState.APPROVED,
+                        ClaimState.PARTIALLY_ALLOCATED,
+                    ]
+                ),
             )
         ).all()
     )
@@ -631,6 +702,36 @@ def unclaimed_credits(db: DB, p: Reviewer) -> list[dict]:
     return out
 
 
+@router.post("/credits/{credit_id}/allocate", response_model=AllocateOut, tags=["credits"])
+def allocate_unclaimed_credit(
+    credit_id: uuid.UUID, body: AllocateIn, db: DB, p: Reviewer
+) -> AllocateOut:
+    """Allocate a recorded credit that no payer has claimed (policy sets the minimum role)."""
+    try:
+        result = allocate_credit(
+            db,
+            p,
+            credit_id=credit_id,
+            obligation_id=body.obligation_id,
+            amount_minor=body.amount_minor,
+            txn_last4=body.txn_last4,
+            note=body.note,
+            request_id=body.request_id,
+        )
+    except AllocationError as exc:
+        db.rollback()
+        raise HTTPException(exc.status, {"code": exc.code, "message": str(exc)}) from exc
+    db.commit()
+    if result.allocation is not None:
+        dispatch_rematch(p.org_id)
+    return AllocateOut(
+        allocation=AllocationOut.model_validate(result.allocation) if result.allocation else None,
+        needs_second_approval=result.needs_second_approval,
+        outstanding_minor=result.outstanding_minor,
+        payment_status=result.payment_status,
+    )
+
+
 # --- review -----------------------------------------------------------------------------------
 
 
@@ -730,6 +831,7 @@ def review_detail(claim_id: uuid.UUID, db: DB, p: Reviewer) -> ReviewDetailOut:
                 gates=[g.__dict__ for g in c.gates],
                 components=c.components,
                 reference_kind=c.reference_kind,
+                near_miss=c.near_miss,
             )
             for c in cands
         ],
@@ -757,6 +859,24 @@ def confirm_claim(claim_id: uuid.UUID, body: ConfirmIn, db: DB, p: Reviewer) -> 
         allocation=AllocationOut.model_validate(result.allocation) if result.allocation else None,
         needs_second_approval=result.needs_second_approval,
     )
+
+
+@router.get("/review/auto-approved", tags=["review"])
+def auto_approved(db: DB, p: Reviewer, limit: int = Query(200, le=1000)) -> dict:
+    """Claims the rules approved without a person, with the sampled audit and overturn rate."""
+    return list_auto_approved(db, p.org_id, limit)
+
+
+@router.post("/review/claims/{claim_id}/audit-verdict", tags=["review"])
+def audit_verdict(claim_id: uuid.UUID, body: AuditVerdictIn, db: DB, p: Reviewer) -> dict:
+    """Record whether an automatic approval was right. Overturning does not move money."""
+    try:
+        decision = record_verdict(db, p, claim_id, body.verdict, body.note)
+    except review.ReviewError as exc:
+        db.rollback()
+        raise _review_error(exc) from exc
+    db.commit()
+    return {"claim_id": str(claim_id), "outcome": decision.outcome}
 
 
 @router.post("/review/claims/{claim_id}/reject", response_model=ClaimOut, tags=["review"])
@@ -790,6 +910,38 @@ def correct_field(claim_id: uuid.UUID, body: CorrectFieldIn, db: DB, p: Reviewer
         raise _review_error(exc) from exc
     db.commit()
     return FieldOut.model_validate(row)
+
+
+@router.get("/allocations/export", tags=["ledger"])
+def export_allocations(
+    db: DB,
+    p: Reviewer,
+    since: date | None = None,
+    until: date | None = None,
+    kind: Annotated[str | None, Query(pattern="^(allocation|reversal)$")] = None,
+) -> Response:
+    """Allocations and reversals as CSV (UTC dates, inclusive). One row per ledger entry; a
+    reversal is a negative row, so a column total is the net amount paid."""
+    try:
+        data, rows = export_csv(db, p.org_id, since=since, until=until, kind=kind)
+    except TooManyRows as exc:
+        raise HTTPException(413, str(exc)) from exc
+    audit(
+        db,
+        actor=p.actor,
+        action="allocations.exported",
+        entity_type="organisation",
+        entity_id=p.org_id,
+        org_id=p.org_id,
+        after={"rows": rows, "since": str(since), "until": str(until), "kind": kind},
+    )
+    db.commit()
+    name = f"allocations-{since or 'start'}-to-{until or 'now'}.csv"
+    return Response(
+        data,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
 
 
 @router.post("/allocations/{allocation_id}/reverse", response_model=AllocationOut, tags=["ledger"])

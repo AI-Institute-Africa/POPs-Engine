@@ -12,7 +12,7 @@ anything, and every change is written to the audit log.
 
 | Guardrail | What it guarantees | Where it is enforced |
 | --- | --- | --- |
-| AI never approves | No model output can approve a claim, post an allocation or grant access. A named reviewer confirms, and only against a recipient-side credit that passes every hard gate. | `app/review/service.py`, `app/workers/pipeline.py` (there is no auto-approve path) |
+| AI never approves | No model output can approve a claim, post an allocation or grant access. A named reviewer confirms, or, only when an organisation has switched it on, the fixed rules in [`auto-approval.md`](auto-approval.md) approve a clear, small, exactly-paid claim that an independent source confirmed. Both need a recipient-side credit that passes every hard gate; the readers' output is never what approves. | `app/review/service.py`, `app/review/auto.py` |
 | Schema-only output | The model must return the fixed receipt JSON schema (`format=` in the Ollama call). Its text is data, it has no tools, and it is never interpreted as an instruction. | `app/extraction/readers/ollama_vlm.py`, `app/extraction/schema.py` |
 | Evidence is untrusted | The prompt tells the model to ignore any instructions in the image. Receipt text, QR contents and messages are stored as plain values. | `ollama_vlm.SYSTEM_PROMPT` |
 | Two readers for critical fields | Amount, reference, date and beneficiary count only when two independent readers (the VLM and Tesseract + templates) agree, or a reviewer corrects them. | `app/extraction/agreement.py` |
@@ -86,7 +86,7 @@ Every verification run and decision records the policy version it used.
 | `phash_duplicate_distance` | 6 | Near-duplicate threshold (Hamming distance of 64-bit pHash). Calibrate with `scripts/calibrate_phash.py`. |
 | `min_image_side_px`, `min_sharpness` | 300, 40 | Capture quality floor before asking for a clearer copy. |
 | `critical_fields`, `single_reader_min_confidence` | amount, transaction_id, date, beneficiary; 0.97 | Fields that need two-reader agreement. |
-| `auto_approve_enabled` | `false` | Cannot be set to true in this release; publishing it is refused. |
+| `auto_approve_enabled` | `false` | Rules-based approval of clear claims; needs `auto_approve_channels` and `auto_approve_max_minor`. See [`auto-approval.md`](auto-approval.md). |
 
 ```
 GET  /admin/policy                         active version + defaults      (reviewer)
