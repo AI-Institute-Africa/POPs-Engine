@@ -26,6 +26,22 @@ from app.models import Obligation, OutboxEvent
 MAX_ATTEMPTS = 10
 
 
+def entitlement_payload(obligation: Obligation, bal: Balance, cause: str) -> dict[str, Any]:
+    """What the host system is told about an obligation's payment state."""
+    return {
+        "obligation_id": str(obligation.obligation_id),
+        "external_ref": obligation.external_ref,
+        "learner_ref": obligation.learner_ref,
+        "type": obligation.type,
+        "currency": obligation.currency,
+        "amount_minor": bal.amount_minor,
+        "paid_minor": bal.paid_minor,
+        "outstanding_minor": bal.outstanding_minor,
+        "payment_status": bal.status,
+        "cause": cause,
+    }
+
+
 def enqueue_entitlement(
     session: Session, obligation: Obligation, bal: Balance, event_key: str, cause: str
 ) -> None:
@@ -36,18 +52,7 @@ def enqueue_entitlement(
             org_id=obligation.org_id,
             event_type="entitlement.updated",
             event_key=event_key,
-            payload={
-                "obligation_id": str(obligation.obligation_id),
-                "external_ref": obligation.external_ref,
-                "learner_ref": obligation.learner_ref,
-                "type": obligation.type,
-                "currency": obligation.currency,
-                "amount_minor": bal.amount_minor,
-                "paid_minor": bal.paid_minor,
-                "outstanding_minor": bal.outstanding_minor,
-                "payment_status": bal.status,
-                "cause": cause,
-            },
+            payload=entitlement_payload(obligation, bal, cause),
         )
     )
 

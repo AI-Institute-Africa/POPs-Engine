@@ -4,6 +4,7 @@ import logging
 import uuid
 
 from celery import Celery
+from celery.schedules import crontab
 from sqlalchemy import func, select
 
 from app.core import observability as obs
@@ -22,6 +23,11 @@ celery_app.conf.update(
         "sweep-stuck-claims": {"task": "pops.sweep_stuck", "schedule": 60.0},
         "poll-alert-mailbox": {"task": "pops.poll_alert_mailbox", "schedule": 60.0},
         "review-aging": {"task": "pops.review_aging", "schedule": 300.0},
+        "expire-provisional": {"task": "pops.expire_provisional", "schedule": 300.0},
+        "exposure-report": {
+            "task": "pops.exposure_report",
+            "schedule": crontab(hour=6, minute=0),
+        },
     },
 )
 
@@ -94,6 +100,35 @@ def sweep_stuck() -> int:
     for claim_id in stuck:
         dispatch_pipeline(claim_id)
     return len(stuck)
+
+
+def run_expire_provisional() -> int:
+    """End provisional access whose window passed with no matching credit."""
+    from app.provisional.service import expire_due, refresh_gauges
+
+    with session_scope() as session:
+        n = expire_due(session)
+        session.flush()
+        refresh_gauges(session)
+        return n
+
+
+def run_exposure_report() -> int:
+    """Queue the daily provisional-access report for admins."""
+    from app.provisional.service import send_daily_reports
+
+    with session_scope() as session:
+        return send_daily_reports(session)
+
+
+@celery_app.task(name="pops.expire_provisional")
+def expire_provisional_task() -> int:
+    return run_expire_provisional()
+
+
+@celery_app.task(name="pops.exposure_report")
+def exposure_report_task() -> int:
+    return run_exposure_report()
 
 
 def run_review_aging() -> int:

@@ -8,6 +8,7 @@ from app.claims.states import check_transition
 from app.core.audit import audit
 from app.entitlements.outbox import enqueue_event
 from app.models import Claim, ClaimState, Decision
+from app.provisional.service import resolve_for_state
 
 # states in which a claim is waiting for a human (admins are told once on entry)
 REVIEW_WAITING = {ClaimState.PENDING_REVIEW, ClaimState.DUPLICATE_HOLD}
@@ -39,6 +40,7 @@ def transition(
         correlation_id=claim.correlation_id,
     )
     _track_review_wait(session, claim, target, was_waiting)
+    resolve_for_state(session, claim, ClaimState(target))
 
 
 def _track_review_wait(

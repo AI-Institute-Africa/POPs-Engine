@@ -74,6 +74,8 @@ class ClaimOut(Out):
     risk_score: int | None = None
     risk_level: str | None = None
     risk_signals: list[dict[str, Any]] = []
+    # set while access is open provisionally; neutral wording, never risk information
+    provisional_until: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

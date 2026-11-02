@@ -72,6 +72,14 @@ class PolicyConfig(BaseModel):
     ranking_weights: dict[str, float] = Field(
         default_factory=lambda: {"R": 0.35, "A": 0.25, "B": 0.20, "T": 0.10, "P": 0.10}
     )
+    # provisional (time-boxed, capped) access while a receipt waits for the money. Off by
+    # default. Caps are per currency in minor units; a currency with no cap is never
+    # eligible (fail closed). The host system decides what the access means.
+    provisional_enabled: bool = False
+    provisional_ttl_hours: int = Field(default=24, gt=0, le=24 * 14)
+    provisional_max_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 5_000})
+    provisional_learner_cap_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 10_000})
+    provisional_org_daily_cap_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 10_000})
     # minutes a claim may wait for a human before admins are nudged again, one nudge per
     # level (ascending)
     review_sla_minutes: list[int] = Field(default_factory=lambda: [60, 240, 1440])
@@ -84,6 +92,15 @@ class PolicyConfig(BaseModel):
     @classmethod
     def _legacy_single_limit(cls, v: Any) -> Any:
         return {"USD": v} if isinstance(v, int) else v
+
+    @field_validator(
+        "provisional_max_minor", "provisional_learner_cap_minor", "provisional_org_daily_cap_minor"
+    )
+    @classmethod
+    def _positive_caps(cls, v: dict[str, int]) -> dict[str, int]:
+        if any(n <= 0 for n in v.values()):
+            raise ValueError("provisional caps must be positive minor-unit amounts")
+        return v
 
     @field_validator("review_sla_minutes")
     @classmethod

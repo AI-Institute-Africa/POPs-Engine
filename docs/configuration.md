@@ -131,6 +131,8 @@ What admins receive:
   policy's `review_sla_minutes` (default `[60, 240, 1440]`, positive and ascending); one reminder per
   level, checked every 5 minutes.
 - `ops.alert_source_stale`, `ops.alert_credit_disputed`: payment-alert forwarder problems.
+- `ops.provisional_expired` and the daily `ops.exposure_report`: see
+  [`provisional-access.md`](provisional-access.md).
 
 ## Observability
 

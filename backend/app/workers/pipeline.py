@@ -42,6 +42,7 @@ from app.models import (
     VerificationRun,
 )
 from app.policy.engine import Policy, approval_tier, evidence_tier_for_source, load_policy
+from app.provisional.service import grant_if_eligible
 from app.reconcile.matching import Candidate, find_candidates
 
 log = logging.getLogger(__name__)
@@ -336,6 +337,8 @@ def process_claim(
     transition(session, claim, target, actor=ACTOR, reasons=reasons)
     assessment = risk.assess(session, claim, obligation, policy, facts, candidates, final_fields)
     risk.apply(session, claim, assessment, ACTOR)
+    if claim.state == ClaimState.AWAITING_FINANCIAL_CONFIRMATION:
+        grant_if_eligible(session, claim)  # no-op unless the org's policy enables it
     checks.append(
         {
             "layer": 6,

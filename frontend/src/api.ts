@@ -22,6 +22,7 @@ export type Claim = {
   risk_score: number | null;
   risk_level: string | null;
   risk_signals: { code: string; weight: number; reason: string; evidence: Record<string, unknown> }[];
+  provisional_until: string | null;
   created_at: string;
   updated_at: string;
 };

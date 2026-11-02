@@ -80,6 +80,7 @@ from app.models import (
 from app.normalise.fields import normalise_reference
 from app.payment_codes.codes import find_codes, new_code
 from app.policy.engine import load_policy
+from app.provisional.service import access_state
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
@@ -97,11 +98,17 @@ INTERNAL_REASONS = {"SUSPECTED_FAKE"}
 
 
 def claim_out(c: Claim, internal: bool = False) -> ClaimOut:
+    messages = explain(c.reason_codes)
+    if c.provisional_until is not None:
+        messages.append(
+            f"Access is open until {c.provisional_until:%Y-%m-%d %H:%M} UTC "
+            "while we confirm your payment."
+        )
     out = ClaimOut.model_validate(
         {
             **{k: getattr(c, k) for k in ClaimOut.model_fields if hasattr(c, k)},
             "outcome": OUTCOME[ClaimState(c.state)],
-            "messages": explain(c.reason_codes),
+            "messages": messages,
         }
     )
     if not internal:
@@ -270,6 +277,12 @@ def list_obligations(
     if learner_ref:
         q = q.where(Obligation.learner_ref == learner_ref)
     return list(db.scalars(q.order_by(Obligation.created_at.desc()).limit(limit)))
+
+
+@router.get("/obligations/{obligation_id}/access", tags=["obligations"])
+def obligation_access(obligation_id: uuid.UUID, db: DB, p: Any_) -> dict:
+    """Is this obligation paid, provisionally open, or neither? For hosts that poll."""
+    return access_state(db, _obligation(db, p, obligation_id))
 
 
 @router.get("/obligations/{obligation_id}/balance", response_model=BalanceOut, tags=["obligations"])
