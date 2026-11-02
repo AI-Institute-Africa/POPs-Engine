@@ -10,8 +10,10 @@ import hmac
 import json
 import smtplib
 import time
+import uuid
 from datetime import UTC, datetime
 from email.message import EmailMessage
+from typing import Any
 
 import httpx
 from sqlalchemy import select
@@ -50,6 +52,18 @@ def enqueue_entitlement(
     )
 
 
+def enqueue_event(
+    session: Session, org_id: uuid.UUID, event_type: str, event_key: str, payload: dict[str, Any]
+) -> bool:
+    """Queue an event once per `event_key`; returns False when it was already queued."""
+    if session.scalars(select(OutboxEvent).where(OutboxEvent.event_key == event_key)).first():
+        return False
+    session.add(
+        OutboxEvent(org_id=org_id, event_type=event_type, event_key=event_key, payload=payload)
+    )
+    return True
+
+
 def sign(body: bytes, secret: str, ts: int) -> str:
     mac = hmac.new(secret.encode(), f"{ts}.".encode() + body, hashlib.sha256).hexdigest()
     return f"t={ts},v1={mac}"
@@ -65,6 +79,23 @@ def _channels(event_type: str) -> list[str]:
             out.append("email")
         return out
     return ["cognify"] if s.cognify_webhook_url else []
+
+
+def _email_wording(ev: OutboxEvent) -> tuple[str, str]:
+    """Email subject and the console hint that fits the event."""
+    if ev.event_type.startswith("fraud."):
+        return (
+            f"[POPs] Suspected fake proof of payment ({ev.payload.get('score')}/100)",
+            "Open Suspected fakes in the POPs console to decide.",
+        )
+    if ev.event_type == "ops.review_pending":
+        return "[POPs] Proof of payment needs review", "Open the Review queue in the POPs console."
+    if ev.event_type == "ops.review_overdue":
+        return (
+            "[POPs] Proof of payment review overdue",
+            "Open the Review queue in the POPs console.",
+        )
+    return "[POPs] Operations alert", ""
 
 
 def _send(channel: str, ev: OutboxEvent, http: httpx.Client) -> None:
@@ -91,16 +122,21 @@ def _send(channel: str, ev: OutboxEvent, http: httpx.Client) -> None:
         http.post(s.admin_alert_webhook_url or "", json=alert).raise_for_status()
     elif channel == "email":
         msg = EmailMessage()
-        msg["Subject"] = (
-            f"[POPs] Suspected fake proof of payment ({ev.payload.get('score')}/100)"
-            if ev.event_type.startswith("fraud.")
-            else "[POPs] Operations alert"
-        )
+        subject, hint = _email_wording(ev)
+        msg["Subject"] = subject
         msg["From"] = s.smtp_from
         msg["To"] = ", ".join(s.admin_alert_emails)
+        signals = ev.payload.get("signals")
         msg.set_content(
-            f"{ev.payload.get('text', '')}\n\nSignals: {', '.join(ev.payload.get('signals', []))}"
-            "\n\nOpen Suspected fakes in the POPs console to decide."
+            "\n\n".join(
+                part
+                for part in (
+                    str(ev.payload.get("text", "")),
+                    f"Signals: {', '.join(signals)}" if signals else "",
+                    hint,
+                )
+                if part
+            )
         )
         with smtplib.SMTP(s.smtp_host or "", s.smtp_port, timeout=15) as smtp:
             smtp.starttls()

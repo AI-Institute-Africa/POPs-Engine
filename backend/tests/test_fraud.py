@@ -311,8 +311,12 @@ def test_admin_alert_webhook_delivery(client, session, monkeypatch):
     http = httpx.Client(
         transport=httpx.MockTransport(lambda req: sent.append(req) or httpx.Response(200))
     )
-    assert outbox.deliver_pending(session, client=http) == 2  # one per claim in the reuse pair
-    body = sent[0].read().decode()
-    assert sent[0].url.host == "hooks.slack.test"
-    assert "Suspected fake proof of payment" in body and "REUSED_RECEIPT" in body
-    assert "Tendai" not in body and "learner-1" not in body  # no personal data in alerts
+    # per claim in the reuse pair: one fraud alert and one "needs review" notice
+    assert outbox.deliver_pending(session, client=http) == 4
+    bodies = [r.read().decode() for r in sent]
+    assert {r.url.host for r in sent} == {"hooks.slack.test"}
+    fraud = [b for b in bodies if "Suspected fake proof of payment" in b]
+    assert len(fraud) == 2 and all("REUSED_RECEIPT" in b for b in fraud)
+    assert sum("needs review" in b for b in bodies) == 2
+    for body in bodies:
+        assert "Tendai" not in body and "learner-1" not in body  # no personal data in alerts

@@ -21,6 +21,7 @@ celery_app.conf.update(
         "deliver-outbox": {"task": "pops.deliver_outbox", "schedule": 30.0},
         "sweep-stuck-claims": {"task": "pops.sweep_stuck", "schedule": 60.0},
         "poll-alert-mailbox": {"task": "pops.poll_alert_mailbox", "schedule": 60.0},
+        "review-aging": {"task": "pops.review_aging", "schedule": 300.0},
     },
 )
 
@@ -93,6 +94,19 @@ def sweep_stuck() -> int:
     for claim_id in stuck:
         dispatch_pipeline(claim_id)
     return len(stuck)
+
+
+def run_review_aging() -> int:
+    """Remind admins about claims that have waited too long for a human."""
+    from app.review.aging import review_aging
+
+    with session_scope() as session:
+        return review_aging(session)
+
+
+@celery_app.task(name="pops.review_aging")
+def review_aging_task() -> int:
+    return run_review_aging()
 
 
 @celery_app.task(name="pops.process_claim", bind=True, max_retries=3)

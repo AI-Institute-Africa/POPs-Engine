@@ -156,6 +156,10 @@ class Claim(Base):
     risk_signals: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
     pipeline_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_pipeline_error: Mapped[str | None] = mapped_column(Text)
+    # when the claim began waiting for a human (PENDING_REVIEW / DUPLICATE_HOLD), and how
+    # many review-SLA nudges admins have already had for that wait
+    review_entered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_escalation: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     correlation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=_uuid)
     created_at: Mapped[datetime] = _created()
     updated_at: Mapped[datetime] = mapped_column(

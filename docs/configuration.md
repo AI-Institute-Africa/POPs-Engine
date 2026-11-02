@@ -110,6 +110,28 @@ allowlist as the AI reader: when the reader is off, only the deterministic rules
 proposing. Thresholds for the forensics live in `app/extraction/tamper.py` (robust z-scores over
 per-cell ELA residual and noise MAD) and are exposed as `tamper` on the review detail payload.
 
+## Admin notifications
+
+Admins are told about events through a Slack/Teams/Google-Chat style webhook and/or email. Events are
+queued in the outbox (retried every 30 s) and carry ids and reason codes only, never payer names,
+numbers or amounts.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `POPS_ADMIN_ALERT_WEBHOOK_URL` | – | Incoming webhook that accepts a top-level `text`. |
+| `POPS_SMTP_HOST`, `POPS_SMTP_PORT`, `POPS_SMTP_USER`, `POPS_SMTP_PASSWORD`, `POPS_SMTP_FROM` | –, 587, –, –, `pops-engine@localhost` | SMTP relay (STARTTLS). |
+| `POPS_ADMIN_ALERT_EMAILS` | `[]` | JSON list of recipients. |
+
+What admins receive:
+
+- `fraud.suspected`: a claim scored 60+ for fake-proof risk.
+- `ops.review_pending`: **any** claim that starts waiting for a human (`PENDING_REVIEW` or
+  `DUPLICATE_HOLD`). Sent once per wait. A suspected fake also sends `fraud.suspected`.
+- `ops.review_overdue`: a reminder when a claim has waited past an SLA level. Levels are the payment
+  policy's `review_sla_minutes` (default `[60, 240, 1440]`, positive and ascending); one reminder per
+  level, checked every 5 minutes.
+- `ops.alert_source_stale`, `ops.alert_credit_disputed`: payment-alert forwarder problems.
+
 ## Observability
 
 - JSON logs with `request_id` (echoed in `X-Request-Id`). Logs carry no secrets or document

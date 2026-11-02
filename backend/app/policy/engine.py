@@ -70,6 +70,9 @@ class PolicyConfig(BaseModel):
     ranking_weights: dict[str, float] = Field(
         default_factory=lambda: {"R": 0.35, "A": 0.25, "B": 0.20, "T": 0.10, "P": 0.10}
     )
+    # minutes a claim may wait for a human before admins are nudged again, one nudge per
+    # level (ascending)
+    review_sla_minutes: list[int] = Field(default_factory=lambda: [60, 240, 1440])
     # tamper forensics (blueprint 8, layer 6): a risk flag only. A hit routes the claim to a
     # reviewer; it can never approve, reject or allocate on its own.
     tamper_enabled: bool = True
@@ -79,6 +82,13 @@ class PolicyConfig(BaseModel):
     @classmethod
     def _legacy_single_limit(cls, v: Any) -> Any:
         return {"USD": v} if isinstance(v, int) else v
+
+    @field_validator("review_sla_minutes")
+    @classmethod
+    def _ascending_positive(cls, v: list[int]) -> list[int]:
+        if any(m <= 0 for m in v) or v != sorted(set(v)):
+            raise ValueError("review_sla_minutes must be positive and strictly ascending")
+        return v
 
     @field_validator("manual_credit_min_role")
     @classmethod

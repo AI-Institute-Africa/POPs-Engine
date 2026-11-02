@@ -1,11 +1,16 @@
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.claims.states import check_transition
 from app.core.audit import audit
+from app.entitlements.outbox import enqueue_event
 from app.models import Claim, ClaimState, Decision
+
+# states in which a claim is waiting for a human (admins are told once on entry)
+REVIEW_WAITING = {ClaimState.PENDING_REVIEW, ClaimState.DUPLICATE_HOLD}
 
 
 def transition(
@@ -18,6 +23,7 @@ def transition(
 ) -> None:
     check_transition(claim.state, target)
     before = {"state": claim.state, "reason_codes": claim.reason_codes}
+    was_waiting = claim.state in REVIEW_WAITING
     claim.state = target
     if reasons is not None:
         claim.reason_codes = reasons
@@ -32,6 +38,35 @@ def transition(
         after={"state": target, "reason_codes": claim.reason_codes},
         correlation_id=claim.correlation_id,
     )
+    _track_review_wait(session, claim, target, was_waiting)
+
+
+def _track_review_wait(
+    session: Session, claim: Claim, target: ClaimState, was_waiting: bool
+) -> None:
+    now_waiting = target in REVIEW_WAITING
+    if now_waiting and not was_waiting:
+        now = datetime.now(UTC)
+        claim.review_entered_at = now
+        claim.review_escalation = 0
+        codes = [str(c) for c in claim.reason_codes]
+        # ids and reason codes only: no payer name, number or amount in the message
+        enqueue_event(
+            session,
+            claim.org_id,
+            "ops.review_pending",
+            f"review:{claim.claim_id}:{target}:{now.isoformat()}",
+            {
+                "text": f"A proof of payment needs review ({target.value.lower()}"
+                + (f": {', '.join(codes)}" if codes else "")
+                + f"). Claim {claim.claim_id}.",
+                "claim_id": str(claim.claim_id),
+                "state": target.value,
+                "reason_codes": codes,
+            },
+        )
+    elif was_waiting and not now_waiting:
+        claim.review_entered_at = None
 
 
 def record_decision(
