@@ -8,6 +8,7 @@ approver to record an attested manual credit, which a *different* person then co
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -32,7 +33,7 @@ from app.models import (
     FraudAlert,
     Obligation,
 )
-from app.policy.engine import evidence_tier_for_source, load_policy
+from app.policy.engine import Policy, evidence_tier_for_source, load_policy
 from app.reconcile.matching import GATE_REASON, evaluate
 from app.workers.pipeline import refresh
 
@@ -82,6 +83,69 @@ def _first_approval(session: Session, claim: Claim, credit_id: uuid.UUID) -> Dec
         )
         .order_by(Decision.created_at.desc())
     ).first()
+
+
+def settle(
+    session: Session,
+    *,
+    claim: Claim,
+    credit: Credit,
+    obligation: Obligation,
+    policy: Policy,
+    flags: list[str],
+    snapshot: dict[str, Any],
+    authorised: int,
+    ref_key: str | None,
+    actor: str,
+    actor_type: str,
+    note: str | None = None,
+    extra_reasons: list[str] | None = None,
+) -> ConfirmResult:
+    """Allocate the credit, close the claim and tell the host. Shared by humans and the auto rule.
+
+    Callers have already passed every check that applies to them (gates, separation of duties,
+    approvers); the ledger trigger still re-checks the money invariants.
+    """
+    credit_id = credit.credit_id
+    alloc = ledger.allocate(
+        session,
+        credit_id=credit_id,
+        obligation_id=obligation.obligation_id,
+        authorised_minor=authorised,
+        idempotency_key=f"claim:{claim.claim_id}:credit:{credit_id}",
+        actor=actor,
+        claim_id=claim.claim_id,
+        correlation_id=claim.correlation_id,
+    )
+    if ref_key and session.get(ConsumedReference, ref_key) is None:
+        session.add(
+            ConsumedReference(reference_key=ref_key, org_id=claim.org_id, claim_id=claim.claim_id)
+        )
+    bal = ledger.balance(session, obligation)
+    reasons = [*flags, *(extra_reasons or [])]
+    if bal.outstanding_minor > 0:
+        reasons.append("PARTIAL_PAYMENT")
+    if alloc.amount_minor < authorised:
+        reasons.append("OVERPAYMENT")
+    partial = {"PARTIAL_PAYMENT", "OVERPAYMENT"}.intersection(reasons)
+    target = ClaimState.PARTIALLY_ALLOCATED if partial else ClaimState.APPROVED
+    claim.candidate_credit_id = credit_id
+    claim.evidence_tier = evidence_tier_for_source(credit.source)
+    transition(session, claim, target, actor=actor, reasons=reasons)
+    record_decision(
+        session,
+        claim,
+        outcome=target,
+        reasons=reasons,
+        policy_version=policy.version,
+        actor_type=actor_type,
+        actor_id=actor,
+        snapshot=snapshot,
+        credit_id=credit_id,
+        note=note,
+    )
+    enqueue_entitlement(session, obligation, bal, f"allocation:{alloc.allocation_id}", "allocation")
+    return ConfirmResult(claim, alloc)
 
 
 def confirm(
@@ -166,45 +230,20 @@ def confirm(
                 "SECOND_APPROVER_REQUIRED", "second approval needs approver role", 403
             )
 
-    alloc = ledger.allocate(
+    return settle(
         session,
-        credit_id=credit_id,
-        obligation_id=obligation.obligation_id,
-        authorised_minor=authorised,
-        idempotency_key=f"claim:{claim.claim_id}:credit:{credit_id}",
-        actor=p.actor,
-        claim_id=claim.claim_id,
-        correlation_id=claim.correlation_id,
-    )
-    if ref_key and session.get(ConsumedReference, ref_key) is None:
-        session.add(
-            ConsumedReference(reference_key=ref_key, org_id=claim.org_id, claim_id=claim.claim_id)
-        )
-    bal = ledger.balance(session, obligation)
-    reasons = list(flags)
-    if bal.outstanding_minor > 0:
-        reasons.append("PARTIAL_PAYMENT")
-    if alloc.amount_minor < authorised:
-        reasons.append("OVERPAYMENT")
-    partial = {"PARTIAL_PAYMENT", "OVERPAYMENT"}.intersection(reasons)
-    target = ClaimState.PARTIALLY_ALLOCATED if partial else ClaimState.APPROVED
-    claim.candidate_credit_id = credit_id
-    claim.evidence_tier = evidence_tier_for_source(credit.source)
-    transition(session, claim, target, actor=p.actor, reasons=reasons)
-    record_decision(
-        session,
-        claim,
-        outcome=target,
-        reasons=reasons,
-        policy_version=policy.version,
-        actor_type="reviewer",
-        actor_id=p.actor,
+        claim=claim,
+        credit=credit,
+        obligation=obligation,
+        policy=policy,
+        flags=flags,
         snapshot=snapshot,
-        credit_id=credit_id,
+        authorised=authorised,
+        ref_key=ref_key,
+        actor=p.actor,
+        actor_type="reviewer",
         note=note,
     )
-    enqueue_entitlement(session, obligation, bal, f"allocation:{alloc.allocation_id}", "allocation")
-    return ConfirmResult(claim, alloc)
 
 
 def reject(session: Session, p: Principal, claim_id: uuid.UUID, reason: str, note: str | None):

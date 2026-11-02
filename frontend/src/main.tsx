@@ -16,6 +16,7 @@ import ClaimReview from "./pages/ClaimReview";
 import Credits from "./pages/Credits";
 import Obligations from "./pages/Obligations";
 import Exposure from "./pages/Exposure";
+import AutoApproved from "./pages/AutoApproved";
 import "./styles.css";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
@@ -95,6 +96,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <FraudLink />
           <NavLink to="/credits">Credits</NavLink>
           <NavLink to="/obligations">Invoices</NavLink>
+          <NavLink to="/auto">Auto-approved</NavLink>
           <NavLink to="/exposure">Exposure</NavLink>
           <NavLink to="/alerts">Alerts</NavLink>
           <NavLink to="/guardrails">{t("nav.guardrails")}</NavLink>
@@ -128,6 +130,7 @@ void ensureSession().finally(() =>
                   <Route path="/credits" element={<Credits />} />
                   <Route path="/obligations" element={<Obligations />} />
                   <Route path="/exposure" element={<Exposure />} />
+                  <Route path="/auto" element={<AutoApproved />} />
                   <Route path="/fraud" element={<Fraud />} />
                   <Route path="/guardrails" element={<Guardrails />} />
                   <Route path="/alerts" element={<Alerts />} />

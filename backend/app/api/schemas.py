@@ -243,6 +243,13 @@ class RejectIn(BaseModel):
     note: str | None = None
 
 
+class AuditVerdictIn(BaseModel):
+    """A reviewer's verdict on an automatic approval: ok, or overturned."""
+
+    verdict: str
+    note: str | None = None
+
+
 class RequestInfoIn(BaseModel):
     message: str = Field(min_length=3)
 

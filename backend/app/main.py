@@ -18,7 +18,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="POPs Engine",
         version="0.2.0",
-        description="Proof-of-payment verification for Cognify. Review-only: no auto-approval.",
+        description="Proof-of-payment verification. The AI reads; deterministic policy approves.",
     )
     app.add_middleware(
         CORSMiddleware,

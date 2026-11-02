@@ -375,6 +375,7 @@ def process_claim(
     )
     obs.CLAIM_OUTCOMES.labels(target).inc()
     obs.PIPELINE_SECONDS.observe(time.perf_counter() - started)
+    _auto_approve(session, claim)
     return claim
 
 
@@ -546,6 +547,16 @@ def _attach_credit(session: Session, claim: Claim, best: Candidate) -> None:
     claim.evidence_tier = evidence_tier_for_source(credit.source)
 
 
+def _auto_approve(session: Session, claim: Claim) -> None:
+    """Hand a freshly confirmed claim to the rules-based approver (a no-op unless enabled)."""
+    if claim.state != ClaimState.FINANCIALLY_CONFIRMED:
+        return
+    # imported here: review.service imports this module
+    from app.review.auto import maybe_auto_approve
+
+    maybe_auto_approve(session, claim)
+
+
 def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
     """Re-run reconciliation for a claim waiting on money (credit-first matching, blueprint 5.2)."""
     policy = load_policy(session, claim.org_id)
@@ -591,6 +602,7 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
         snapshot={"candidates": [c.as_dict() for c in candidates[:3]]},
     )
     reassess(session, claim, actor)
+    _auto_approve(session, claim)
     return claim
 
 
@@ -658,7 +670,12 @@ def rematch_awaiting(session: Session, org_id: uuid.UUID) -> int:
         .with_for_update(skip_locked=True)
     ).all()
     claims = [c for c in claims if not DUPLICATE.intersection(c.reason_codes)]
-    return sum(1 for c in claims if rematch(session, c).state == ClaimState.FINANCIALLY_CONFIRMED)
+    matched = {
+        ClaimState.FINANCIALLY_CONFIRMED,
+        ClaimState.APPROVED,  # approved by the auto rule as soon as the money matched
+        ClaimState.PARTIALLY_ALLOCATED,
+    }
+    return sum(1 for c in claims if rematch(session, c).state in matched)
 
 
 # --- resilience -------------------------------------------------------------------------------

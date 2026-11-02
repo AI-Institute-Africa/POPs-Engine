@@ -13,6 +13,7 @@ from app.api.schemas import (
     AllocateIn,
     AllocateOut,
     AllocationOut,
+    AuditVerdictIn,
     BalanceOut,
     CandidateOut,
     ClaimOut,
@@ -83,6 +84,7 @@ from app.policy.engine import load_policy
 from app.provisional.service import access_state
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
+from app.review.auto import list_auto_approved, record_verdict
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
 
 router = APIRouter()
@@ -94,7 +96,7 @@ Admin = Annotated[Principal, Depends(require(Role.ADMIN))]
 
 
 # never shown to submitters (Cognify, and through it payers): no accusation from a score
-INTERNAL_REASONS = {"SUSPECTED_FAKE"}
+INTERNAL_REASONS = {"SUSPECTED_FAKE", "AUTO_APPROVED"}
 
 
 def claim_out(c: Claim, internal: bool = False) -> ClaimOut:
@@ -587,7 +589,15 @@ def _confirmed_count(db: Session, org_id: uuid.UUID) -> int:
     return len(
         db.scalars(
             select(Claim.claim_id).where(
-                Claim.org_id == org_id, Claim.state == ClaimState.FINANCIALLY_CONFIRMED
+                Claim.org_id == org_id,
+                # matched to money; the auto rule may already have approved them
+                Claim.state.in_(
+                    [
+                        ClaimState.FINANCIALLY_CONFIRMED,
+                        ClaimState.APPROVED,
+                        ClaimState.PARTIALLY_ALLOCATED,
+                    ]
+                ),
             )
         ).all()
     )
@@ -846,6 +856,24 @@ def confirm_claim(claim_id: uuid.UUID, body: ConfirmIn, db: DB, p: Reviewer) -> 
         allocation=AllocationOut.model_validate(result.allocation) if result.allocation else None,
         needs_second_approval=result.needs_second_approval,
     )
+
+
+@router.get("/review/auto-approved", tags=["review"])
+def auto_approved(db: DB, p: Reviewer, limit: int = Query(200, le=1000)) -> dict:
+    """Claims the rules approved without a person, with the sampled audit and overturn rate."""
+    return list_auto_approved(db, p.org_id, limit)
+
+
+@router.post("/review/claims/{claim_id}/audit-verdict", tags=["review"])
+def audit_verdict(claim_id: uuid.UUID, body: AuditVerdictIn, db: DB, p: Reviewer) -> dict:
+    """Record whether an automatic approval was right. Overturning does not move money."""
+    try:
+        decision = record_verdict(db, p, claim_id, body.verdict, body.note)
+    except review.ReviewError as exc:
+        db.rollback()
+        raise _review_error(exc) from exc
+    db.commit()
+    return {"claim_id": str(claim_id), "outcome": decision.outcome}
 
 
 @router.post("/review/claims/{claim_id}/reject", response_model=ClaimOut, tags=["review"])

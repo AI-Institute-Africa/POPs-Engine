@@ -162,8 +162,6 @@ def publish_policy(body: PolicyIn, db: DB, p: Admin) -> dict:
     except ValidationError as exc:
         err = exc.errors()[0]
         raise HTTPException(422, f"{'.'.join(map(str, err['loc']))}: {err['msg']}") from exc
-    if cfg.auto_approve_enabled:
-        raise HTTPException(422, "auto-approval is not available in this release")
     if db.scalars(
         select(PaymentPolicy).where(
             PaymentPolicy.org_id == p.org_id, PaymentPolicy.version == body.version

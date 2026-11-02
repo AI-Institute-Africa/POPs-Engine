@@ -7,7 +7,7 @@ The defaults below seed the platform policy row; organisations may override with
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -41,8 +41,15 @@ DEFAULT_FRAUD_WEIGHTS: dict[str, int] = {
 
 
 class PolicyConfig(BaseModel):
-    # automation is off in slice 1; there is no code path that reads this as true
+    # Rules-based approval of clear claims (app/review/auto.py). The AI never approves:
+    # the readers only extract, and these deterministic rules decide. Off by default;
+    # enabling needs a cap per currency and the channels it applies to.
     auto_approve_enabled: bool = False
+    auto_approve_max_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 5_000})
+    auto_approve_channels: list[str] = Field(default_factory=list)
+    auto_approve_min_tier: str = "E2"  # E2 = merchant alert, E3 = bank statement
+    auto_approve_max_risk: int = Field(default=15, ge=0, le=100)  # fake-proof score
+    auto_approve_audit_pct: int = Field(default=5, ge=0, le=100)  # sampled for a human
     # our receiving accounts / merchant codes; a credit must land on one of these
     beneficiary_aliases: list[str] = Field(default_factory=lambda: ["MAIN"])
     success_statuses: list[str] = Field(default_factory=lambda: ["success"])
@@ -94,13 +101,35 @@ class PolicyConfig(BaseModel):
         return {"USD": v} if isinstance(v, int) else v
 
     @field_validator(
-        "provisional_max_minor", "provisional_learner_cap_minor", "provisional_org_daily_cap_minor"
+        "provisional_max_minor",
+        "provisional_learner_cap_minor",
+        "provisional_org_daily_cap_minor",
+        "auto_approve_max_minor",
     )
     @classmethod
     def _positive_caps(cls, v: dict[str, int]) -> dict[str, int]:
         if any(n <= 0 for n in v.values()):
             raise ValueError("provisional caps must be positive minor-unit amounts")
         return v
+
+    @field_validator("auto_approve_min_tier")
+    @classmethod
+    def _tier_with_independent_confirmation(cls, v: str) -> str:
+        if v not in ("E2", "E3"):
+            raise ValueError(
+                "auto_approve_min_tier must be E2 or E3: a receipt alone is never enough"
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _auto_approve_is_scoped(self) -> "PolicyConfig":
+        if self.auto_approve_enabled and not (
+            self.auto_approve_channels and self.auto_approve_max_minor
+        ):
+            raise ValueError(
+                "auto_approve_enabled needs auto_approve_channels and auto_approve_max_minor"
+            )
+        return self
 
     @field_validator("review_sla_minutes")
     @classmethod

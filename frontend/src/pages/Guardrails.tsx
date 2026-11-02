@@ -338,6 +338,14 @@ function PolicyPanel() {
       refresh();
     },
   });
+  const estimate = useMutation({
+    mutationFn: () =>
+      post<{ claims_replayed: number; auto_approve: { claims_with_a_match: number; would_auto_approve: number; blockers: Record<string, number> } }>(
+        "/admin/replay",
+        { config: JSON.parse(draft ?? JSON.stringify(current.data?.config ?? {})) },
+      ),
+    onError: (e) => toast("err", (e as Error).message),
+  });
   const text = draft ?? JSON.stringify(current.data?.config ?? {}, null, 2);
   let diff: ReturnType<typeof policyDiff> = [];
   let diffError: string | null = null;
@@ -354,7 +362,8 @@ function PolicyPanel() {
       <h2>Payment policy</h2>
       <p className="muted small">
         Thresholds the rules and reviewers work to: date window, receiving accounts, per-currency second-approver
-        limits, manual-credit role, pilot channels. Auto-approval cannot be enabled in this release.
+        limits, manual-credit role, pilot channels. Rules-based auto-approval (<code>auto_approve_*</code>) and
+        provisional access (<code>provisional_*</code>) are off until a policy turns them on; see the docs.
       </p>
       <p>Active version <code>{current.data?.version}</code></p>
       <textarea rows={12} value={text} readOnly={draft === null} onChange={(e) => setDraft(e.target.value)} spellCheck={false} aria-label="Policy configuration (JSON)" />
@@ -377,6 +386,21 @@ function PolicyPanel() {
         </div>
       )}
 
+      <div className="actions">
+        <button type="button" className="ghost small" disabled={estimate.isPending || diffError !== null} onClick={() => estimate.mutate()}>
+          Estimate auto-approval on past claims
+        </button>
+        {estimate.data && (
+          <p className="small">
+            Of {estimate.data.claims_replayed} past claims, {estimate.data.auto_approve.claims_with_a_match} had a matching credit;{" "}
+            <strong>{estimate.data.auto_approve.would_auto_approve}</strong> would have been approved automatically
+            {Object.keys(estimate.data.auto_approve.blockers).length > 0 && (
+              <> · held back by: {Object.entries(estimate.data.auto_approve.blockers).map(([k, n]) => `${k} (${n})`).join(", ")}</>
+            )}
+            . An estimate: it assumes each invoice and credit were unused when the claim arrived.
+          </p>
+        )}
+      </div>
       <form className="inline" onSubmit={(e) => { e.preventDefault(); publish.mutate(); }}>
         {draft !== null ? (
           <>

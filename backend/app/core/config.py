@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     # claim exists
     rate_limit_previews_per_minute: int = 20
 
+    # global kill switch for rules-based auto-approval; overrides every organisation's policy
+    auto_approve_disabled: bool = False
+
     # extraction readers: ollama | donut | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"
     # Shadow mode (blueprint phase 4): advisory AI proposals recorded beside claims and scored
