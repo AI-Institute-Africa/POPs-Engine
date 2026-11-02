@@ -131,9 +131,11 @@ Docker volume in this stack; production uses S3-compatible storage (`POPS_STORAG
 ### Local development
 
 ```bash
-# backend (needs PostgreSQL 16; tesseract optional — without it claims go to review)
+# backend (needs Python 3.12 and PostgreSQL 16; tesseract optional — without it claims go to review)
+# Python 3.12 is what CI and Docker run; a venv built on another minor version carries wheels
+# that fail to import (see .python-version)
 cd backend
-python -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
+python3.12 -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
 createdb pops && alembic upgrade head
 export POPS_ENV=dev POPS_PIPELINE_MODE=inline POPS_VLM_BACKEND=fake
 uvicorn app.main:app --reload
@@ -196,6 +198,10 @@ from the repository root in PowerShell:
 docker compose -f docker-compose.yml -f docker-compose.donut-demo.yml up --build -d
 .venv\Scripts\python.exe scripts/seed_live_demo.py
 ```
+
+The Donut model was trained on synthetic receipts only. Treat it as a demo reader: benchmark it on
+real, labelled receipts and run it in shadow mode before it decides anything (see
+[`docs/models.md`](docs/models.md)).
 
 Open the console at <http://localhost:5173>. The seed command prints a payment code and a
 synthetic screenshot, SMS, and complex proof image to upload. API docs are at

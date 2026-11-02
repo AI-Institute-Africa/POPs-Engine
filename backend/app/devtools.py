@@ -4,9 +4,29 @@ import io
 import json
 import random
 import uuid
+from datetime import UTC, date, datetime, timedelta
 
 from PIL import Image, ImageDraw, ImageFilter
 from PIL.PngImagePlugin import PngInfo
+
+# Fixture receipts are dated "yesterday" so they stay inside the fraud rules' windows (not in the
+# future, not days before the invoice) whenever the suite runs.
+DAY: date = datetime.now(UTC).date() - timedelta(days=1)
+
+
+def dmy(hm: str = "14:32", days: int = 0) -> str:
+    """`DD/MM/YYYY HH:MM` on the fixture day, shifted by `days`."""
+    return f"{DAY + timedelta(days=days):%d/%m/%Y} {hm}"
+
+
+def iso_z(hm: str = "12:33", days: int = 0) -> str:
+    return f"{DAY + timedelta(days=days):%Y-%m-%d}T{hm}:00Z"
+
+
+def rfc2822(hm: str = "14:40") -> str:
+    weekday = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[DAY.weekday()]
+    month = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()[DAY.month - 1]
+    return f"{weekday}, {DAY.day:02d} {month} {DAY.year} {hm}:00 +0200"
 
 
 def make_receipt(
@@ -51,7 +71,7 @@ def ecocash_fields(txn: str = "PP251021.1432.A12345", amount: str = "40.00", **o
         "transaction_id": txn,
         "amount": amount,
         "currency": "USD",
-        "date": "21/10/2026 14:32",
+        "date": dmy("14:32"),
         "sender": "Tendai Moyo",
         "beneficiary": "MAIN",
         "status": "Successful",

@@ -55,7 +55,7 @@ from app.credits.statements import ImportError_, import_statement, profiles
 from app.extraction import preprocess
 from app.extraction.service import build_readers, extract
 from app.intake.files import RejectedFile, prepare
-from app.intake.scan import ScannerUnavailable
+from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
 from app.ledger import service as ledger
@@ -138,6 +138,20 @@ def _obligation(db: Session, p: Principal, obligation_id: uuid.UUID) -> Obligati
     if o is None:
         raise HTTPException(404, "obligation not found")
     return o
+
+
+def _limit_previews(p: Principal) -> None:
+    try:
+        ratelimit.check(
+            "previews", str(p.user_id), get_settings().rate_limit_previews_per_minute, 60
+        )
+    except ratelimit.RateLimited as exc:
+        obs.UPLOADS_REJECTED.labels("RATE_LIMIT_PREVIEWS").inc()
+        raise HTTPException(
+            429,
+            {"code": "RATE_LIMITED", "message": "too many checks; slow down"},
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
 
 
 def _review_error(exc: review.ReviewError) -> HTTPException:
@@ -266,6 +280,7 @@ async def preview_claim_files(
         raise HTTPException(422, "attach at least one proof to read it")
     if len(uploads) > 5:
         raise HTTPException(422, "up to 5 files can be checked at once")
+    _limit_previews(p)
 
     settings = get_settings()
     policy = load_policy(db, p.org_id)
@@ -273,8 +288,25 @@ async def preview_claim_files(
     files_out = []
     for upload in uploads:
         data = await upload.read(settings.max_upload_bytes + 1)
+        # same gate as a real submission: nothing is parsed before the malware scan (fail closed)
         try:
+            scan(data)
             prepared = prepare(data, settings.max_upload_bytes)
+        except InfectedFile as exc:
+            obs.UPLOADS_REJECTED.labels("MALWARE_DETECTED").inc()
+            raise HTTPException(
+                422, {"code": "MALWARE_DETECTED", "message": "the file failed the malware scan"}
+            ) from exc
+        except ScannerUnavailable as exc:
+            obs.UPLOADS_REJECTED.labels("SCANNER_UNAVAILABLE").inc()
+            raise HTTPException(
+                503,
+                {
+                    "code": "SCANNER_UNAVAILABLE",
+                    "message": "upload could not be scanned; try again shortly",
+                },
+                headers={"Retry-After": "30"},
+            ) from exc
         except RejectedFile as exc:
             raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
 
@@ -301,7 +333,9 @@ async def preview_claim_files(
         ]
         recognized = {field["name"] for field in fields}
         has_readable_text = bool(
-            recognized.intersection({"amount", "transaction_id", "date", "status", "provider", "sender"})
+            recognized.intersection(
+                {"amount", "transaction_id", "date", "status", "provider", "sender"}
+            )
         )
         files_out.append(
             {

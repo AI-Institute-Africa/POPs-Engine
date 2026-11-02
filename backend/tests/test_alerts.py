@@ -14,7 +14,7 @@ from app.alerts import service as alerts
 from app.alerts.parse import NotACredit, parse
 from app.core.db import get_sessionmaker
 from app.models import AlertSource, Credit, OutboxEvent
-from tests.conftest import ecocash_fields, login, make_receipt
+from tests.conftest import ecocash_fields, login, make_receipt, rfc2822
 from tests.test_flow import TXN, _import, _obligation, _stmt_row, _submit
 
 ECOCASH_SMS = (
@@ -171,7 +171,7 @@ def _email(body: str, sender="alerts@cbz.co.zw") -> bytes:
     m["From"] = f"CBZ Alerts <{sender}>"
     m["To"] = "finance@cognify.test"
     m["Subject"] = "Credit alert"
-    m["Date"] = "Wed, 21 Oct 2026 14:40:00 +0200"
+    m["Date"] = rfc2822("14:40")
     m.set_content(body)
     return m.as_bytes()
 

@@ -21,7 +21,7 @@ from app.models import Claim, VerificationRun
 from app.normalise.fields import date_candidates
 from app.policy.engine import PolicyConfig
 from app.workers import tasks
-from tests.conftest import ecocash_fields, login, make_receipt
+from tests.conftest import dmy, ecocash_fields, iso_z, login, make_receipt
 from tests.test_flow import TXN, _import, _obligation, _stmt_row, _submit
 
 # --- configuration --------------------------------------------------------------------------
@@ -153,7 +153,7 @@ def test_manual_credit_role_comes_from_policy(client):
         "provider_txn_id": "MAN0001",
         "amount_minor": 100,
         "currency": "USD",
-        "occurred_at": "2026-10-21T12:33:00Z",
+        "occurred_at": iso_z(),
         "beneficiary": "MAIN",
         "attestation": "Seen on merchant portal by finance officer",
     }
@@ -460,7 +460,7 @@ def test_tesseract_reads_a_rendered_receipt():
         f"Txn ID: {TXN}",
         "Amount: USD 40.00",
         "Paid to: COGNIFY MAIN",
-        "21/10/2026 14:32",
+        dmy("14:32"),
     ]
     for i, line in enumerate(lines):
         d.text((40, 40 + i * 90), line, fill="black", font=_font(40))

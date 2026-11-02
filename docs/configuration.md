@@ -36,6 +36,7 @@ Tokens are kept in `sessionStorage`, never `localStorage`.
 | `POPS_CLAMAV_HOST`, `POPS_CLAMAV_PORT` | –, 3310 | clamd INSTREAM scanning. If the scanner is unreachable, uploads get `503` + `Retry-After` (fail closed). |
 | `POPS_RATE_LIMIT_UPLOADS_PER_MINUTE` | 30 | Per authenticated caller. |
 | `POPS_RATE_LIMIT_CLAIMS_PER_CLAIMANT_PER_DAY` | 20 | Per learner/payer reference within an organisation. Limits are kept in Redis. |
+| `POPS_RATE_LIMIT_PREVIEWS_PER_MINUTE` | 20 | Per authenticated caller, for `POST /claims/preview` (it runs the readers before any claim exists). |
 | `POPS_MAX_UPLOAD_BYTES` | 10 MB | Per file. A claim may carry up to 5 files (repeat the `file` form field) and/or a pasted `text` field of up to 20,000 characters. |
 
 ## Pipeline resilience

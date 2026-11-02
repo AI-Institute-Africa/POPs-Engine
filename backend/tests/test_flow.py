@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from app.entitlements import outbox
 from app.models import OutboxEvent
-from tests.conftest import ecocash_fields, login, make_receipt, statement_csv
+from tests.conftest import dmy, ecocash_fields, iso_z, login, make_receipt, statement_csv
 
 TXN = "PP251021.1432.A12345"
 
@@ -49,7 +49,7 @@ def _import(client, h, rows, alias="MAIN"):
 
 def _stmt_row(txn=TXN, amount="40.00", narrative="EcoCash payment", **kw):
     return {
-        "date": "21/10/2026 14:35",
+        "date": dmy("14:35"),
         "narrative": narrative,
         "reference": txn,
         "credit": amount,
@@ -250,7 +250,7 @@ def test_manual_credit_separation_of_duties(client):
             "provider_txn_id": TXN,
             "amount_minor": 4000,
             "currency": "USD",
-            "occurred_at": "2026-10-21T12:33:00Z",
+            "occurred_at": iso_z(),
             "beneficiary": "MAIN",
             "attestation": "Seen on merchant portal by finance officer at 15:00",
         },
@@ -284,7 +284,7 @@ def test_reviewer_cannot_record_manual_credit(client):
             "provider_txn_id": "1234",
             "amount_minor": 1,
             "currency": "USD",
-            "occurred_at": "2026-10-21T12:33:00Z",
+            "occurred_at": iso_z(),
             "beneficiary": "MAIN",
             "attestation": "nothing to see here at all",
         },
