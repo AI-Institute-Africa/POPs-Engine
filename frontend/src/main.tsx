@@ -11,6 +11,10 @@ import Guardrails from "./pages/Guardrails";
 import Fraud from "./pages/Fraud";
 import Alerts from "./pages/Alerts";
 import Replay from "./pages/Replay";
+import Queue from "./pages/Queue";
+import ClaimReview from "./pages/ClaimReview";
+import Credits from "./pages/Credits";
+import Obligations from "./pages/Obligations";
 import "./styles.css";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
@@ -56,6 +60,20 @@ function FraudLink() {
   );
 }
 
+function QueueLink() {
+  const q = useQuery({
+    queryKey: ["queue-count"],
+    queryFn: () => api<unknown[]>("/review/queue"),
+    refetchInterval: 30000,
+  });
+  const n = q.data?.length ?? 0;
+  return (
+    <NavLink to="/queue">
+      Review queue{n > 0 && <span className="count">{n}</span>}
+    </NavLink>
+  );
+}
+
 function Shell({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   return (
@@ -72,7 +90,10 @@ function Shell({ children }: { children: React.ReactNode }) {
           <NavLink to="/" end>
             {t("nav.scan")}
           </NavLink>
+          <QueueLink />
           <FraudLink />
+          <NavLink to="/credits">Credits</NavLink>
+          <NavLink to="/obligations">Invoices</NavLink>
           <NavLink to="/alerts">Alerts</NavLink>
           <NavLink to="/guardrails">{t("nav.guardrails")}</NavLink>
           <NavLink to="/replay">Replay &amp; accuracy</NavLink>
@@ -100,6 +121,10 @@ void ensureSession().finally(() =>
               <Shell>
                 <Routes>
                   <Route path="/" element={<Scan />} />
+                  <Route path="/queue" element={<Queue />} />
+                  <Route path="/claims/:id" element={<ClaimReview />} />
+                  <Route path="/credits" element={<Credits />} />
+                  <Route path="/obligations" element={<Obligations />} />
                   <Route path="/fraud" element={<Fraud />} />
                   <Route path="/guardrails" element={<Guardrails />} />
                   <Route path="/alerts" element={<Alerts />} />

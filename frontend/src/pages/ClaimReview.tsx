@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { API, api, Candidate, Claim, Field, money, post, ReviewDetail } from "../api";
+import { API, api, Candidate, Claim, Field, hasRole, money, post, ReviewDetail } from "../api";
+import { useToast } from "../toast";
 import { StateBadge, TierBadge } from "./Queue";
 import { RiskBadge, SignalList } from "./Fraud";
 
@@ -166,14 +167,14 @@ export default function ClaimReview() {
   const [note, setNote] = useState("");
   const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0]);
   const [infoMsg, setInfoMsg] = useState("");
-  const [flash, setFlash] = useState<string | null>(null);
+  const toast = useToast();
   const last4Ref = useRef<HTMLInputElement>(null);
 
   const q = useQuery({ queryKey: ["claim", id], queryFn: () => api<ReviewDetail>(`/review/claims/${id}`) });
   const queue = useQuery({ queryKey: ["queue", "", ""], queryFn: () => api<Claim[]>("/review/queue") });
 
   const done = (msg: string) => {
-    setFlash(msg);
+    toast("ok", msg);
     setLast4("");
     qc.invalidateQueries({ queryKey: ["claim", id] });
     qc.invalidateQueries({ queryKey: ["queue"] });
@@ -195,6 +196,15 @@ export default function ClaimReview() {
     mutationFn: () => post(`/review/claims/${id}/request-info`, { message: infoMsg }),
     onSuccess: () => done("Information requested from payer"),
   });
+  const reverse = useMutation({
+    mutationFn: (v: { allocationId: string; reason: string }) =>
+      post(`/allocations/${v.allocationId}/reverse`, { reason: v.reason }),
+    onSuccess: () => done("Allocation reversed"),
+  });
+  const reverseAllocation = (allocationId: string) => {
+    const reason = window.prompt("Why is this allocation being reversed?");
+    if (reason && reason.trim().length >= 3) reverse.mutate({ allocationId, reason: reason.trim() });
+  };
 
   const nextId = queue.data?.find((c) => c.claim_id !== id)?.claim_id;
   useEffect(() => {
@@ -207,14 +217,14 @@ export default function ClaimReview() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [nextId, nav, q.data]);
-  useEffect(() => { setSelected(0); setFlash(null); }, [id]);
+  useEffect(() => { setSelected(0); }, [id]);
 
   if (q.isLoading) return <p>Loading…</p>;
   if (q.error) return <p className="error">{(q.error as Error).message}</p>;
   const d = q.data!;
   const c = d.claim;
   const reviewable = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"].includes(c.state);
-  const err = (confirm.error ?? reject.error ?? requestInfo.error) as Error | null;
+  const err = (confirm.error ?? reject.error ?? requestInfo.error ?? reverse.error) as Error | null;
 
   return (
     <section>
@@ -227,7 +237,6 @@ export default function ClaimReview() {
         <RiskBadge level={c.risk_level} score={c.risk_score} />
         <span className="muted small">keys: 1-9 pick credit · c confirm · n next</span>
       </div>
-      {flash && <p className="flash">{flash}</p>}
       {err && <p className="error">{err.message}</p>}
       <div className="split">
         <EvidenceViewer detail={d} hover={hover} />
@@ -273,6 +282,20 @@ export default function ClaimReview() {
               <CandidateCard key={cand.credit.credit_id} c={cand} index={i} selected={i === selected} onSelect={() => setSelected(i)} />
             ))}
           </div>
+          {d.shadow_proposals && d.shadow_proposals.length > 0 && (
+            <div className="card">
+              <h3>Advisory proposals</h3>
+              <p className="muted small">Shadow mode: recorded for measurement, never acted on.</p>
+              <ul className="history">
+                {d.shadow_proposals.map((sp) => (
+                  <li key={sp.proposal_id}>
+                    <strong>{sp.proposed_outcome}</strong> <span className="muted small">{sp.proposer} · confidence {sp.confidence.toFixed(2)}</span>{" "}
+                    {sp.rationale}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {reviewable && (
             <div className="card actions">
               <h3>Decision</h3>
@@ -308,6 +331,14 @@ export default function ClaimReview() {
               {d.allocations.map((a) => (
                 <li key={a.allocation_id}>
                   <strong>{a.kind}</strong> {money(a.amount_minor, a.currency)} <span className="muted small">{a.allocation_id.slice(0, 8)}</span>
+                  {a.kind === "allocation" && !d.allocations.some((r) => r.reverses === a.allocation_id) && (
+                    <>
+                      {" "}
+                      <button className="ghost small" disabled={!hasRole("approver") || reverse.isPending} onClick={() => reverseAllocation(a.allocation_id)}>
+                        Reverse
+                      </button>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>

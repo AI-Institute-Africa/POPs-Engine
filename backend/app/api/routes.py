@@ -10,6 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.schemas import (
+    AllocateIn,
+    AllocateOut,
     AllocationOut,
     BalanceOut,
     CandidateOut,
@@ -59,6 +61,7 @@ from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
 from app.ledger import service as ledger
+from app.ledger.admin import AllocationError, allocate_credit
 from app.models import (
     Allocation,
     AuditEvent,
@@ -201,8 +204,17 @@ def dev_login(body: DevLoginIn, db: DB) -> TokenOut:
 
 
 @router.get("/me", tags=["auth"])
-def me(p: Any_) -> dict:
-    return {"user_id": p.user_id, "org_id": p.org_id, "role": p.role, "email": p.email}
+def me(db: DB, p: Any_) -> dict:
+    cfg = load_policy(db, p.org_id).config
+    return {
+        "user_id": p.user_id,
+        "org_id": p.org_id,
+        "role": p.role,
+        "email": p.email,
+        # derived from the org's policy so a client need not read the admin-only policy
+        "can_record_manual_credit": p.at_least(Role(cfg.manual_credit_min_role)),
+        "can_allocate": p.at_least(Role(cfg.manual_allocation_min_role)),
+    }
 
 
 # --- obligations ------------------------------------------------------------------------------
@@ -663,6 +675,36 @@ def unclaimed_credits(db: DB, p: Reviewer) -> list[dict]:
             }
         )
     return out
+
+
+@router.post("/credits/{credit_id}/allocate", response_model=AllocateOut, tags=["credits"])
+def allocate_unclaimed_credit(
+    credit_id: uuid.UUID, body: AllocateIn, db: DB, p: Reviewer
+) -> AllocateOut:
+    """Allocate a recorded credit that no payer has claimed (policy sets the minimum role)."""
+    try:
+        result = allocate_credit(
+            db,
+            p,
+            credit_id=credit_id,
+            obligation_id=body.obligation_id,
+            amount_minor=body.amount_minor,
+            txn_last4=body.txn_last4,
+            note=body.note,
+            request_id=body.request_id,
+        )
+    except AllocationError as exc:
+        db.rollback()
+        raise HTTPException(exc.status, {"code": exc.code, "message": str(exc)}) from exc
+    db.commit()
+    if result.allocation is not None:
+        dispatch_rematch(p.org_id)
+    return AllocateOut(
+        allocation=AllocationOut.model_validate(result.allocation) if result.allocation else None,
+        needs_second_approval=result.needs_second_approval,
+        outstanding_minor=result.outstanding_minor,
+        payment_status=result.payment_status,
+    )
 
 
 # --- review -----------------------------------------------------------------------------------

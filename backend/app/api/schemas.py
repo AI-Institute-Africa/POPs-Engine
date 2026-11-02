@@ -108,6 +108,16 @@ class CreditOut(Out):
     available_minor: int | None = None
 
 
+class AllocateIn(BaseModel):
+    """Allocate a recorded credit to an obligation with no payer claim."""
+
+    obligation_id: uuid.UUID
+    amount_minor: int | None = Field(None, gt=0, description="default: as much as is allowed")
+    txn_last4: str = Field(min_length=1, max_length=12)
+    note: str | None = None
+    request_id: uuid.UUID | None = Field(None, description="send the same id when retrying")
+
+
 class ImportOut(BaseModel):
     import_id: uuid.UUID
     rows: int
@@ -217,6 +227,13 @@ class ConfirmOut(BaseModel):
     claim: ClaimOut
     allocation: AllocationOut | None
     needs_second_approval: bool
+
+
+class AllocateOut(BaseModel):
+    allocation: "AllocationOut | None"
+    needs_second_approval: bool
+    outstanding_minor: int
+    payment_status: str
 
 
 class RejectIn(BaseModel):

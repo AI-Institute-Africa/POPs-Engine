@@ -56,6 +56,8 @@ class PolicyConfig(BaseModel):
     second_approver_above_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 50_000})
     # who may record attested manual credits
     manual_credit_min_role: str = "approver"
+    # who may allocate a recorded, unclaimed credit to an obligation without a payer claim
+    manual_allocation_min_role: str = "approver"
     # pilot scoping: claims on other channels go to review with CHANNEL_NOT_IN_PILOT (None = all)
     enabled_channels: list[str] | None = None
     critical_fields: list[str] = Field(
@@ -90,11 +92,11 @@ class PolicyConfig(BaseModel):
             raise ValueError("review_sla_minutes must be positive and strictly ascending")
         return v
 
-    @field_validator("manual_credit_min_role")
+    @field_validator("manual_credit_min_role", "manual_allocation_min_role")
     @classmethod
     def _known_role(cls, v: str) -> str:
         if v not in ("reviewer", "approver", "admin"):
-            raise ValueError("manual_credit_min_role must be reviewer, approver or admin")
+            raise ValueError("role must be reviewer, approver or admin")
         return v
 
     def fraud_weight(self, code: str) -> int:

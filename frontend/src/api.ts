@@ -35,6 +35,7 @@ export type Obligation = {
   currency: string;
   payment_code: string;
   external_ref: string | null;
+  due_date: string | null;
   created_at: string;
 };
 
@@ -171,12 +172,23 @@ export function setSession(tok: string | null, role?: string) {
 
 // Validate has no login screen. In dev the API exposes POST /auth/dev-login, so we
 // quietly pick up an admin token on first load and the pages simply work.
+// Dev only (the server refuses /auth/dev-login in production). Open the console with
+// `?as=approver` or `?as=approver:second@example.com` to try a different role or a second approver.
+function devIdentity(): { role: string; email: string } {
+  const as = new URLSearchParams(window.location.search).get("as");
+  if (as) {
+    const [role, email] = as.split(":");
+    if (role in RANK) return { role, email: email || `${role}@local.dev` };
+  }
+  return { role: "admin", email: "validate@local.dev" };
+}
+
 export async function ensureSession(): Promise<boolean> {
-  if (token()) return true;
+  const asRequested = new URLSearchParams(window.location.search).has("as");
+  if (token() && !asRequested) return true;
   try {
     const r = await post<{ access_token: string; role: string }>("/auth/dev-login", {
-      email: "validate@local.dev",
-      role: "admin",
+      ...devIdentity(),
       org_name: "Cognify",
     });
     setSession(r.access_token, r.role);
