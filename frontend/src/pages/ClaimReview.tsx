@@ -146,6 +146,12 @@ function CandidateCard({ c, selected, onSelect, index }: { c: Candidate; selecte
         {c.credit.payer ?? "unknown payer"} · {c.credit.narrative ?? ""} · available{" "}
         {money(c.credit.available_minor, c.credit.currency)}
       </div>
+      {!c.passed && c.near_miss && (
+        <div className="warn-text small">
+          Close match: the reference {c.near_miss.kind === "lookalike_characters" ? "differs only by look-alike characters (O/0, I/1)" : `differs by ${c.near_miss.distance} character${c.near_miss.distance === 1 ? "" : "s"}`}.
+          It cannot be confirmed as it stands. If the receipt was misread, correct the transaction ID above and it will be matched.
+        </div>
+      )}
       <div className="gates">
         {c.gates.map((g) => (
           <span key={g.name} className={`chip ${g.passed ? "pass" : "fail"}`} title={g.detail}>

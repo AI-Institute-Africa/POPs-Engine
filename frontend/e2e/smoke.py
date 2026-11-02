@@ -102,6 +102,11 @@ with sync_playwright() as p:
     form.get_by_label("Last four characters of the transaction ID").fill("0001")
     form.get_by_role("button", name="Allocate").click()
     expect(page.locator(".toast", has_text="Allocated")).to_be_visible()
+    # the allocations export downloads as a spreadsheet that includes what was just allocated
+    with page.expect_download() as download:
+        page.get_by_role("button", name="Download CSV").click()
+    exported = open(download.value.path(), encoding="utf-8-sig").read()
+    assert "MAN-E2E-0001" in exported and "allocation" in exported, exported[:300]
     page.screenshot(path=f"{out}/8-credits.png", full_page=True)
 
     # the host-facing views render

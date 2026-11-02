@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
-import { api, Credit, hasRole, money, Obligation, post } from "../api";
+import { api, Credit, download, hasRole, money, Obligation, post } from "../api";
 import { useToast } from "../toast";
 
 type ImportResult = {
@@ -80,6 +80,44 @@ function ManualCredit() {
           </label>
         </div>
         <button disabled={!ready || save.isPending}>Record payment</button>
+      </form>
+    </div>
+  );
+}
+
+// Allocations and reversals as a spreadsheet, for finance and bookkeeping.
+function ExportCard() {
+  const toast = useToast();
+  const [since, setSince] = useState("");
+  const [until, setUntil] = useState("");
+  const [kind, setKind] = useState("");
+  const run = useMutation({
+    mutationFn: () => {
+      const q = new URLSearchParams();
+      if (since) q.set("since", since);
+      if (until) q.set("until", until);
+      if (kind) q.set("kind", kind);
+      return download(`/allocations/export?${q.toString()}`);
+    },
+    onSuccess: () => toast("ok", "Export downloaded."),
+    onError: (e) => toast("err", (e as Error).message),
+  });
+  return (
+    <div className="card">
+      <h2>Export allocations</h2>
+      <p className="muted small">
+        One row per allocation or reversal (a reversal is a negative row, so a column total is the net amount
+        paid). Dates are UTC and inclusive. Leave them empty for everything.
+      </p>
+      <form className="inline" onSubmit={(e) => { e.preventDefault(); run.mutate(); }}>
+        <label>From <input type="date" value={since} onChange={(e) => setSince(e.target.value)} /></label>
+        <label>To <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} /></label>
+        <select value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Kind">
+          <option value="">Allocations and reversals</option>
+          <option value="allocation">Allocations only</option>
+          <option value="reversal">Reversals only</option>
+        </select>
+        <button disabled={run.isPending}>Download CSV</button>
       </form>
     </div>
   );
@@ -165,6 +203,7 @@ export default function Credits() {
   return (
     <section>
       <ManualCredit />
+      <ExportCard />
 
       <div className="card">
         <h2>Import statement</h2>

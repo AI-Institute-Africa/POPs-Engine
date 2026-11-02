@@ -24,6 +24,8 @@ policy turns them on**, and none of them lets the AI decide:
 
 Admins can also record money that arrived outside a statement and allocate it to an invoice with no
 payer claim (typed last-4, separation of duties, two approvers above the high-value limit).
+Reviewers see **near-miss reference hints** (advisory; the gate stays exact), and finance can download
+allocations as a CSV: [`docs/matching-and-export.md`](docs/matching-and-export.md).
 
 ## How a claim flows
 

@@ -77,6 +77,8 @@ export type Candidate = {
   gates: Gate[];
   components: Record<string, number>;
   reference_kind: string;
+  // the reference nearly matches this credit's; advisory only, the gate is still an exact match
+  near_miss: { kind: "lookalike_characters" | "typo"; distance: number } | null;
 };
 
 // Tamper forensics (risk flag only — it can send a claim to review, never approve one)
@@ -231,6 +233,29 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, msg);
   }
   return res.json() as Promise<T>;
+}
+
+// Download a file the API serves behind the session token (a plain link cannot send it).
+export async function download(path: string): Promise<void> {
+  const t = token();
+  const res = await fetch(`${API}${path}`, { headers: t ? { Authorization: `Bearer ${t}` } : {} });
+  if (!res.ok) {
+    let msg = res.statusText;
+    try {
+      const d = (await res.json()).detail;
+      msg = typeof d === "string" ? d : d?.message ?? JSON.stringify(d);
+    } catch {
+      /* non-JSON error */
+    }
+    throw new ApiError(res.status, msg);
+  }
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "download.csv";
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export const post = <T,>(path: string, body: unknown) =>

@@ -163,6 +163,8 @@ class CandidateOut(BaseModel):
     gates: list[dict[str, Any]]
     components: dict[str, float]
     reference_kind: str
+    # the reference nearly matches this credit's; advisory, the gate is still exact
+    near_miss: dict[str, Any] | None = None
 
 
 class DecisionOut(Out):

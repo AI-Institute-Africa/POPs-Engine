@@ -1,6 +1,7 @@
 """HTTP API. Every query is scoped to the caller's organisation; the frontend is never trusted."""
 
 import uuid
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -63,6 +64,7 @@ from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
 from app.ledger import service as ledger
 from app.ledger.admin import AllocationError, allocate_credit
+from app.ledger.export import TooManyRows, export_csv
 from app.models import (
     Allocation,
     AuditEvent,
@@ -829,6 +831,7 @@ def review_detail(claim_id: uuid.UUID, db: DB, p: Reviewer) -> ReviewDetailOut:
                 gates=[g.__dict__ for g in c.gates],
                 components=c.components,
                 reference_kind=c.reference_kind,
+                near_miss=c.near_miss,
             )
             for c in cands
         ],
@@ -907,6 +910,38 @@ def correct_field(claim_id: uuid.UUID, body: CorrectFieldIn, db: DB, p: Reviewer
         raise _review_error(exc) from exc
     db.commit()
     return FieldOut.model_validate(row)
+
+
+@router.get("/allocations/export", tags=["ledger"])
+def export_allocations(
+    db: DB,
+    p: Reviewer,
+    since: date | None = None,
+    until: date | None = None,
+    kind: Annotated[str | None, Query(pattern="^(allocation|reversal)$")] = None,
+) -> Response:
+    """Allocations and reversals as CSV (UTC dates, inclusive). One row per ledger entry; a
+    reversal is a negative row, so a column total is the net amount paid."""
+    try:
+        data, rows = export_csv(db, p.org_id, since=since, until=until, kind=kind)
+    except TooManyRows as exc:
+        raise HTTPException(413, str(exc)) from exc
+    audit(
+        db,
+        actor=p.actor,
+        action="allocations.exported",
+        entity_type="organisation",
+        entity_id=p.org_id,
+        org_id=p.org_id,
+        after={"rows": rows, "since": str(since), "until": str(until), "kind": kind},
+    )
+    db.commit()
+    name = f"allocations-{since or 'start'}-to-{until or 'now'}.csv"
+    return Response(
+        data,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
 
 
 @router.post("/allocations/{allocation_id}/reverse", response_model=AllocationOut, tags=["ledger"])
