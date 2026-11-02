@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.core import observability as obs
 from app.core.audit import audit
-from app.entitlements.outbox import enqueue_event, entitlement_payload
+from app.entitlements.outbox import enqueue_event, enqueue_payer_message, entitlement_payload
 from app.ledger import service as ledger
 from app.models import Claim, ClaimState, Obligation, ProvisionalGrant
 from app.policy.engine import PolicyConfig, load_policy
@@ -167,6 +167,13 @@ def grant_if_eligible(
             "exposure_minor": exposure,
             "expires_at": grant.expires_at.isoformat(),
         },
+    )
+    enqueue_payer_message(
+        session,
+        claim,
+        "provisional",
+        f"Access is open until {grant.expires_at:%Y-%m-%d %H:%M} UTC "
+        "while we confirm your payment.",
     )
     obs.PROVISIONAL_EVENTS.labels("granted").inc()
     return grant

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.claims.states import check_transition
 from app.core.audit import audit
-from app.entitlements.outbox import enqueue_event
+from app.entitlements.outbox import enqueue_event, enqueue_payer_message
 from app.models import Claim, ClaimState, Decision
 from app.provisional.service import resolve_for_state
 
@@ -41,6 +41,31 @@ def transition(
     )
     _track_review_wait(session, claim, target, was_waiting)
     resolve_for_state(session, claim, ClaimState(target))
+    _tell_payer(session, claim, ClaimState(target))
+
+
+# Neutral wording only: a payer is never told a claim is suspected (blueprint 4.5), and a
+# rejection never says why. Sent only to claims that arrived over WhatsApp.
+def _payer_text(claim: Claim, target: ClaimState) -> str | None:
+    if target == ClaimState.APPROVED:
+        return "Thank you. Your payment has been confirmed."
+    if target == ClaimState.PARTIALLY_ALLOCATED:
+        return REASON_TEXT["PARTIAL_PAYMENT"]
+    if target == ClaimState.REJECTED:
+        return "We could not confirm your payment. Please contact our finance team."
+    if target == ClaimState.NEEDS_INFORMATION:
+        hints = " ".join(explain(list(claim.reason_codes)))
+        return hints or (
+            "We need a little more information about your payment. Please send a clearer copy "
+            "of your proof of payment."
+        )
+    return None
+
+
+def _tell_payer(session: Session, claim: Claim, target: ClaimState) -> None:
+    text = _payer_text(claim, target)
+    if text is not None:
+        enqueue_payer_message(session, claim, target.value.lower(), text)
 
 
 def _track_review_wait(
