@@ -50,6 +50,20 @@ class PolicyConfig(BaseModel):
     auto_approve_min_tier: str = "E2"  # E2 = merchant alert, E3 = bank statement
     auto_approve_max_risk: int = Field(default=15, ge=0, le=100)  # fake-proof score
     auto_approve_audit_pct: int = Field(default=5, ge=0, le=100)  # sampled for a human
+    # AI temporary approval with mandatory audit and learning (app/review/ai_temp.py).
+    # The model only judges recognition; it never bypasses hard gates or the ledger.
+    # Off by default; enabling needs channels and caps per currency.
+    ai_temp_approve_enabled: bool = False
+    ai_temp_approve_disabled: bool = False  # org-level kill switch
+    ai_temp_channels: list[str] = Field(default_factory=list)
+    ai_temp_min_confidence: float = Field(default=0.9, ge=0.0, le=1.0)
+    ai_temp_max_minor: dict[str, int] = Field(default_factory=lambda: {"USD": 2000})
+    ai_temp_min_tier: str = "E2"
+    ai_temp_max_risk: int = Field(default=10, ge=0, le=100)
+    ai_temp_require_human_within_hours: int = Field(default=2, ge=0)
+    ai_temp_audit_pct: int = Field(default=100, ge=0, le=100)
+    ai_temp_learn: bool = True
+    ai_temp_block_on_tamper: bool = True
     # our receiving accounts / merchant codes; a credit must land on one of these
     beneficiary_aliases: list[str] = Field(default_factory=lambda: ["MAIN"])
     success_statuses: list[str] = Field(default_factory=lambda: ["success"])
@@ -105,6 +119,7 @@ class PolicyConfig(BaseModel):
         "provisional_learner_cap_minor",
         "provisional_org_daily_cap_minor",
         "auto_approve_max_minor",
+        "ai_temp_max_minor",
     )
     @classmethod
     def _positive_caps(cls, v: dict[str, int]) -> dict[str, int]:
@@ -121,6 +136,15 @@ class PolicyConfig(BaseModel):
             )
         return v
 
+    @field_validator("ai_temp_min_tier")
+    @classmethod
+    def _ai_temp_tier_with_independent_confirmation(cls, v: str) -> str:
+        if v not in ("E2", "E3"):
+            raise ValueError(
+                "ai_temp_min_tier must be E2 or E3: a receipt alone is never enough"
+            )
+        return v
+
     @model_validator(mode="after")
     def _auto_approve_is_scoped(self) -> "PolicyConfig":
         if self.auto_approve_enabled and not (
@@ -128,6 +152,12 @@ class PolicyConfig(BaseModel):
         ):
             raise ValueError(
                 "auto_approve_enabled needs auto_approve_channels and auto_approve_max_minor"
+            )
+        if self.ai_temp_approve_enabled and not (
+            self.ai_temp_channels and self.ai_temp_max_minor
+        ):
+            raise ValueError(
+                "ai_temp_approve_enabled needs ai_temp_channels and ai_temp_max_minor"
             )
         return self
 

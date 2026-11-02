@@ -60,6 +60,8 @@ class Settings(BaseSettings):
 
     # global kill switch for rules-based auto-approval; overrides every organisation's policy
     auto_approve_disabled: bool = False
+    # global kill switch for AI temporary approval; overrides every organisation's policy
+    ai_temp_approve_disabled: bool = False
 
     # extraction readers: ollama | donut | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"

@@ -376,6 +376,7 @@ def process_claim(
     obs.CLAIM_OUTCOMES.labels(target).inc()
     obs.PIPELINE_SECONDS.observe(time.perf_counter() - started)
     _auto_approve(session, claim)
+    _ai_temp_approve(session, claim)
     return claim
 
 
@@ -557,6 +558,15 @@ def _auto_approve(session: Session, claim: Claim) -> None:
     maybe_auto_approve(session, claim)
 
 
+def _ai_temp_approve(session: Session, claim: Claim) -> None:
+    """Hand a freshly confirmed claim to the AI temporary approver (a no-op unless enabled)."""
+    if claim.state != ClaimState.FINANCIALLY_CONFIRMED:
+        return
+    from app.review.ai_temp import maybe_ai_temp_approve
+
+    maybe_ai_temp_approve(session, claim)
+
+
 def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
     """Re-run reconciliation for a claim waiting on money (credit-first matching, blueprint 5.2)."""
     policy = load_policy(session, claim.org_id)
@@ -603,6 +613,7 @@ def rematch(session: Session, claim: Claim, actor: str = ACTOR) -> Claim:
     )
     reassess(session, claim, actor)
     _auto_approve(session, claim)
+    _ai_temp_approve(session, claim)
     return claim
 
 

@@ -87,6 +87,7 @@ from app.provisional.service import access_state
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
 from app.review.auto import list_auto_approved, record_verdict
+from app.review.ai_temp import list_ai_temp_approved, recognition_check, record_verdict as record_ai_temp_verdict
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
 
 router = APIRouter()
@@ -1031,3 +1032,39 @@ def shadow_proposals(
         q = q.where(ShadowProposal.claim_id == claim_id)
     rows = db.scalars(q.order_by(ShadowProposal.created_at.desc()).limit(limit)).all()
     return [ShadowProposalOut.model_validate(r) for r in rows]
+
+
+# --- AI temporary approval -------------------------------------------------------------------
+
+
+class AITempVerdictIn(BaseModel):
+    verdict: str
+    note: str | None = None
+
+
+@router.get("/review/ai-temp", tags=["review"])
+def review_ai_temp(db: DB, p: Reviewer, limit: int = Query(200, le=1000)) -> dict:
+    return list_ai_temp_approved(db, p.org_id, limit)
+
+
+@router.post("/review/claims/{claim_id}/ai-temp-verdict", tags=["review"])
+def ai_temp_verdict(claim_id: uuid.UUID, body: AITempVerdictIn, db: DB, p: Reviewer):
+    try:
+        decision = record_ai_temp_verdict(db, p, claim_id, body.verdict, body.note)
+        db.commit()
+        return {"decision_id": str(decision.decision_id), "outcome": decision.outcome}
+    except ReviewError as exc:
+        db.rollback()
+        raise HTTPException(
+            404 if exc.code == "NOT_FOUND" else 409, {"code": exc.code, "message": str(exc)}
+        ) from exc
+
+
+@router.get("/admin/ai-temp", tags=["admin"])
+def admin_ai_temp(db: DB, p: Admin, limit: int = Query(200, le=1000)) -> dict:
+    return list_ai_temp_approved(db, p.org_id, limit)
+
+
+@router.get("/admin/recognition/check", tags=["admin"])
+def admin_recognition_check(db: DB, p: Admin) -> dict:
+    return recognition_check(db, p.org_id)
