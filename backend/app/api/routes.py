@@ -6,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import Response
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -86,8 +87,9 @@ from app.policy.engine import load_policy
 from app.provisional.service import access_state
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
+from app.review.ai_temp import list_ai_temp_approved, recognition_check
+from app.review.ai_temp import record_verdict as record_ai_temp_verdict
 from app.review.auto import list_auto_approved, record_verdict
-from app.review.ai_temp import list_ai_temp_approved, recognition_check, record_verdict as record_ai_temp_verdict
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
 
 router = APIRouter()
@@ -1053,7 +1055,7 @@ def ai_temp_verdict(claim_id: uuid.UUID, body: AITempVerdictIn, db: DB, p: Revie
         decision = record_ai_temp_verdict(db, p, claim_id, body.verdict, body.note)
         db.commit()
         return {"decision_id": str(decision.decision_id), "outcome": decision.outcome}
-    except ReviewError as exc:
+    except review.ReviewError as exc:
         db.rollback()
         raise HTTPException(
             404 if exc.code == "NOT_FOUND" else 409, {"code": exc.code, "message": str(exc)}
