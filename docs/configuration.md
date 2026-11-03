@@ -10,6 +10,7 @@ The service defaults to `POPS_ENV=prod`. In prod it **refuses to start** when:
 
 - `POPS_JWT_SECRET` is the dev default or shorter than 32 characters
 - `POPS_COGNIFY_WEBHOOK_URL` is set but the webhook secret is the dev default
+- `POPS_PROVISIONING_KEY` is set but shorter than 32 characters
 - `POPS_VLM_BACKEND=fake`
 - `POPS_CLAMAV_HOST` is empty (every upload must be malware-scanned)
 - `POPS_PIPELINE_MODE=inline`
@@ -24,6 +25,24 @@ The service defaults to `POPS_ENV=prod`. In prod it **refuses to start** when:
 | `POPS_OIDC_ROLE_CLAIM` (`pops_role`), `POPS_OIDC_ORG_CLAIM` (`pops_org`) | Claims that carry the role and organisation UUID. |
 | `POPS_OIDC_REQUIRE_MFA_FOR_FINANCE` (true) | Reviewer, approver and admin tokens must have `mfa` or `otp` in `amr`. |
 | `POPS_JWT_SECRET` | Signs internal tokens; `scripts/issue_service_token.py` mints service tokens with it. |
+
+## Host-system provisioning
+
+The engine has no user or organisation management: the host signs the tokens it sends, and the
+`org` claim must name an organisation that already exists. A host can create one on demand:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `POPS_PROVISIONING_KEY` | unset | Shared secret for `POST /internal/orgs`. While unset the endpoint does not exist (404). In production it must be 32+ characters. |
+
+`POST /internal/orgs {"name": "..."}` with header `X-POPs-Provisioning-Key` returns
+`{org_id, name, created}`. It finds the organisation with that exact name or creates it, and is
+safe to repeat and to call concurrently. It can do nothing else, but keep `/internal` off the
+public internet and mount it only on the network the host uses.
+
+Hosts that mirror the ledger read `GET /obligations/{id}/allocations` (every allocation and
+reversal of an obligation, oldest first, with the credit it drew on) and can look an obligation
+up by its own reference with `GET /obligations?external_ref=...`.
 
 Console: build with `VITE_OIDC_AUTHORITY`, `VITE_OIDC_CLIENT_ID` (and optionally
 `VITE_OIDC_SCOPE`) to replace the dev sign-in with an OIDC authorization-code + PKCE login.
