@@ -29,6 +29,7 @@ from app.api.schemas import (
     EvidenceOut,
     FieldOut,
     ImportOut,
+    LedgerEntryOut,
     ObligationIn,
     ObligationOut,
     RejectIn,
@@ -278,11 +279,18 @@ def create_obligation(body: ObligationIn, db: DB, p: Any_) -> Obligation:
 
 @router.get("/obligations", response_model=list[ObligationOut], tags=["obligations"])
 def list_obligations(
-    db: DB, p: Any_, learner_ref: str | None = None, limit: int = Query(100, le=500)
+    db: DB,
+    p: Any_,
+    learner_ref: str | None = None,
+    external_ref: str | None = None,
+    limit: int = Query(100, le=500),
 ) -> list[Obligation]:
     q = select(Obligation).where(Obligation.org_id == p.org_id)
     if learner_ref:
         q = q.where(Obligation.learner_ref == learner_ref)
+    if external_ref:
+        # exact match; obligations are create-only, so a host looks its own reference up here
+        q = q.where(Obligation.external_ref == external_ref)
     return list(db.scalars(q.order_by(Obligation.created_at.desc()).limit(limit)))
 
 
@@ -295,6 +303,45 @@ def obligation_access(obligation_id: uuid.UUID, db: DB, p: Any_) -> dict:
 @router.get("/obligations/{obligation_id}/balance", response_model=BalanceOut, tags=["obligations"])
 def obligation_balance(obligation_id: uuid.UUID, db: DB, p: Any_) -> BalanceOut:
     return _balance_out(ledger.balance(db, _obligation(db, p, obligation_id)))
+
+
+@router.get(
+    "/obligations/{obligation_id}/allocations",
+    response_model=list[LedgerEntryOut],
+    tags=["obligations"],
+)
+def obligation_allocations(obligation_id: uuid.UUID, db: DB, p: Any_) -> list[LedgerEntryOut]:
+    """Every ledger row (allocation or reversal) of an obligation, oldest first, with the credit
+    it drew on. The ledger is append-only, so each row keeps a stable id: a host system mirrors
+    them one-to-one and applies each exactly once."""
+    ob = _obligation(db, p, obligation_id)
+    rows = db.execute(
+        select(Allocation, Credit)
+        .join(Credit, Credit.credit_id == Allocation.credit_id)
+        .where(Allocation.obligation_id == ob.obligation_id, Allocation.org_id == p.org_id)
+        # 'allocation' sorts before 'reversal', so a row precedes the row that undoes it even if
+        # both carry the same transaction timestamp
+        .order_by(Allocation.created_at, Allocation.kind, Allocation.allocation_id)
+    ).all()
+    return [
+        LedgerEntryOut(
+            allocation_id=a.allocation_id,
+            credit_id=a.credit_id,
+            obligation_id=a.obligation_id,
+            claim_id=a.claim_id,
+            kind=a.kind,
+            amount_minor=a.amount_minor,
+            currency=a.currency,
+            reverses=a.reverses,
+            created_by=a.created_by,
+            created_at=a.created_at,
+            provider=c.provider,
+            provider_txn_id=c.provider_txn_id,
+            credit_occurred_at=c.occurred_at,
+            reason=a.reason,
+        )
+        for a, c in rows
+    ]
 
 
 # --- claims -----------------------------------------------------------------------------------
