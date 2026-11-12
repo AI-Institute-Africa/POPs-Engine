@@ -498,9 +498,7 @@ async def image_to_text(
     try:
         result = transcribe_file(prepared, data, vlm_allowed=plan.vlm_allowed)
     except TranscriptionUnavailable as exc:
-        raise HTTPException(
-            503, {"code": "TEXT_READER_UNAVAILABLE", "message": str(exc)}
-        ) from exc
+        raise HTTPException(503, {"code": "TEXT_READER_UNAVAILABLE", "message": str(exc)}) from exc
 
     policy = load_policy(db, p.org_id)
     quality_issues = []

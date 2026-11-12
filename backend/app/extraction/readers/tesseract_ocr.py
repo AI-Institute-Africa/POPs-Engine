@@ -36,9 +36,7 @@ class TesseractReader:
 
         return f"tesseract:{pytesseract.get_tesseract_version()}"
 
-    def words(
-        self, image: Image.Image, psm: int = 6
-    ) -> tuple[list[Word], str, tuple[int, int]]:
+    def words(self, image: Image.Image, psm: int = 6) -> tuple[list[Word], str, tuple[int, int]]:
         import pytesseract
 
         prepared = preprocess.for_ocr(image)

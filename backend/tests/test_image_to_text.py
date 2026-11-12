@@ -8,9 +8,7 @@ from tests.conftest import ecocash_fields, login, make_receipt
 
 
 def _convert(client, headers, data: bytes, name: str = "receipt.png", ctype: str = "image/png"):
-    return client.post(
-        "/image-to-text", headers=headers, files={"file": (name, data, ctype)}
-    )
+    return client.post("/image-to-text", headers=headers, files={"file": (name, data, ctype)})
 
 
 def test_converts_an_image_to_text(client):

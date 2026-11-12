@@ -63,9 +63,7 @@ def _vision_reader():
     return None  # the Donut reader returns named fields, not a transcription
 
 
-def transcribe(
-    prepared: PreparedFile, raw: bytes, *, vlm_allowed: bool = True
-) -> Transcription:
+def transcribe(prepared: PreparedFile, raw: bytes, *, vlm_allowed: bool = True) -> Transcription:
     """Return the text of every page, in order. Never writes anything."""
     s = get_settings()
     pages: list[PageText] = []

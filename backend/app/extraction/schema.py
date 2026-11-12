@@ -23,7 +23,10 @@ class ReceiptFields(BaseModel):
 
     provider: str | None = Field(
         None,
-        description="Payment provider or bank, e.g. EcoCash, M-Pesa, Mpesa, Airtel Money, MTN MoMo, CBZ, Stanbic, Equity, KCB",
+        description=(
+            "Payment provider or bank, e.g. EcoCash, M-Pesa, Mpesa, Airtel Money, "
+            "MTN MoMo, CBZ, Stanbic, Equity, KCB"
+        ),
     )
     document_type: str | None = Field(
         None,

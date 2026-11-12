@@ -37,7 +37,6 @@ from app.models import (
 )
 from app.policy.engine import Policy, PolicyConfig, load_policy
 from app.reconcile.matching import evaluate, find_candidates
-from app.review.auto import is_sampled
 from app.review.service import ReviewError, settle
 
 log = logging.getLogger(__name__)
@@ -97,7 +96,10 @@ class AITempInputs:
 
 def _get_latest_run(session: Session, claim_id: uuid.UUID) -> VerificationRun | None:
     return session.scalars(
-        select(VerificationRun).where(VerificationRun.claim_id == claim_id).order_by(VerificationRun.created_at.desc()).limit(1)
+        select(VerificationRun)
+        .where(VerificationRun.claim_id == claim_id)
+        .order_by(VerificationRun.created_at.desc())
+        .limit(1)
     ).first()
 
 
@@ -110,7 +112,7 @@ def _extraction_stats(run: VerificationRun | None) -> tuple[float, float, int, b
     if isinstance(failures, dict):
         reader_failures = len([k for k, v in failures.items() if v])
     tamper_suspect = False
-    readings = {}
+    readings: dict[str, Any] = {}
     for c in checks:
         if isinstance(c, dict):
             if c.get("check") == "tamper" and c.get("score", 0) >= 0.6:
@@ -119,17 +121,17 @@ def _extraction_stats(run: VerificationRun | None) -> tuple[float, float, int, b
                 readings = c.get("readings") or {}
     if not readings:
         return 0.5, 0.0, reader_failures, tamper_suspect
-    confs = []
+    confs: list[float] = []
     agreed = 0
     total = 0
-    for name, r in readings.items():
+    for _name, r in readings.items():
         if isinstance(r, dict):
             total += 1
             if r.get("agreed"):
                 agreed += 1
-            c = r.get("confidence")
-            if isinstance(c, (int, float)):
-                confs.append(float(c))
+            conf = r.get("confidence")
+            if isinstance(conf, (int, float)):
+                confs.append(float(conf))
     avg_conf = sum(confs) / len(confs) if confs else 0.5
     agreement = agreed / total if total else 0.0
     return avg_conf, agreement, reader_failures, tamper_suspect
@@ -185,12 +187,21 @@ def _model_judge(context: dict[str, Any]) -> tuple[bool, float, list[str], bool]
         "options": {"temperature": 0},
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": "Judge this proof-of-payment for temporary approval. Return only JSON matching schema.\n\n" + json.dumps(context, ensure_ascii=False)},
+            {
+                "role": "user",
+                "content": (
+                    "Judge this proof-of-payment for temporary approval. "
+                    "Return only JSON matching schema.\n\n"
+                    + json.dumps(context, ensure_ascii=False)
+                ),
+            },
         ],
     }
     headers = {"Authorization": f"Bearer {s.ollama_api_key}"} if s.ollama_api_key else {}
     try:
-        resp = httpx.post(f"{s.ollama_url.rstrip('/')}/api/chat", json=body, headers=headers, timeout=60.0)
+        resp = httpx.post(
+            f"{s.ollama_url.rstrip('/')}/api/chat", json=body, headers=headers, timeout=60.0
+        )
         resp.raise_for_status()
         content = resp.json().get("message", {}).get("content", "{}")
         parsed = AITempJudgeJSON.model_validate(json.loads(content))
@@ -200,20 +211,47 @@ def _model_judge(context: dict[str, Any]) -> tuple[bool, float, list[str], bool]
         return False, 0.0, ["JUDGE_FAILED"], True
 
 
-def _build_context(session: Session, claim: Claim, obligation: Obligation, facts: Any, candidates: list[Any], inputs: AITempInputs) -> dict[str, Any]:
+def _build_context(
+    session: Session,
+    claim: Claim,
+    obligation: Obligation,
+    facts: Any,
+    candidates: list[Any],
+    inputs: AITempInputs,
+) -> dict[str, Any]:
     return {
         "claim_id": str(claim.claim_id),
         "channel": claim.channel,
         "reason_codes": list(claim.reason_codes),
-        "facts": {"amount_minor": facts.amount_minor, "currency": facts.currency, "reference": facts.reference},
+        "facts": {
+            "amount_minor": facts.amount_minor,
+            "currency": facts.currency,
+            "reference": facts.reference,
+        },
         "obligation": {"amount_minor": obligation.amount_minor, "currency": obligation.currency},
-        "candidate": {"credit_id": str(candidates[0].credit_id) if candidates else None, "score": candidates[0].score if candidates else None, "passed": candidates[0].passed if candidates else None},
-        "recognition": {"extracted_confidence": inputs.extracted_confidence, "field_agreement": inputs.field_agreement, "reader_failures": inputs.reader_failures, "files_count": inputs.files_count},
+        "candidate": {
+            "credit_id": str(candidates[0].credit_id) if candidates else None,
+            "score": candidates[0].score if candidates else None,
+            "passed": candidates[0].passed if candidates else None,
+        },
+        "recognition": {
+            "extracted_confidence": inputs.extracted_confidence,
+            "field_agreement": inputs.field_agreement,
+            "reader_failures": inputs.reader_failures,
+            "files_count": inputs.files_count,
+        },
     }
 
 
 def _human_started(session: Session, claim: Claim) -> bool:
-    return session.scalars(select(Decision.decision_id).where(Decision.claim_id == claim.claim_id, Decision.outcome == "FIRST_APPROVAL")).first() is not None
+    return (
+        session.scalars(
+            select(Decision.decision_id).where(
+                Decision.claim_id == claim.claim_id, Decision.outcome == "FIRST_APPROVAL"
+            )
+        ).first()
+        is not None
+    )
 
 
 def maybe_ai_temp_approve(session: Session, claim: Claim) -> bool:
@@ -262,10 +300,23 @@ def maybe_ai_temp_approve(session: Session, claim: Claim) -> bool:
     approve, confidence, reasons, must_review = _model_judge(context)
     if not approve or must_review or confidence < cfg.ai_temp_min_confidence:
         return False
-    return _approve(session, claim, credit, obligation, policy, facts, flags, confidence, reasons, run)
+    return _approve(
+        session, claim, credit, obligation, policy, facts, flags, confidence, reasons, run
+    )
 
 
-def _approve(session: Session, claim: Claim, credit: Credit, obligation: Obligation, policy: Policy, facts: Any, flags: list[str], confidence: float, judge_reasons: list[str], run: VerificationRun | None) -> bool:
+def _approve(
+    session: Session,
+    claim: Claim,
+    credit: Credit,
+    obligation: Obligation,
+    policy: Policy,
+    facts: Any,
+    flags: list[str],
+    confidence: float,
+    judge_reasons: list[str],
+    run: VerificationRun | None,
+) -> bool:
     cand = evaluate(session, facts, obligation, credit, policy.config)
     if not cand.passed:
         return False
@@ -304,21 +355,45 @@ def _approve(session: Session, claim: Claim, credit: Credit, obligation: Obligat
     except (ledger.LedgerError, DBAPIError):
         log.warning("ai_temp ledger refusal claim=%s", claim.claim_id)
         return False
-    audit(session, actor=f"{AI_TEMP_ACTOR}:{get_settings().ollama_model}", action="claim.ai_temp_approved", entity_type="claim", entity_id=claim.claim_id, org_id=claim.org_id, after={"confidence": confidence}, correlation_id=claim.correlation_id)
+    audit(
+        session,
+        actor=f"{AI_TEMP_ACTOR}:{get_settings().ollama_model}",
+        action="claim.ai_temp_approved",
+        entity_type="claim",
+        entity_id=claim.claim_id,
+        org_id=claim.org_id,
+        after={"confidence": confidence},
+        correlation_id=claim.correlation_id,
+    )
     return True
 
 
 def list_ai_temp_approved(session: Session, org_id: uuid.UUID, limit: int = 200) -> dict[str, Any]:
     cfg = load_policy(session, org_id).config
-    approvals = session.scalars(select(Decision).where(Decision.org_id == org_id, Decision.actor_id.like(f"{AI_TEMP_ACTOR}:%"), Decision.outcome == ClaimState.APPROVED).order_by(Decision.created_at.desc()).limit(1000)).all()
+    approvals = session.scalars(
+        select(Decision)
+        .where(
+            Decision.org_id == org_id,
+            Decision.actor_id.like(f"{AI_TEMP_ACTOR}:%"),
+            Decision.outcome == ClaimState.APPROVED,
+        )
+        .order_by(Decision.created_at.desc())
+        .limit(1000)
+    ).all()
     ids = [d.claim_id for d in approvals]
     verdicts = {}
     if ids:
-        for v in session.scalars(select(Decision).where(Decision.claim_id.in_(ids), Decision.actor_type == VERDICT_ACTOR_TYPE).order_by(Decision.created_at)):
+        for v in session.scalars(
+            select(Decision)
+            .where(Decision.claim_id.in_(ids), Decision.actor_type == VERDICT_ACTOR_TYPE)
+            .order_by(Decision.created_at)
+        ):
             verdicts[v.claim_id] = v
     amounts = {}
     if ids:
-        for a in session.scalars(select(Allocation).where(Allocation.claim_id.in_(ids), Allocation.kind == "allocation")):
+        for a in session.scalars(
+            select(Allocation).where(Allocation.claim_id.in_(ids), Allocation.kind == "allocation")
+        ):
             if a.claim_id is not None:
                 amounts[a.claim_id] = (a.amount_minor, a.currency)
     claims = {c.claim_id: c for c in session.scalars(select(Claim).where(Claim.claim_id.in_(ids)))}
@@ -329,28 +404,91 @@ def list_ai_temp_approved(session: Session, org_id: uuid.UUID, limit: int = 200)
         audited += int(verdict is not None)
         overturned += int(verdict is not None and verdict.outcome == VERDICTS["overturned"])
         amount, currency = amounts.get(d.claim_id, (None, None))
+        claim = claims.get(d.claim_id)
         snap = d.evidence_snapshot or {}
-        rows.append({"claim_id": str(d.claim_id), "approved_at": d.created_at.isoformat(), "amount_minor": amount, "currency": currency, "channel": claims.get(d.claim_id).channel if d.claim_id in claims else None, "claim_state": claims.get(d.claim_id).state if d.claim_id in claims else None, "confidence": snap.get("ai_confidence"), "verdict": {"outcome": verdict.outcome, "by": verdict.actor_id, "at": verdict.created_at.isoformat(), "note": verdict.note} if verdict else None})
-    return {"enabled": cfg.ai_temp_approve_enabled and not get_settings().ai_temp_approve_disabled and not cfg.ai_temp_approve_disabled, "audit_pct": cfg.ai_temp_audit_pct, "summary": {"approved": len(approvals), "audited": audited, "overturned": overturned, "overturn_rate": round(overturned / audited, 4) if audited else None}, "claims": rows[:limit]}
+        rows.append(
+            {
+                "claim_id": str(d.claim_id),
+                "approved_at": d.created_at.isoformat(),
+                "amount_minor": amount,
+                "currency": currency,
+                "channel": claim.channel if claim else None,
+                "claim_state": claim.state if claim else None,
+                "confidence": snap.get("ai_confidence"),
+                "verdict": {
+                    "outcome": verdict.outcome,
+                    "by": verdict.actor_id,
+                    "at": verdict.created_at.isoformat(),
+                    "note": verdict.note,
+                }
+                if verdict
+                else None,
+            }
+        )
+    return {
+        "enabled": cfg.ai_temp_approve_enabled
+        and not get_settings().ai_temp_approve_disabled
+        and not cfg.ai_temp_approve_disabled,
+        "audit_pct": cfg.ai_temp_audit_pct,
+        "summary": {
+            "approved": len(approvals),
+            "audited": audited,
+            "overturned": overturned,
+            "overturn_rate": round(overturned / audited, 4) if audited else None,
+        },
+        "claims": rows[:limit],
+    }
 
 
-def record_verdict(session: Session, p, claim_id: uuid.UUID, verdict: str, note: str | None) -> Decision:
+def record_verdict(
+    session: Session, p, claim_id: uuid.UUID, verdict: str, note: str | None
+) -> Decision:
     if verdict not in VERDICTS:
         raise ReviewError("BAD_VERDICT", f"verdict must be one of {sorted(VERDICTS)}", 422)
-    claim = session.scalars(select(Claim).where(Claim.claim_id == claim_id, Claim.org_id == p.org_id).with_for_update()).first()
+    claim = session.scalars(
+        select(Claim).where(Claim.claim_id == claim_id, Claim.org_id == p.org_id).with_for_update()
+    ).first()
     if claim is None:
         raise ReviewError("NOT_FOUND", "claim not found", 404)
-    auto = session.scalars(select(Decision.decision_id).where(Decision.claim_id == claim_id, Decision.actor_id.like(f"{AI_TEMP_ACTOR}:%"), Decision.outcome == ClaimState.APPROVED)).first()
+    auto = session.scalars(
+        select(Decision.decision_id).where(
+            Decision.claim_id == claim_id,
+            Decision.actor_id.like(f"{AI_TEMP_ACTOR}:%"),
+            Decision.outcome == ClaimState.APPROVED,
+        )
+    ).first()
     if auto is None:
-        raise ReviewError("NOT_AI_TEMP_APPROVED", "this claim was not approved by AI temporarily", 409)
-    if session.scalars(select(Decision.decision_id).where(Decision.claim_id == claim_id, Decision.actor_type == VERDICT_ACTOR_TYPE)).first():
+        raise ReviewError(
+            "NOT_AI_TEMP_APPROVED", "this claim was not approved by AI temporarily", 409
+        )
+    if session.scalars(
+        select(Decision.decision_id).where(
+            Decision.claim_id == claim_id, Decision.actor_type == VERDICT_ACTOR_TYPE
+        )
+    ).first():
         raise ReviewError("ALREADY_AUDITED", "this approval already has a verdict", 409)
     policy = load_policy(session, claim.org_id)
-    return record_decision(session, claim, outcome=VERDICTS[verdict], reasons=[], policy_version=policy.version, actor_type=VERDICT_ACTOR_TYPE, actor_id=p.actor, snapshot={"audited_at": datetime.now(UTC).isoformat()}, note=note)
+    return record_decision(
+        session,
+        claim,
+        outcome=VERDICTS[verdict],
+        reasons=[],
+        policy_version=policy.version,
+        actor_type=VERDICT_ACTOR_TYPE,
+        actor_id=p.actor,
+        snapshot={"audited_at": datetime.now(UTC).isoformat()},
+        note=note,
+    )
 
 
 def recognition_check(session: Session, org_id: uuid.UUID) -> dict[str, Any]:
-    approvals = session.scalars(select(Decision).where(Decision.org_id == org_id, Decision.actor_id.like(f"{AI_TEMP_ACTOR}:%"), Decision.outcome == ClaimState.APPROVED)).all()
+    approvals = session.scalars(
+        select(Decision).where(
+            Decision.org_id == org_id,
+            Decision.actor_id.like(f"{AI_TEMP_ACTOR}:%"),
+            Decision.outcome == ClaimState.APPROVED,
+        )
+    ).all()
     audited = 0
     overturned = 0
     confs = []
@@ -358,7 +496,11 @@ def recognition_check(session: Session, org_id: uuid.UUID) -> dict[str, Any]:
         snap = d.evidence_snapshot or {}
         if isinstance(snap.get("ai_confidence"), (int, float)):
             confs.append(float(snap["ai_confidence"]))
-        v = session.scalars(select(Decision).where(Decision.claim_id == d.claim_id, Decision.actor_type == VERDICT_ACTOR_TYPE)).first()
+        v = session.scalars(
+            select(Decision).where(
+                Decision.claim_id == d.claim_id, Decision.actor_type == VERDICT_ACTOR_TYPE
+            )
+        ).first()
         if v:
             audited += 1
             if v.outcome == VERDICTS["overturned"]:
@@ -366,4 +508,13 @@ def recognition_check(session: Session, org_id: uuid.UUID) -> dict[str, Any]:
     overturn_rate = round(overturned / audited, 4) if audited else None
     avg_conf = round(sum(confs) / len(confs), 3) if confs else None
     working = overturn_rate is None or overturn_rate < 0.01
-    return {"ai_temp": {"approved": len(approvals), "audited": audited, "overturned": overturned, "overturn_rate": overturn_rate, "avg_confidence": avg_conf}, "recognition_working": working}
+    return {
+        "ai_temp": {
+            "approved": len(approvals),
+            "audited": audited,
+            "overturned": overturned,
+            "overturn_rate": overturn_rate,
+            "avg_confidence": avg_conf,
+        },
+        "recognition_working": working,
+    }
