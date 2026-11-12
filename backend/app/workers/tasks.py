@@ -24,6 +24,11 @@ celery_app.conf.update(
         "poll-alert-mailbox": {"task": "pops.poll_alert_mailbox", "schedule": 60.0},
         "review-aging": {"task": "pops.review_aging", "schedule": 300.0},
         "expire-provisional": {"task": "pops.expire_provisional", "schedule": 300.0},
+        "kyc-expire": {"task": "pops.kyc_expire", "schedule": 3600.0},
+        "kyc-purge-evidence": {
+            "task": "pops.kyc_purge_evidence",
+            "schedule": crontab(hour=3, minute=30),
+        },
         "exposure-report": {
             "task": "pops.exposure_report",
             "schedule": crontab(hour=6, minute=0),
@@ -99,7 +104,61 @@ def sweep_stuck() -> int:
         log.warning("re-dispatching %d stuck claims", len(stuck))
     for claim_id in stuck:
         dispatch_pipeline(claim_id)
+    from app.kyc import service as kyc_service
+
+    with session_scope() as session:
+        stuck_kyc = kyc_service.stuck(session)
+    for kyc_id in stuck_kyc:
+        dispatch_kyc(kyc_id)
     return len(stuck)
+
+
+def run_kyc(kyc_id: uuid.UUID) -> bool:
+    """Process one identity verification. A crash is counted in its own transaction; after the
+    attempt limit a person takes over (fail closed)."""
+    from app.kyc import service as kyc_service
+
+    try:
+        with session_scope() as session:
+            kyc_service.process(session, kyc_id)
+    except Exception as exc:  # noqa: BLE001 - any failure must be recorded, never lost
+        log.exception("kyc pipeline failed for %s", kyc_id)
+        with session_scope() as session:
+            kyc_service.record_failure(session, kyc_id, f"{type(exc).__name__}: {exc}")
+        return False
+    return True
+
+
+@celery_app.task(name="pops.process_kyc", bind=True, max_retries=3)
+def process_kyc_task(self, kyc_id: str) -> None:
+    if not run_kyc(uuid.UUID(kyc_id)):
+        raise self.retry(countdown=30 * (self.request.retries + 1))
+
+
+@celery_app.task(name="pops.kyc_expire")
+def kyc_expire_task() -> int:
+    from app.kyc import service as kyc_service
+
+    with session_scope() as session:
+        return kyc_service.expire_due(session)
+
+
+@celery_app.task(name="pops.kyc_purge_evidence")
+def kyc_purge_evidence_task() -> int:
+    from app.kyc import service as kyc_service
+
+    with session_scope() as session:
+        return kyc_service.purge_evidence(session)
+
+
+def dispatch_kyc(kyc_id: uuid.UUID) -> None:
+    if get_settings().pipeline_mode == "celery":
+        try:
+            process_kyc_task.delay(str(kyc_id))
+        except Exception:  # noqa: BLE001 - broker down: the sweeper picks it up later
+            log.exception("could not enqueue kyc %s; sweeper will retry", kyc_id)
+    else:
+        run_kyc(kyc_id)
 
 
 def run_expire_provisional() -> int:

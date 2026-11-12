@@ -63,6 +63,17 @@ class Settings(BaseSettings):
     # global kill switch for AI temporary approval; overrides every organisation's policy
     ai_temp_approve_disabled: bool = False
 
+    # global kill switch for KYC auto-verification (app/kyc/auto.py); overrides every policy
+    kyc_auto_disabled: bool = False
+    # face matching for KYC: onnx (needs POPS_KYC_FACE_MODEL_PATH) | fake (tests) | none.
+    # With none, or a missing model, nothing is auto-verified: a person decides (fail closed).
+    kyc_face_backend: Literal["onnx", "fake", "none"] = "onnx"
+    kyc_face_model_path: str = "./var/models/face-embedding.onnx"
+    # face detector: a YuNet ONNX model (OpenCV Zoo); on OpenCV 4 the bundled Haar cascade is
+    # used when this file is absent
+    kyc_face_detector_path: str = "./var/models/face-detection-yunet.onnx"
+    rate_limit_kyc_per_subject_per_day: int = 5
+
     # extraction readers: ollama | donut | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"
     # Shadow mode (blueprint phase 4): advisory AI proposals recorded beside claims and scored
@@ -141,6 +152,8 @@ def validate_for_startup(s: Settings) -> None:
         problems.append("POPS_COGNIFY_WEBHOOK_SECRET must be set")
     if s.vlm_backend == "fake":
         problems.append("POPS_VLM_BACKEND=fake is for tests and demos only")
+    if s.kyc_face_backend == "fake":
+        problems.append("POPS_KYC_FACE_BACKEND=fake is for tests and demos only")
     if not s.clamav_host:
         problems.append("POPS_CLAMAV_HOST is required: uploads must be malware-scanned")
     if s.pipeline_mode == "inline":

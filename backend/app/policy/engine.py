@@ -64,6 +64,32 @@ class PolicyConfig(BaseModel):
     ai_temp_audit_pct: int = Field(default=100, ge=0, le=100)
     ai_temp_learn: bool = True
     ai_temp_block_on_tamper: bool = True
+    # ID/KYC (app/kyc). The AI only reads the document; these deterministic rules decide.
+    # off: people decide everything. shadow: the rules are evaluated and recorded but change
+    # nothing (calibration). on: a clear case is verified automatically, with a sampled human
+    # audit. Never rejects automatically; anything uncertain goes to a reviewer.
+    kyc_auto_verify_mode: str = "off"
+    # who may be auto-verified: payer | staff | org (staff/org onboarding is for people by default)
+    kyc_auto_verify_subjects: list[str] = Field(default_factory=lambda: ["payer"])
+    kyc_allowed_doc_types: list[str] = Field(
+        default_factory=lambda: ["national_id", "passport", "drivers_licence"]
+    )
+    # ISO 3166 alpha-3 issuing countries accepted for auto-verification (empty = none)
+    kyc_allowed_countries: list[str] = Field(default_factory=list)
+    kyc_require_mrz: bool = False  # passports always carry one; many national IDs do not
+    kyc_min_ocr_agreement: float = Field(default=1.0, ge=0.0, le=1.0)  # critical fields agreed
+    kyc_min_face_score: float = Field(default=0.45, ge=0.0, le=1.0)  # ID photo vs selfie cosine
+    kyc_min_liveness: float = Field(default=0.7, ge=0.0, le=1.0)
+    kyc_min_expiry_days: int = Field(default=30, ge=0)  # document must be valid this much longer
+    kyc_audit_pct: int = Field(default=10, ge=0, le=100)
+    kyc_validity_days: int = Field(default=365, gt=0)  # how long a verification stays valid
+    kyc_retention_days: int = Field(default=90, gt=0)  # then the images are deleted
+    kyc_max_attempts_per_day: int = Field(default=5, gt=0)
+    # payments gate: a payer must hold a valid KYC verification before a claim may be
+    # auto-approved (review/auto.py). A claim without it simply goes to a person.
+    kyc_required_for_auto_approve: bool = False
+    # staff gate: APPROVER/ADMIN roles may only be granted to a KYC-verified user
+    kyc_required_for_staff: bool = False
     # our receiving accounts / merchant codes; a credit must land on one of these
     beneficiary_aliases: list[str] = Field(default_factory=lambda: ["MAIN"])
     success_statuses: list[str] = Field(default_factory=lambda: ["success"])
@@ -158,6 +184,48 @@ class PolicyConfig(BaseModel):
         ):
             raise ValueError(
                 "ai_temp_approve_enabled needs ai_temp_channels and ai_temp_max_minor"
+            )
+        return self
+
+    @field_validator("kyc_auto_verify_mode")
+    @classmethod
+    def _kyc_mode(cls, v: str) -> str:
+        if v not in ("off", "shadow", "on"):
+            raise ValueError("kyc_auto_verify_mode must be off, shadow or on")
+        return v
+
+    @field_validator("kyc_auto_verify_subjects")
+    @classmethod
+    def _kyc_subjects(cls, v: list[str]) -> list[str]:
+        if not set(v) <= {"payer", "staff", "org"}:
+            raise ValueError("kyc_auto_verify_subjects may only contain payer, staff, org")
+        return v
+
+    @field_validator("kyc_allowed_doc_types")
+    @classmethod
+    def _kyc_doc_types(cls, v: list[str]) -> list[str]:
+        if not set(v) <= {"national_id", "passport", "drivers_licence"}:
+            raise ValueError("unknown KYC document type")
+        return v
+
+    @field_validator("kyc_allowed_countries")
+    @classmethod
+    def _kyc_countries(cls, v: list[str]) -> list[str]:
+        out = [c.strip().upper() for c in v]
+        if any(len(c) != 3 or not c.isalpha() for c in out):
+            raise ValueError("kyc_allowed_countries must be ISO 3166 alpha-3 codes, e.g. ZWE")
+        return out
+
+    @model_validator(mode="after")
+    def _kyc_auto_verify_is_scoped(self) -> "PolicyConfig":
+        if self.kyc_auto_verify_mode != "off" and not (
+            self.kyc_auto_verify_subjects
+            and self.kyc_allowed_doc_types
+            and self.kyc_allowed_countries
+        ):
+            raise ValueError(
+                "KYC auto-verification needs kyc_auto_verify_subjects, kyc_allowed_doc_types "
+                "and kyc_allowed_countries"
             )
         return self
 

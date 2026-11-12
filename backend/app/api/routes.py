@@ -6,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import Response
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -62,6 +63,7 @@ from app.intake.files import RejectedFile, prepare
 from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
+from app.kyc.gate import require_cleared
 from app.ledger import service as ledger
 from app.ledger.admin import AllocationError, allocate_credit
 from app.ledger.export import TooManyRows, export_csv
@@ -94,7 +96,7 @@ router = APIRouter()
 DB = Annotated[Session, Depends(get_session)]
 Any_ = Annotated[Principal, Depends(current_principal)]
 Reviewer = Annotated[Principal, Depends(require(Role.REVIEWER))]
-Approver = Annotated[Principal, Depends(require(Role.APPROVER))]
+Approver = Annotated[Principal, Depends(require_cleared(Role.APPROVER))]
 Admin = Annotated[Principal, Depends(require(Role.ADMIN))]
 
 

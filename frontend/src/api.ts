@@ -285,3 +285,11 @@ export function ago(iso: string): string {
   if (mins < 1440) return `${Math.round(mins / 60)}h`;
   return `${Math.round(mins / 1440)}d`;
 }
+
+// An image the API serves behind the session token, as an object URL for <img> (caller revokes).
+export async function blobUrl(path: string): Promise<string> {
+  const t = token();
+  const res = await fetch(`${API}${path}`, { headers: t ? { Authorization: `Bearer ${t}` } : {} });
+  if (!res.ok) throw new ApiError(res.status, res.statusText);
+  return URL.createObjectURL(await res.blob());
+}

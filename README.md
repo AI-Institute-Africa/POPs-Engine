@@ -9,12 +9,16 @@ callbacks, attested manual credits), and lets deterministic rules and a constrai
 AI, decide what can be approved.
 
 By default every allocation needs a finance reviewer, and the reviewer can only confirm a credit
-that passes every hard gate. Three optional features are **off until an organisation's payment
+that passes every hard gate. Four optional features are **off until an organisation's payment
 policy turns them on**, and none of them lets the AI decide:
 
 - **Rules-based auto-approval** of small, exactly-paid claims that an independent source confirmed
   and nothing about looked suspicious, with a sampled human audit and a kill switch:
   [`docs/auto-approval.md`](docs/auto-approval.md).
+- **ID / KYC verification** of payers and staff: document recognition (card detection, OCR from two
+  readers, MRZ check digits), ID-photo-to-selfie face match, passive liveness and integrity checks,
+  with rules-based auto-verification (off, shadow or on) that never rejects and a sampled human
+  audit: [`docs/kyc.md`](docs/kyc.md). It can also be required before a payment auto-approves.
 - **Provisional access**: time-boxed, capped access while a receipt waits for the money, reported to
   the host system by signed events and a polling endpoint:
   [`docs/provisional-access.md`](docs/provisional-access.md).

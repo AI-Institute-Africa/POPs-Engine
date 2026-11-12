@@ -143,6 +143,7 @@ def _auto_approve_blockers(
     session: Session, policy: Policy, claim: Claim, ob: Obligation, facts: Any, best: Any, a: Any
 ) -> list[str]:
     """Which auto-approval rules would hold this past claim back under `policy`."""
+    from app.kyc import service as kyc_service
     from app.review.auto import Inputs, rule_failures
 
     credit = session.get(Credit, best.credit_id)
@@ -173,6 +174,11 @@ def _auto_approve_blockers(
             currency=facts.currency or ob.currency,
             outstanding_minor=ob.amount_minor,
             credit_available_minor=credit.amount_minor,
+            kyc_verified=(
+                kyc_service.is_verified(session, claim.org_id, "payer", claim.claimant_ref)
+                if policy.config.kyc_required_for_auto_approve
+                else False
+            ),
         ),
         kill_switch=get_settings().auto_approve_disabled,
     )

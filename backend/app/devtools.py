@@ -5,6 +5,7 @@ import json
 import random
 import uuid
 from datetime import UTC, date, datetime, timedelta
+from typing import Any
 
 from PIL import Image, ImageDraw, ImageFilter
 from PIL.PngImagePlugin import PngInfo
@@ -124,3 +125,108 @@ def statement_csv(rows: list[dict]) -> bytes:
         for r in rows
     )
     return (header + body).encode()
+
+
+# --- KYC fixtures ---------------------------------------------------------------------------------
+
+
+def _face_pattern(seed: int, variation: float = 0.0, variation_seed: int = 0) -> Any:
+    """A deterministic 8x8 'face': same seed = same person. `variation` re-randomises that
+    fraction of the cells, as a different pose or light would."""
+    import numpy as np
+
+    grid = np.random.RandomState(seed).randint(40, 220, (8, 8))
+    if variation:
+        rs = np.random.RandomState(variation_seed + 7919)
+        mask = rs.rand(8, 8) < variation
+        grid = np.where(mask, rs.randint(40, 220, (8, 8)), grid)
+    return grid.astype("uint8")
+
+
+def make_id_card(
+    vlm: dict | None,
+    ocr: dict | None = None,
+    *,
+    face_seed: int = 1,
+    size: tuple[int, int] = (1000, 630),
+    blank_face: bool = False,
+    mrz: list[str] | None = None,
+    seed: int | None = None,
+) -> bytes:
+    """Synthetic ID card PNG. The FakeFaceMatcher reads the portrait from a fixed region and the
+    fake ID readers read their 'ground truth' from tEXt chunks (`pops-id-vlm`, `pops-id-ocr`)."""
+    import numpy as np
+
+    rnd = random.Random(seed if seed is not None else uuid.uuid4().int)  # noqa: S311
+    img = Image.new("RGB", size, (236, 240, 228))
+    d = ImageDraw.Draw(img)
+    d.rectangle([4, 4, size[0] - 5, size[1] - 5], outline=(30, 60, 90), width=6)
+    # unique background texture, so every fixture is perceptually distinct (duplicate checks)
+    for _ in range(40):
+        x, y = rnd.randrange(size[0]), rnd.randrange(size[1])
+        d.rectangle(
+            [x, y, x + rnd.randrange(8, 40), y + rnd.randrange(8, 40)],
+            fill=tuple(rnd.randrange(150, 255) for _ in range(3)),
+        )
+    px, py, pw, ph = 0.05, 0.25, 0.30, 0.55
+    box = (int(px * size[0]), int(py * size[1]), int((px + pw) * size[0]), int((py + ph) * size[1]))
+    if not blank_face:
+        cells = np.kron(
+            _face_pattern(face_seed), np.ones((int(ph * size[1] / 8), int(pw * size[0] / 8)))
+        )
+        patch = Image.fromarray(cells.astype("uint8")).convert("RGB")
+        img.paste(patch.resize((box[2] - box[0], box[3] - box[1])), box[:2])
+    else:
+        d.rectangle(box, fill=(236, 240, 228))
+    for i, line in enumerate((vlm or {}).items()):
+        d.text((int(0.42 * size[0]), 120 + i * 38), f"{line[0]}: {line[1]}", fill="black")
+    info = PngInfo()
+    data_ocr = dict(ocr) if ocr is not None else None
+    if mrz and data_ocr is not None:
+        data_ocr["mrz"] = "\n".join(mrz)
+    if vlm is not None:
+        info.add_text("pops-id-vlm", json.dumps(vlm))
+    if data_ocr is not None:
+        info.add_text("pops-id-ocr", json.dumps(data_ocr))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", pnginfo=info)
+    return buf.getvalue()
+
+
+def make_selfie(
+    face_seed: int = 1, *, variation: float = 0.2, size: int = 640, blank: bool = False
+) -> bytes:
+    """Synthetic selfie: the same 'person' as the card with the same seed, slightly changed."""
+    import numpy as np
+
+    if blank:
+        img = Image.new("RGB", (size, size), (200, 200, 200))
+    else:
+        cells = np.kron(_face_pattern(face_seed, variation, 3), np.ones((size // 8, size // 8)))
+        img = Image.fromarray(cells.astype("uint8")).convert("RGB")
+        noise = np.random.RandomState(5).randint(-6, 6, (size, size, 3))
+        img = Image.fromarray(np.clip(np.asarray(img).astype(int) + noise, 0, 255).astype("uint8"))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def id_fields(
+    *,
+    name: str = "TENDAI GRACE MOYO",
+    number: str = "63-123456 K 42",
+    dob: str = "14/03/1995",
+    expiry: str | None = None,
+    country: str = "ZWE",
+    doc_type: str = "national_id",
+) -> dict:
+    exp = expiry or f"30/06/{datetime.now(UTC).year + 6}"
+    return {
+        "doc_type": doc_type,
+        "issuing_country": country,
+        "full_name": name,
+        "document_number": number,
+        "date_of_birth": dob,
+        "expiry_date": exp,
+        "sex": "F",
+    }
