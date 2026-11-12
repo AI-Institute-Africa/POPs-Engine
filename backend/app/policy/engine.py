@@ -166,9 +166,7 @@ class PolicyConfig(BaseModel):
     @classmethod
     def _ai_temp_tier_with_independent_confirmation(cls, v: str) -> str:
         if v not in ("E2", "E3"):
-            raise ValueError(
-                "ai_temp_min_tier must be E2 or E3: a receipt alone is never enough"
-            )
+            raise ValueError("ai_temp_min_tier must be E2 or E3: a receipt alone is never enough")
         return v
 
     @model_validator(mode="after")
@@ -179,12 +177,8 @@ class PolicyConfig(BaseModel):
             raise ValueError(
                 "auto_approve_enabled needs auto_approve_channels and auto_approve_max_minor"
             )
-        if self.ai_temp_approve_enabled and not (
-            self.ai_temp_channels and self.ai_temp_max_minor
-        ):
-            raise ValueError(
-                "ai_temp_approve_enabled needs ai_temp_channels and ai_temp_max_minor"
-            )
+        if self.ai_temp_approve_enabled and not (self.ai_temp_channels and self.ai_temp_max_minor):
+            raise ValueError("ai_temp_approve_enabled needs ai_temp_channels and ai_temp_max_minor")
         return self
 
     @field_validator("kyc_auto_verify_mode")

@@ -224,6 +224,26 @@ dl.meta dt { color: var(--muted); }
 .image-fields dt { color: var(--muted); text-transform: capitalize; font-size: 12px; }
 .image-fields dd { margin: 1px 0 0; overflow-wrap: anywhere; }
 .verified { border-color: var(--ok); color: var(--ok); }
+.grow { flex: 1; }
+.ocr-text {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12px/1.6 ui-monospace, "Cascadia Mono", monospace;
+  max-height: 480px;
+  overflow: auto;
+}
+.page-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.page-tabs button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+.reader-errors { margin-top: 8px; }
 .file-icon {
   width: 42px;
   height: 42px;

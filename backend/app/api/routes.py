@@ -29,6 +29,7 @@ from app.api.schemas import (
     EvidenceOut,
     FieldOut,
     ImportOut,
+    LedgerEntryOut,
     ObligationIn,
     ObligationOut,
     RejectIn,
@@ -59,6 +60,9 @@ from app.core.security import (
 from app.credits.statements import ImportError_, import_statement, profiles
 from app.extraction import preprocess
 from app.extraction.service import build_readers, extract
+from app.extraction.transcription import TranscriptionUnavailable
+from app.extraction.transcription import transcribe as transcribe_file
+from app.guardrails.rules import active_rules, plan_readers
 from app.intake.files import RejectedFile, prepare
 from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
@@ -88,8 +92,9 @@ from app.policy.engine import load_policy
 from app.provisional.service import access_state
 from app.reconcile.matching import evaluate, find_candidates
 from app.review import service as review
+from app.review.ai_temp import list_ai_temp_approved, recognition_check
+from app.review.ai_temp import record_verdict as record_ai_temp_verdict
 from app.review.auto import list_auto_approved, record_verdict
-from app.review.ai_temp import list_ai_temp_approved, recognition_check, record_verdict as record_ai_temp_verdict
 from app.workers.tasks import dispatch_pipeline, dispatch_rematch
 
 router = APIRouter()
@@ -167,6 +172,23 @@ def _limit_previews(p: Principal) -> None:
         raise HTTPException(
             429,
             {"code": "RATE_LIMITED", "message": "too many checks; slow down"},
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
+
+
+def _limit_text_conversions(p: Principal) -> None:
+    try:
+        ratelimit.check(
+            "image_text",
+            str(p.user_id),
+            get_settings().rate_limit_text_conversions_per_minute,
+            60,
+        )
+    except ratelimit.RateLimited as exc:
+        obs.UPLOADS_REJECTED.labels("RATE_LIMIT_IMAGE_TEXT").inc()
+        raise HTTPException(
+            429,
+            {"code": "RATE_LIMITED", "message": "too many conversions; slow down"},
             headers={"Retry-After": str(exc.retry_after)},
         ) from exc
 
@@ -278,11 +300,18 @@ def create_obligation(body: ObligationIn, db: DB, p: Any_) -> Obligation:
 
 @router.get("/obligations", response_model=list[ObligationOut], tags=["obligations"])
 def list_obligations(
-    db: DB, p: Any_, learner_ref: str | None = None, limit: int = Query(100, le=500)
+    db: DB,
+    p: Any_,
+    learner_ref: str | None = None,
+    external_ref: str | None = None,
+    limit: int = Query(100, le=500),
 ) -> list[Obligation]:
     q = select(Obligation).where(Obligation.org_id == p.org_id)
     if learner_ref:
         q = q.where(Obligation.learner_ref == learner_ref)
+    if external_ref:
+        # exact match; obligations are create-only, so a host looks its own reference up here
+        q = q.where(Obligation.external_ref == external_ref)
     return list(db.scalars(q.order_by(Obligation.created_at.desc()).limit(limit)))
 
 
@@ -295,6 +324,45 @@ def obligation_access(obligation_id: uuid.UUID, db: DB, p: Any_) -> dict:
 @router.get("/obligations/{obligation_id}/balance", response_model=BalanceOut, tags=["obligations"])
 def obligation_balance(obligation_id: uuid.UUID, db: DB, p: Any_) -> BalanceOut:
     return _balance_out(ledger.balance(db, _obligation(db, p, obligation_id)))
+
+
+@router.get(
+    "/obligations/{obligation_id}/allocations",
+    response_model=list[LedgerEntryOut],
+    tags=["obligations"],
+)
+def obligation_allocations(obligation_id: uuid.UUID, db: DB, p: Any_) -> list[LedgerEntryOut]:
+    """Every ledger row (allocation or reversal) of an obligation, oldest first, with the credit
+    it drew on. The ledger is append-only, so each row keeps a stable id: a host system mirrors
+    them one-to-one and applies each exactly once."""
+    ob = _obligation(db, p, obligation_id)
+    rows = db.execute(
+        select(Allocation, Credit)
+        .join(Credit, Credit.credit_id == Allocation.credit_id)
+        .where(Allocation.obligation_id == ob.obligation_id, Allocation.org_id == p.org_id)
+        # 'allocation' sorts before 'reversal', so a row precedes the row that undoes it even if
+        # both carry the same transaction timestamp
+        .order_by(Allocation.created_at, Allocation.kind, Allocation.allocation_id)
+    ).all()
+    return [
+        LedgerEntryOut(
+            allocation_id=a.allocation_id,
+            credit_id=a.credit_id,
+            obligation_id=a.obligation_id,
+            claim_id=a.claim_id,
+            kind=a.kind,
+            amount_minor=a.amount_minor,
+            currency=a.currency,
+            reverses=a.reverses,
+            created_by=a.created_by,
+            created_at=a.created_at,
+            provider=c.provider,
+            provider_txn_id=c.provider_txn_id,
+            credit_occurred_at=c.occurred_at,
+            reason=a.reason,
+        )
+        for a, c in rows
+    ]
 
 
 # --- claims -----------------------------------------------------------------------------------
@@ -385,6 +453,82 @@ async def preview_claim_files(
     return {
         "readable": all(item["readable"] for item in files_out),
         "files": files_out,
+    }
+
+
+@router.post("/image-to-text", tags=["claims"])
+async def image_to_text(
+    db: DB,
+    p: Any_,
+    file: Annotated[UploadFile, File()],
+) -> dict:
+    """Turn one uploaded image or document into plain text.
+
+    This is a convenience reader for the console, not part of a claim: nothing is stored and
+    the text is never used to approve, reject or allocate a payment. Every upload still goes
+    through the malware scan and the same file validation as evidence.
+    """
+    _limit_text_conversions(p)
+    settings = get_settings()
+    data = await file.read(settings.max_upload_bytes + 1)
+    try:
+        scan(data)
+        prepared = prepare(data, settings.max_upload_bytes)
+    except InfectedFile as exc:
+        obs.UPLOADS_REJECTED.labels("MALWARE_DETECTED").inc()
+        raise HTTPException(
+            422, {"code": "MALWARE_DETECTED", "message": "the file failed the malware scan"}
+        ) from exc
+    except ScannerUnavailable as exc:
+        obs.UPLOADS_REJECTED.labels("SCANNER_UNAVAILABLE").inc()
+        raise HTTPException(
+            503,
+            {
+                "code": "SCANNER_UNAVAILABLE",
+                "message": "upload could not be scanned; try again shortly",
+            },
+            headers={"Retry-After": "30"},
+        ) from exc
+    except RejectedFile as exc:
+        raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
+
+    # The converter may fall back to the vision model, so it obeys the same guardrails as a
+    # claim (kill switch, external-processing block, model allowlist) for this organisation.
+    rules = active_rules(db, p.org_id)
+    plan = plan_readers(rules, settings.ollama_url, settings.ollama_model)
+    try:
+        result = transcribe_file(prepared, data, vlm_allowed=plan.vlm_allowed)
+    except TranscriptionUnavailable as exc:
+        raise HTTPException(503, {"code": "TEXT_READER_UNAVAILABLE", "message": str(exc)}) from exc
+
+    policy = load_policy(db, p.org_id)
+    quality_issues = []
+    for page in prepared.pages:
+        quality_issues.extend(
+            preprocess.assess(page).problems(
+                policy.config.min_image_side_px, policy.config.min_sharpness
+            )
+        )
+    return {
+        "name": file.filename or "Attachment",
+        "content_type": prepared.content_type,
+        "page_count": len(prepared.pages),
+        "width": prepared.image.width,
+        "height": prepared.image.height,
+        "text": result.text,
+        "character_count": len(result.text),
+        "pages": [
+            {
+                "page": page.page,
+                "text": page.text,
+                "reader": page.reader,
+                "confidence": page.confidence,
+                "lines": page.lines,
+            }
+            for page in result.pages
+        ],
+        "reader_errors": list(result.failures.values()),
+        "quality_issues": sorted(set(quality_issues)),
     }
 
 
@@ -1055,7 +1199,7 @@ def ai_temp_verdict(claim_id: uuid.UUID, body: AITempVerdictIn, db: DB, p: Revie
         decision = record_ai_temp_verdict(db, p, claim_id, body.verdict, body.note)
         db.commit()
         return {"decision_id": str(decision.decision_id), "outcome": decision.outcome}
-    except ReviewError as exc:
+    except review.ReviewError as exc:
         db.rollback()
         raise HTTPException(
             404 if exc.code == "NOT_FOUND" else 409, {"code": exc.code, "message": str(exc)}

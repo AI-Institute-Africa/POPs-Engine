@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     # legibility previews run the readers (the vision model costs money) before any
     # claim exists
     rate_limit_previews_per_minute: int = 20
+    # the standalone image-to-text converter runs a reader too
+    rate_limit_text_conversions_per_minute: int = 20
 
     # global kill switch for rules-based auto-approval; overrides every organisation's policy
     auto_approve_disabled: bool = False
@@ -119,6 +121,10 @@ class Settings(BaseSettings):
     cognify_webhook_url: str | None = None
     cognify_webhook_secret: str = DEV_WEBHOOK_SECRET
 
+    # Host-system provisioning (POST /internal/orgs). The endpoint does not exist unless a key
+    # is set; it can only find or create an organisation by name.
+    provisioning_key: str | None = None
+
     # where suspected-fake alerts go (any or both): a Slack/Teams-style webhook, and email
     admin_alert_webhook_url: str | None = None
     smtp_host: str | None = None
@@ -153,6 +159,8 @@ def validate_for_startup(s: Settings) -> None:
         problems.append("POPS_JWT_SECRET must be set to a random value of 32+ characters")
     if s.cognify_webhook_url and s.cognify_webhook_secret == DEV_WEBHOOK_SECRET:
         problems.append("POPS_COGNIFY_WEBHOOK_SECRET must be set")
+    if s.provisioning_key is not None and len(s.provisioning_key) < 32:
+        problems.append("POPS_PROVISIONING_KEY must be 32+ characters when set")
     if s.vlm_backend == "fake":
         problems.append("POPS_VLM_BACKEND=fake is for tests and demos only")
     if s.demo:

@@ -93,6 +93,11 @@ Every proof-of-payment format people actually send:
 
 Bank statements import as CSV or as a **digital PDF** (the same column profile reads both).
 
+The console also has a standalone **Image to text** page (`/image-to-text`, `POST /image-to-text`)
+that returns the plain text of one file without creating a claim: see
+[`docs/image-to-text.md`](docs/image-to-text.md). It uses the same malware scan, file validation
+and guardrails, and stores nothing.
+
 Readers run on each page, and the first page that yields a field wins. Recipient-side
 **SMS and email alerts** (the merchant phone's EcoCash SMS, bank credit emails) become credits
 within seconds; see [`docs/alerts.md`](docs/alerts.md).

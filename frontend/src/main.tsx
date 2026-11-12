@@ -11,6 +11,7 @@ import { useTheme } from "./theme";
 import { Avatar } from "./ui";
 import Home from "./pages/Home";
 import Scan from "./pages/Scan";
+import ImageToText from "./pages/ImageToText";
 import Guardrails from "./pages/Guardrails";
 import Fraud from "./pages/Fraud";
 import Alerts from "./pages/Alerts";
@@ -68,6 +69,7 @@ function groups(t: (k: string) => string): { title: string; items: Item[] }[] {
       title: "Payments",
       items: [
         { to: "/verify", icon: "🧾", label: t("nav.scan") === "nav.scan" ? "Verify a payment" : "Verify a payment" },
+        { to: "/image-to-text", icon: "🔤", label: t("nav.imageToText") === "nav.imageToText" ? "Image to text" : t("nav.imageToText") },
         { to: "/queue", icon: "📥", label: "Review queue", min: "reviewer", badge: <Count queryKey="queue-count" path="/review/queue" /> },
         { to: "/fraud", icon: "🛡️", label: "Suspected fakes", min: "reviewer", badge: <Count queryKey="fraud-summary" path="/fraud/alerts/summary" pick={(d) => d.open_high ?? 0} /> },
         { to: "/credits", icon: "🏦", label: "Bank credits", min: "reviewer" },
@@ -98,6 +100,7 @@ const TITLES: [string, string][] = [
   ["/kyc/review", "ID checks"],
   ["/kyc", "Verify an ID"],
   ["/verify", "Verify a payment"],
+  ["/image-to-text", "Image to text"],
   ["/queue", "Review queue"],
   ["/claims", "Claim"],
   ["/fraud", "Suspected fakes"],
@@ -269,6 +272,7 @@ void ensureSession()
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/verify" element={<Scan />} />
+                    <Route path="/image-to-text" element={<ImageToText />} />
                     <Route path="/queue" element={<Queue />} />
                     <Route path="/claims/:id" element={<ClaimReview />} />
                     <Route path="/credits" element={<Credits />} />

@@ -192,6 +192,16 @@ class AllocationOut(Out):
     created_at: datetime
 
 
+class LedgerEntryOut(AllocationOut):
+    """One ledger row of an obligation plus the credit it drew on, so a host system can mirror
+    the ledger one-to-one. `amount_minor` is always positive; `kind` says which way it moved."""
+
+    provider: str
+    provider_txn_id: str
+    credit_occurred_at: datetime
+    reason: str | None
+
+
 class ShadowProposalOut(Out):
     """Advisory proposal from shadow mode (blueprint phase 4): a human still decides."""
 

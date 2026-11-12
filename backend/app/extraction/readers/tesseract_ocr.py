@@ -36,14 +36,14 @@ class TesseractReader:
 
         return f"tesseract:{pytesseract.get_tesseract_version()}"
 
-    def words(self, image: Image.Image) -> tuple[list[Word], str, tuple[int, int]]:
+    def words(self, image: Image.Image, psm: int = 6) -> tuple[list[Word], str, tuple[int, int]]:
         import pytesseract
 
         prepared = preprocess.for_ocr(image)
         data = pytesseract.image_to_data(
             prepared,
             lang=get_settings().ocr_languages,
-            config="--psm 6",
+            config=f"--psm {psm}",
             output_type=pytesseract.Output.DICT,
         )
         words: list[Word] = []
@@ -67,6 +67,16 @@ class TesseractReader:
             conf = (sum(x.conf for x in hits) / len(hits) / 100) if hits else 0.6
             out[name] = FieldReading(name, value, round(conf, 3), _region(hits, w, h))
         return out
+
+    def transcribe(self, image: Image.Image, raw: bytes = b"") -> tuple[str, float | None]:
+        """Plain text for the image-to-text converter (the claim pipeline uses `read`)."""
+        # PSM 3 lets Tesseract find mixed layouts (a screenshot with a header, a table and a
+        # footer); the field reader keeps PSM 6, which suits one receipt block.
+        words, text, _ = self.words(image, psm=3)
+        if not words:
+            return text.strip(), None
+        confidence = sum(max(0.0, word.conf) for word in words) / len(words) / 100
+        return text.strip(), round(min(1.0, confidence), 3)
 
 
 def _tokens(value: str) -> list[str]:

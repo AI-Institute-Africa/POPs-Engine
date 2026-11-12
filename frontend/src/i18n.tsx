@@ -112,6 +112,7 @@ const ND: Record<string, string> = {
 
 const EN: Record<string, string> = {
   "nav.scan": "Scan",
+  "nav.imageToText": "Image to text",
   "nav.guardrails": "Guardrails",
   "hero.title": "Verify a payment",
   "hero.sub":
