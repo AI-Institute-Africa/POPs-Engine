@@ -14,8 +14,6 @@ export type Persona = {
   initials: string;
 };
 
-export const ORG_NAME = "Demo Academy";
-
 export const PERSONAS: Record<PersonaKey, Persona> = {
   payer: {
     key: "payer",

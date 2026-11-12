@@ -1,6 +1,6 @@
 // Thin typed client for the POPs Engine API. The server is authoritative for every permission.
 
-import { ORG_NAME, PERSONAS, PERSONA_LIST, type Persona, type PersonaKey } from "./personas";
+import { PERSONAS, PERSONA_LIST, type Persona, type PersonaKey } from "./personas";
 
 export const API = import.meta.env.VITE_API_BASE ?? "/api";
 
@@ -211,7 +211,7 @@ export async function ensureSession(): Promise<boolean> {
   if (token() && !forced) return true;
   try {
     const id = devIdentity();
-    const r = await post<{ access_token: string; role: string }>("/auth/dev-login", { ...id, org_name: ORG_NAME });
+    const r = await post<{ access_token: string; role: string }>("/auth/dev-login", id);
     setSession(r.access_token, r.role);
     const persona = PERSONA_LIST.find((p) => p.email === id.email);
     if (persona) store()?.setItem(PERSONA_KEY, persona.key);

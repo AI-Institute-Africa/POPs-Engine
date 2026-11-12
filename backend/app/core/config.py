@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="POPS_", env_file=".env", extra="ignore")
 
     env: Literal["dev", "test", "prod"] = "prod"
+    # the organisation POST /auth/dev-login uses when the caller names none (dev and test only), so
+    # the console and the seed scripts land in the same organisation
+    dev_org_name: str = "Cognify"
     # standalone demo (`python -m app.demo`): mounts /demo (scenarios, samples, reset) and
     # simulated readers. Never for production: startup refuses it.
     demo: bool = False

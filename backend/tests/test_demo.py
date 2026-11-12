@@ -288,3 +288,22 @@ def test_server_without_a_built_console_says_how_to_build_it():
     c = TestClient(build(None))
     assert "npm" in c.get("/").json()["message"]
     assert c.get("/api/health").status_code == 200
+
+
+def test_dev_login_without_an_org_uses_the_configured_default(client, session, monkeypatch):
+    """The console names no organisation, so seed scripts and the console must share one."""
+    from app.models import Organisation
+
+    monkeypatch.setattr(get_settings(), "dev_org_name", "Some Academy")
+    r = client.post("/auth/dev-login", json={"email": "who@example.com", "role": "admin"})
+    assert r.status_code == 200
+    me = client.get("/me", headers={"Authorization": f"Bearer {r.json()['access_token']}"}).json()
+    assert me["org_id"] == str(r.json()["org_id"])
+    session.expire_all()
+    assert (
+        session.scalar(select(Organisation.name).where(Organisation.org_id == r.json()["org_id"]))
+        == "Some Academy"
+    )
+    # an explicit org still wins
+    r2 = client.post("/auth/dev-login", json={"email": "x@example.com", "org_name": "Other"})
+    assert r2.status_code == 200 and r2.json()["org_id"] != r.json()["org_id"]
