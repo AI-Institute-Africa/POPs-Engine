@@ -1,12 +1,33 @@
-# POPs Engine
+# Validate (POPs Engine)
 
-Proof-of-payment (POP) verification and billing engine for Cognify. It is built from
+**Know that a payment, or a person, is real.** Validate verifies proofs of payment and identity
+documents, approves the clear cases on its own and hands everything doubtful to a person with the
+reasons laid out. It ships as a standalone app with a console and an API (see
+[Try it in one command](#try-it-in-one-command)) and can also run as the verification engine behind
+another product, such as the Cognify learning platform it was first built for. It is built from
 [`docs/blueprint-v1.1.md`](docs/blueprint-v1.1.md).
 
 A receipt is a claim, never a confirmation. The engine reads any uploaded POP as untrusted
 evidence. It confirms money only from the recipient's side (bank statements, alerts, gateway
 callbacks, attested manual credits), and lets deterministic rules and a constrained ledger, not
 AI, decide what can be approved.
+
+## Try it in one command
+
+Validate runs as a **standalone demo**: the whole product (API and console) in one process, with no
+Docker, no database to install and no accounts. Everything on screen is synthetic.
+
+```bash
+python3 -m venv .venv && . .venv/bin/activate
+pip install -e "backend[demo]"      # includes a private PostgreSQL; needs Python 3.12+ and Node 18+
+python -m app.demo                  # run from backend/; builds the console on first run, opens http://localhost:8000
+```
+
+You land on a guided tour of six short stories (an approved payment, a receipt that waits for the
+money, an edited receipt caught against the bank record, an ID verified in seconds, someone else's
+selfie, an edited passport). Each one runs the real product and explains what happened. Then step into
+the payer's, reviewer's, approver's or administrator's seat from the menu at the top right, try your
+own samples, and press **Reset demo data** to start over. See [`docs/demo.md`](docs/demo.md).
 
 By default every allocation needs a finance reviewer, and the reviewer can only confirm a credit
 that passes every hard gate. Four optional features are **off until an organisation's payment

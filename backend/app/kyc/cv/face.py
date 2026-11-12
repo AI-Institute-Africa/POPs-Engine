@@ -148,6 +148,10 @@ def build_matcher() -> FaceMatcher:
     backend = get_settings().kyc_face_backend
     if backend == "fake":
         return FakeFaceMatcher()
+    if backend == "demo":
+        from app.demo.sim import DemoFaceMatcher
+
+        return DemoFaceMatcher()
     if backend == "onnx":
         return OnnxFaceMatcher()
     raise FaceUnavailable("face matching is not configured (POPS_KYC_FACE_BACKEND=none)")

@@ -37,6 +37,10 @@ def create_app() -> FastAPI:
     app.include_router(alerts_router)
     app.include_router(whatsapp_router)
     app.include_router(kyc_router)
+    if settings.demo and settings.is_dev:
+        from app.demo.api import router as demo_router
+
+        app.include_router(demo_router)
 
     @app.get("/health", tags=["ops"])
     def health() -> dict:

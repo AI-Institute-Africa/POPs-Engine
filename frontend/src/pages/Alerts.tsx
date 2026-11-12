@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api, hasRole, money, post } from "../api";
+import { humanize } from "../labels";
+import { Chip, EmptyState, Loading, PageHeader } from "../ui";
+import { agoText } from "./Queue";
+import "./review.css";
 
 type Source = {
   source_id: string;
@@ -25,6 +29,10 @@ type Message = {
   body: string;
   received_at: string;
   parsed: { amount_minor?: number; currency?: string; reference?: string; payer?: string; template?: string } | null;
+};
+
+const STATUS_TONE: Record<string, "ok" | "bad" | "warn" | "neutral"> = {
+  credited: "ok", conflict: "bad", rejected: "bad", unparsed: "warn", duplicate: "neutral", ignored: "neutral",
 };
 
 const STATUS_HELP: Record<string, string> = {
@@ -85,12 +93,15 @@ export default function Alerts() {
   const deactivate = useMutation({ mutationFn: (id: string) => post(`/alerts/sources/${id}/deactivate`, {}), onSuccess: refresh });
 
   return (
-    <section>
+    <section className="rv">
+      <PageHeader
+        title="Payment alerts"
+        sub="Your own credit notifications confirm payments within seconds and are the strongest defence against fake receipts. Only registered sources are accepted."
+      />
       <div className="card">
-        <h2>Payment alert sources</h2>
-        <p className="muted small">
-          Your own credit notifications — SMS on the merchant phone and alert emails from banks — confirm payments within seconds and are the strongest
-          defence against fake receipts. Only registered sources, from allowed senders (and DKIM-signed for email), are accepted.
+        <h2>Alert sources</h2>
+        <p className="rv-help">
+          SMS on the merchant phone and alert emails from banks. Only registered sources, from allowed senders (and DKIM-signed for email), are accepted.
         </p>
         {newKey?.key && (
           <div className="flash">
@@ -102,63 +113,89 @@ export default function Alerts() {
             </div>
           </div>
         )}
-        <table>
-          <thead><tr><th>Source</th><th>Kind</th><th>Provider → account</th><th>Allowed senders</th><th>Last check-in</th><th></th></tr></thead>
-          <tbody>
-            {sources.data?.map((s) => (
-              <tr key={s.source_id} className={s.active ? "" : "muted"}>
-                <td><strong>{s.name}</strong></td>
-                <td>{s.kind}{s.kind === "email" && s.require_dkim ? " · DKIM" : ""}</td>
-                <td>{s.provider} → {s.account_alias}</td>
-                <td className="small">{s.allowed_senders.join(", ") || "any"}</td>
-                <td>
-                  {!s.active ? "deactivated" : s.last_seen_at ? new Date(s.last_seen_at).toLocaleString() : "never"}
-                  {s.active && s.stale && <span className="badge risk-high">silent</span>}
-                </td>
-                <td>
-                  {admin && s.active && (
-                    <span className="actions-right">
-                      <button className="ghost small" onClick={() => rotate.mutate(s.source_id)}>Rotate key</button>
-                      <button className="danger small" onClick={() => window.confirm(`Deactivate ${s.name}?`) && deactivate.mutate(s.source_id)}>Deactivate</button>
-                    </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {sources.data?.length === 0 && <tr><td colSpan={6} className="muted">No sources yet.</td></tr>}
-          </tbody>
-        </table>
-        {admin && <NewSource onCreated={(s) => { setNewKey(s); refresh(); }} />}
+        {sources.isLoading && <Loading lines={2} />}
+        {sources.error && <p className="error">{(sources.error as Error).message}</p>}
+        {sources.data?.length === 0 && <div className="rv-inline-empty">No sources yet. {admin ? "Register one below." : "An admin can register one."}</div>}
+        {!!sources.data?.length && (
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Source</th><th>Kind</th><th>Provider → account</th><th>Allowed senders</th><th>Last check-in</th><th></th></tr></thead>
+              <tbody>
+                {sources.data.map((s) => (
+                  <tr key={s.source_id} className={s.active ? "" : "rv-muted-row"}>
+                    <td><strong>{s.name}</strong></td>
+                    <td>{s.kind === "sms" ? "SMS" : "Email"}{s.kind === "email" && s.require_dkim ? " · DKIM" : ""}</td>
+                    <td>{s.provider} → {s.account_alias}</td>
+                    <td className="small">{s.allowed_senders.join(", ") || "any"}</td>
+                    <td>
+                      {!s.active ? (
+                        <Chip tone="neutral">Deactivated</Chip>
+                      ) : s.last_seen_at ? (
+                        <span title={new Date(s.last_seen_at).toLocaleString()}>{agoText(s.last_seen_at)}</span>
+                      ) : (
+                        <Chip tone="warn">Never checked in</Chip>
+                      )}{" "}
+                      {s.active && s.stale && <Chip tone="bad" title="No heartbeat for a while: the phone or mailbox may be offline">Silent</Chip>}
+                    </td>
+                    <td>
+                      {admin && s.active && (
+                        <span className="rv-row-actions">
+                          <button className="ghost small" onClick={() => rotate.mutate(s.source_id)}>Rotate key</button>
+                          <button className="danger small" onClick={() => window.confirm(`Deactivate ${s.name}?`) && deactivate.mutate(s.source_id)}>Deactivate</button>
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {admin && (
+          <div className="rv-sources-add">
+            <h3>Register a source</h3>
+            <NewSource onCreated={(s) => { setNewKey(s); refresh(); }} />
+          </div>
+        )}
       </div>
 
       <div className="card">
-        <div className="toolbar">
+        <div className="rv-card-head">
           <h2>Alerts received</h2>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status">
+          <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status" style={{ width: "auto" }}>
             <option value="">All</option>
-            {Object.keys(STATUS_HELP).map((k) => <option key={k} value={k}>{k}</option>)}
+            {Object.keys(STATUS_HELP).map((k) => <option key={k} value={k}>{humanize(k)}</option>)}
           </select>
         </div>
-        <table>
-          <thead><tr><th>Received</th><th>Status</th><th>From</th><th>Read as</th><th>Message</th></tr></thead>
-          <tbody>
-            {messages.data?.map((m) => (
-              <tr key={m.message_id}>
-                <td className="small">{new Date(m.received_at).toLocaleString()}</td>
-                <td>
-                  <span className={`badge ${m.status === "credited" ? "tier-green" : m.status === "conflict" || m.status === "rejected" ? "risk-high" : ""}`}>{m.status}</span>
-                  <div className="muted small">{m.reason ?? STATUS_HELP[m.status]}</div>
-                </td>
-                <td className="small">{m.sender}</td>
-                <td className="small">
-                  {m.parsed?.amount_minor != null && money(m.parsed.amount_minor, m.parsed.currency)} {m.parsed?.reference && <code>{m.parsed.reference}</code>}
-                  {m.parsed?.payer && <div className="muted">{m.parsed.payer}</div>}
-                </td>
-                <td className="small reasons">{m.subject && <strong>{m.subject} — </strong>}{m.body}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {messages.isLoading && <Loading lines={3} />}
+        {messages.error && <p className="error">{(messages.error as Error).message}</p>}
+        {messages.data?.length === 0 && (
+          <EmptyState icon="🔔" title="No alerts received">When a registered phone or mailbox forwards a payment notification it appears here. Run a story from Home to fill this.</EmptyState>
+        )}
+        {!!messages.data?.length && (
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Received</th><th>What happened</th><th>From</th><th>Read as</th><th>Message</th></tr></thead>
+              <tbody>
+                {messages.data.map((m) => (
+                  <tr key={m.message_id}>
+                    <td className="small"><span title={new Date(m.received_at).toLocaleString()}>{agoText(m.received_at)}</span></td>
+                    <td>
+                      <Chip tone={STATUS_TONE[m.status] ?? "neutral"}>{humanize(m.status)}</Chip>
+                      <div className="muted small">{STATUS_HELP[m.status] ?? ""}{m.reason ? ` (${m.reason})` : ""}</div>
+                    </td>
+                    <td className="small">{m.sender}</td>
+                    <td className="small">
+                      {m.parsed?.amount_minor != null && money(m.parsed.amount_minor, m.parsed.currency)} {m.parsed?.reference && <code>{m.parsed.reference}</code>}
+                      {m.parsed?.payer && <div className="muted">{m.parsed.payer}</div>}
+                    </td>
+                    <td className="small reasons">{m.subject && <strong>{m.subject} — </strong>}{m.body}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </section>
   );

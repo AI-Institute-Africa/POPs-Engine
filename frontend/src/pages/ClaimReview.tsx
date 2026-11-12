@@ -2,9 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { API, api, Candidate, Claim, Field, hasRole, money, post, ReviewDetail } from "../api";
+import { humanize, stateInfo } from "../labels";
 import { useToast } from "../toast";
-import { StateBadge, TierBadge } from "./Queue";
+import { Chip, Loading, Reasons, StateChip } from "../ui";
+import { agoText, EvidenceChip, TierBadge } from "./Queue";
 import { RiskBadge, SignalList } from "./Fraud";
+import "./review.css";
 
 const REJECT_REASONS = [
   "PAYMENT_NOT_RECEIVED",
@@ -94,38 +97,39 @@ function Fields({ detail, onHover, claimId }: { detail: ReviewDetail; onHover: (
   detail.fields.forEach((f) => latest.set(f.name, f));
   return (
     <div className="card">
-      <h3>Extracted fields</h3>
-      <table className="fields">
-        <tbody>
-          {[...latest.values()].map((f) => (
-            <tr key={f.field_id} onMouseEnter={() => onHover(f.name)} onMouseLeave={() => onHover(null)}>
-              <th>{f.name}</th>
-              <td className={f.agreed ? "" : "warn-text"}>
-                {displayValue(f)}
-                {f.raw_value && f.raw_value !== displayValue(f) && <span className="muted small"> ({f.raw_value})</span>}
-              </td>
-              <td className="small muted">
-                {f.corrected_by ? `corrected: ${f.correction_reason}` : `${f.extractor} · ${Math.round(f.confidence * 100)}%`}
-              </td>
-              <td>{f.agreed ? "✓" : <span className="badge tier-amber">check</span>}</td>
-              <td>
-                <button className="ghost small" onClick={() => { setEditing(f.name); setValue(f.raw_value ?? ""); setReason(""); }}>
-                  Correct
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h3>What was read from the receipt</h3>
+      <p className="rv-help">Hover a row to highlight where it was found on the image. Fix anything the readers got wrong; the claim is re-checked.</p>
+      <div className="rv-fields">
+        {[...latest.values()].map((f) => (
+          <div key={f.field_id} className="rv-field" onMouseEnter={() => onHover(f.name)} onMouseLeave={() => onHover(null)}>
+            <span className="k" title={f.name}>{humanize(f.name)}</span>
+            <span className={`v ${f.agreed ? "" : "warn-text"}`}>
+              {displayValue(f)}
+              {f.raw_value && f.raw_value !== displayValue(f) && <span className="muted small"> ({f.raw_value})</span>}
+            </span>
+            <span className="src">
+              {f.agreed ? <Chip tone="ok">Readers agree</Chip> : <Chip tone="warn">Check this</Chip>}
+              {f.corrected_by ? `corrected: ${f.correction_reason}` : `${f.extractor} · ${Math.round(f.confidence * 100)}% sure`}
+            </span>
+            <span className="act">
+              <button className="ghost small" onClick={() => { setEditing(f.name); setValue(f.raw_value ?? ""); setReason(""); }}>
+                Correct
+              </button>
+            </span>
+          </div>
+        ))}
+      </div>
       {editing && (
-        <form className="inline" onSubmit={(e) => { e.preventDefault(); correct.mutate(); }}>
-          <strong>{editing}</strong>
-          <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Value as printed" />
-          <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (required)" />
-          <button disabled={reason.length < 3}>Save</button>
-          <button type="button" className="ghost" onClick={() => setEditing(null)}>Cancel</button>
-          {correct.error && <span className="error">{(correct.error as Error).message}</span>}
-        </form>
+        <div className="rv-edit">
+          <strong>Correct “{humanize(editing)}”</strong>
+          <form className="inline" onSubmit={(e) => { e.preventDefault(); correct.mutate(); }}>
+            <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Value as printed" aria-label="Value as printed" />
+            <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (required)" aria-label="Reason for the correction" />
+            <button disabled={reason.length < 3}>Save</button>
+            <button type="button" className="ghost" onClick={() => setEditing(null)}>Cancel</button>
+            {correct.error && <span className="error">{(correct.error as Error).message}</span>}
+          </form>
+        </div>
       )}
     </div>
   );
@@ -133,18 +137,25 @@ function Fields({ detail, onHover, claimId }: { detail: ReviewDetail; onHover: (
 
 function CandidateCard({ c, selected, onSelect, index }: { c: Candidate; selected: boolean; onSelect: () => void; index: number }) {
   return (
-    <div className={`candidate ${selected ? "selected" : ""} ${c.passed ? "" : "failed"}`} onClick={onSelect}>
+    <div
+      className={`candidate ${selected ? "selected" : ""} ${c.passed ? "" : "failed"}`}
+      onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
+    >
       <div className="row">
         <span className="kbd">{index + 1}</span>
         <strong>{money(c.credit.amount_minor, c.credit.currency)}</strong>
         <span>{c.credit.provider} · {c.credit.provider_txn_id}</span>
         <span className="muted">{new Date(c.credit.occurred_at).toLocaleString()}</span>
-        <span className="badge">{c.credit.source}</span>
-        <span className="muted">score {c.score.toFixed(2)}</span>
+        <Chip tone={c.passed ? "ok" : "bad"}>{c.passed ? "Can be confirmed" : "Fails a check"}</Chip>
+        {selected && <span className="pick">Selected</span>}
       </div>
       <div className="muted small">
         {c.credit.payer ?? "unknown payer"} · {c.credit.narrative ?? ""} · available{" "}
-        {money(c.credit.available_minor, c.credit.currency)}
+        {money(c.credit.available_minor, c.credit.currency)} · from {c.credit.source} · match score {c.score.toFixed(2)}
       </div>
       {!c.passed && c.near_miss && (
         <div className="warn-text small">
@@ -155,12 +166,33 @@ function CandidateCard({ c, selected, onSelect, index }: { c: Candidate; selecte
       <div className="gates">
         {c.gates.map((g) => (
           <span key={g.name} className={`chip ${g.passed ? "pass" : "fail"}`} title={g.detail}>
-            {g.passed ? "✓" : "✗"} {g.name}
+            {g.passed ? "✓" : "✗"} {humanize(g.name)}
           </span>
         ))}
       </div>
     </div>
   );
+}
+
+// What should the reviewer do next? Plain words, derived from what is already on screen.
+function nextStep(d: ReviewDetail, selected: number, reviewable: boolean): { icon: string; tone: "ok" | "warn" | "bad" | "info"; text: string; jump?: boolean } {
+  const c = d.claim;
+  if (c.state === "APPROVED") return { icon: "✓", tone: "ok", text: "Approved and the invoice is paid. Nothing more to do. If it was wrong, reverse the allocation in the history below." };
+  if (c.state === "REJECTED") return { icon: "✕", tone: "bad", text: "This claim was rejected. No further action." };
+  if (c.state === "NEEDS_INFORMATION") return { icon: "…", tone: "warn", text: "Waiting for the payer to send a clearer photo. It comes back to you automatically." };
+  if (!reviewable) return { icon: "i", tone: "info", text: `No decision is pending (${stateInfo(c.state).label.toLowerCase()}).` };
+  if (c.reason_codes.includes("SUSPECTED_FAKE"))
+    return { icon: "!", tone: "bad", text: "Suspected fake. An administrator has to rule on it under Suspected fakes before it can be confirmed." };
+  if (c.state === "DUPLICATE_HOLD")
+    return { icon: "!", tone: "bad", text: d.related_claims.length ? "The same proof was used before. Open the earlier claim, then reject this one if it is a repeat." : "The same proof was used before. Check the earlier use, then reject it if it is a repeat.", jump: true };
+  if (d.candidates.length === 0)
+    return { icon: "…", tone: "warn", text: "No bank credit found yet. Import a statement or wait for a payment alert. Do not approve on the receipt alone.", jump: true };
+  const cand = d.candidates[selected];
+  if (cand?.passed)
+    return { icon: "→", tone: "info", text: `Confirm credit ${selected + 1} (${money(cand.credit.amount_minor, cand.credit.currency)}): look up the transaction ID at the source, not on the receipt, and type its last 4 characters.`, jump: true };
+  if (d.candidates.some((x) => x.passed))
+    return { icon: "→", tone: "info", text: "Credit " + (d.candidates.findIndex((x) => x.passed) + 1) + " passes every check. Select it, then confirm.", jump: true };
+  return { icon: "!", tone: "warn", text: "No credit passes every check. Compare the candidates, correct anything the readers misread, or reject / ask the payer for more.", jump: true };
 }
 
 export default function ClaimReview() {
@@ -225,50 +257,90 @@ export default function ClaimReview() {
   }, [nextId, nav, q.data]);
   useEffect(() => { setSelected(0); }, [id]);
 
-  if (q.isLoading) return <p>Loading…</p>;
-  if (q.error) return <p className="error">{(q.error as Error).message}</p>;
+  if (q.isLoading) return <section className="rv"><Loading lines={6} /></section>;
+  if (q.error) return <section className="rv"><p className="error">{(q.error as Error).message}</p></section>;
   const d = q.data!;
   const c = d.claim;
   const reviewable = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"].includes(c.state);
   const err = (confirm.error ?? reject.error ?? requestInfo.error ?? reverse.error) as Error | null;
 
+  const step = nextStep(d, selected, reviewable);
+  const tone = stateInfo(c.state).tone;
+  const needsText = c.reason_codes.length
+    ? null
+    : reviewable
+      ? "No problems recorded. It is here for a person to confirm the money."
+      : "Nothing is blocking this claim.";
+  const goDecision = () => document.getElementById("decision")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   return (
-    <section>
-      <div className="toolbar">
-        <Link to="/queue">← Queue</Link>
-        <h2>Claim {c.claim_id.slice(0, 8)}</h2>
-        <StateBadge state={c.state} />
-        <TierBadge tier={c.approval_tier} />
-        <span className="badge">{c.evidence_tier}</span>
-        <RiskBadge level={c.risk_level} score={c.risk_score} />
-        <span className="muted small">keys: 1-9 pick credit · c confirm · n next</span>
+    <section className="rv">
+      <div className="rv-topbar">
+        <Link to="/queue">← Review queue</Link>
+        <span className="rv-keys">
+          Shortcuts: 1-9 pick a credit · c to confirm · n for the next claim
+          {nextId && <> · <Link to={`/claims/${nextId}`}>Next claim →</Link></>}
+        </span>
       </div>
-      {err && <p className="error">{err.message}</p>}
+
+      <div className={`card rv-summary rv-tone-${tone}`}>
+        <div className="rv-sum-top">
+          <div>
+            <div className="rv-eyebrow">Claim <span className="rv-code">{c.claim_id.slice(0, 8)}</span></div>
+            <h1 className="rv-amount">{c.declared_amount_minor == null ? "No amount typed" : money(c.declared_amount_minor, c.declared_currency)}</h1>
+            <div className="muted">
+              declared by <strong>{c.claimant_ref}</strong> via {c.channel} · <span title={new Date(c.created_at).toLocaleString()}>{agoText(c.created_at)}</span>
+            </div>
+          </div>
+          <div className="rv-chips">
+            <StateChip state={c.state} />
+            <TierBadge tier={c.approval_tier} />
+            <EvidenceChip tier={c.evidence_tier} />
+            <RiskBadge level={c.risk_level} score={c.risk_score} />
+          </div>
+        </div>
+
+        <dl className="rv-facts">
+          <div><dt>Invoice</dt><dd>{d.obligation.description || d.obligation.type}</dd></div>
+          <div><dt>For</dt><dd>{d.obligation.learner_ref}</dd></div>
+          <div>
+            <dt>Still to pay</dt>
+            <dd>
+              {money(d.balance.outstanding_minor, d.balance.currency)} <span className="muted small">of {money(d.balance.amount_minor, d.balance.currency)} ({humanize(d.balance.payment_status).toLowerCase()})</span>
+            </dd>
+          </div>
+          <div><dt>Payment code</dt><dd><code>{d.obligation.payment_code}</code></dd></div>
+          <div><dt>Reference they gave</dt><dd>{c.declared_reference ?? "—"}</dd></div>
+          {d.related_claims.length > 0 && (
+            <div><dt>Same file in</dt><dd>{d.related_claims.map((r) => <Link key={r} to={`/claims/${r}`}>{r.slice(0, 8)} </Link>)}</dd></div>
+          )}
+        </dl>
+
+        <div className="rv-sum-why">
+          <h3>Why it needs a person</h3>
+          {needsText ? <p className="muted small" style={{ margin: 0 }}>{needsText}</p> : <Reasons codes={c.reason_codes} />}
+        </div>
+
+        <div className={`rv-next rv-tone-${step.tone}`}>
+          <span className="ico" aria-hidden>{step.icon}</span>
+          <div className="body">
+            <div className="lbl">Suggested next step</div>
+            <p>{step.text}</p>
+            {step.jump && reviewable && (
+              <button type="button" className="secondary small go" onClick={goDecision}>Go to the decision</button>
+            )}
+            {c.reason_codes.includes("SUSPECTED_FAKE") && <p className="small"><Link to="/fraud">Open Suspected fakes</Link></p>}
+          </div>
+        </div>
+      </div>
+
+      {err && !reviewable && <p className="error" role="alert">{err.message}</p>}
       <div className="split">
         <EvidenceViewer detail={d} hover={hover} />
         <div className="stack">
-          <div className="card">
-            <h3>Claim</h3>
-            <dl>
-              <dt>Obligation</dt>
-              <dd>{d.obligation.description || d.obligation.type} · {d.obligation.learner_ref} · code <code>{d.obligation.payment_code}</code></dd>
-              <dt>Balance</dt>
-              <dd>{money(d.balance.paid_minor, d.balance.currency)} paid of {money(d.balance.amount_minor, d.balance.currency)} ({d.balance.payment_status})</dd>
-              <dt>Declared</dt>
-              <dd>{money(c.declared_amount_minor, c.declared_currency)} · ref {c.declared_reference ?? "—"} · {c.channel}</dd>
-              <dt>Reasons</dt>
-              <dd>{c.reason_codes.length ? c.reason_codes.join(", ") : "none"}</dd>
-              {d.related_claims.length > 0 && (
-                <>
-                  <dt>Same file in</dt>
-                  <dd>{d.related_claims.map((r) => <Link key={r} to={`/claims/${r}`}>{r.slice(0, 8)} </Link>)}</dd>
-                </>
-              )}
-            </dl>
-          </div>
           {c.risk_signals.length > 0 && (
             <div className={`card risk-card risk-${c.risk_level}`}>
-              <h3>Fake-POP risk: {c.risk_score}/100</h3>
+              <h3>Fake-receipt risk: {c.risk_score}/100</h3>
               {c.reason_codes.includes("SUSPECTED_FAKE") && (
                 <p className="error small">
                   Suspected fake: an admin must decide under <Link to="/fraud">Suspected fakes</Link> before this claim can be confirmed.
@@ -282,7 +354,8 @@ export default function ClaimReview() {
           )}
           <Fields detail={d} onHover={setHover} claimId={id} />
           <div className="card">
-            <h3>Candidate credits</h3>
+            <h3>Credits that could match</h3>
+            <p className="rv-help">Money that arrived in the bank or merchant record. Pick the one that belongs to this payment; only a credit that passes every check can be confirmed.</p>
             {d.candidates.length === 0 && <p className="muted">No credit found yet. Import a statement or wait for the alert.</p>}
             {d.candidates.map((cand, i) => (
               <CandidateCard key={cand.credit.credit_id} c={cand} index={i} selected={i === selected} onSelect={() => setSelected(i)} />
@@ -295,7 +368,7 @@ export default function ClaimReview() {
               <ul className="history">
                 {d.shadow_proposals.map((sp) => (
                   <li key={sp.proposal_id}>
-                    <strong>{sp.proposed_outcome}</strong> <span className="muted small">{sp.proposer} · confidence {sp.confidence.toFixed(2)}</span>{" "}
+                    <strong>{humanize(sp.proposed_outcome)}</strong> <span className="muted small">{sp.proposer} · confidence {sp.confidence.toFixed(2)}</span>{" "}
                     {sp.rationale}
                   </li>
                 ))}
@@ -303,50 +376,68 @@ export default function ClaimReview() {
             </div>
           )}
           {reviewable && (
-            <div className="card actions">
-              <h3>Decision</h3>
-              <form className="inline" onSubmit={(e) => { e.preventDefault(); confirm.mutate(); }}>
-                <input ref={last4Ref} value={last4} maxLength={4} onChange={(e) => setLast4(e.target.value)}
-                  placeholder="Last 4 of txn ID (from source)" aria-label="Last four characters of transaction ID" />
-                <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional)" />
-                <button disabled={last4.length !== 4 || !d.candidates[selected]?.passed || confirm.isPending}>
-                  Confirm credit {selected + 1}
-                </button>
-              </form>
-              <form className="inline" onSubmit={(e) => { e.preventDefault(); reject.mutate(); }}>
-                <select value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} aria-label="Reject reason">
-                  {REJECT_REASONS.map((r) => <option key={r}>{r}</option>)}
-                </select>
-                <button className="danger">Reject</button>
-              </form>
-              <form className="inline" onSubmit={(e) => { e.preventDefault(); requestInfo.mutate(); }}>
-                <input value={infoMsg} onChange={(e) => setInfoMsg(e.target.value)} placeholder="Message to payer" />
-                <button className="ghost" disabled={infoMsg.length < 3}>Request info</button>
-              </form>
+            <div className="card actions" id="decision">
+              <h3>Your decision</h3>
+              {err && <p className="error" role="alert">{err.message}</p>}
+              <div className="rv-decide">
+                <div className="rv-action primary">
+                  <h4>Confirm the money</h4>
+                  <p className="rv-help">Look up the transaction ID at the source (bank app or merchant portal), not on the receipt, and type its last 4 characters.</p>
+                  <form className="inline" onSubmit={(e) => { e.preventDefault(); confirm.mutate(); }}>
+                    <input ref={last4Ref} value={last4} maxLength={4} onChange={(e) => setLast4(e.target.value)}
+                      placeholder="Last 4 of txn ID (from source)" aria-label="Last four characters of transaction ID" />
+                    <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional)" aria-label="Note" />
+                    <button disabled={last4.length !== 4 || !d.candidates[selected]?.passed || confirm.isPending}>
+                      Confirm credit {selected + 1}
+                    </button>
+                  </form>
+                </div>
+                <div className="rv-action danger">
+                  <h4>Reject</h4>
+                  <p className="rv-help">Declines this claim. The reason you pick goes in the audit trail.</p>
+                  <form className="inline" onSubmit={(e) => { e.preventDefault(); reject.mutate(); }}>
+                    <select value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} aria-label="Reject reason">
+                      {REJECT_REASONS.map((r) => <option key={r} value={r}>{humanize(r)}</option>)}
+                    </select>
+                    <button className="danger">Reject</button>
+                  </form>
+                </div>
+                <div className="rv-action">
+                  <h4>Ask the payer for more</h4>
+                  <p className="rv-help">For a blurry photo or a missing detail. Your message is sent to the payer.</p>
+                  <form className="inline" onSubmit={(e) => { e.preventDefault(); requestInfo.mutate(); }}>
+                    <input value={infoMsg} onChange={(e) => setInfoMsg(e.target.value)} placeholder="Message to payer" aria-label="Message to payer" />
+                    <button className="ghost" disabled={infoMsg.length < 3}>Request info</button>
+                  </form>
+                </div>
+              </div>
             </div>
           )}
           <div className="card">
-            <h3>History</h3>
-            <ul className="history">
+            <h3>Audit trail</h3>
+            <ul className="rv-history">
               {d.decisions.map((x) => (
                 <li key={x.decision_id}>
-                  <span className="muted small">{new Date(x.created_at).toLocaleString()}</span> <strong>{x.outcome}</strong> by {x.actor_id}{" "}
-                  <span className="muted small">policy {x.policy_version}</span> {x.reason_codes.join(", ")} {x.note && `— ${x.note}`}
+                  <div className="what">{humanize(x.outcome)} <span className="muted small" style={{ fontWeight: 400 }}>by {x.actor_id}</span></div>
+                  <div className="when">{new Date(x.created_at).toLocaleString()} · policy {x.policy_version}</div>
+                  {x.reason_codes.length > 0 && <Reasons codes={x.reason_codes} />}
+                  {x.note && <div className="note">“{x.note}”</div>}
                 </li>
               ))}
               {d.allocations.map((a) => (
                 <li key={a.allocation_id}>
-                  <strong>{a.kind}</strong> {money(a.amount_minor, a.currency)} <span className="muted small">{a.allocation_id.slice(0, 8)}</span>
+                  <div className="what">
+                    {humanize(a.kind)} {money(a.amount_minor, a.currency)} <code className="rv-code">{a.allocation_id.slice(0, 8)}</code>
+                  </div>
+                  <div className="when">{new Date(a.created_at).toLocaleString()}</div>
                   {a.kind === "allocation" && !d.allocations.some((r) => r.reverses === a.allocation_id) && (
-                    <>
-                      {" "}
-                      <button className="ghost small" disabled={!hasRole("approver") || reverse.isPending} onClick={() => reverseAllocation(a.allocation_id)}>
-                        Reverse
-                      </button>
-                    </>
+                    <button className="ghost small" style={{ marginTop: 6 }} disabled={!hasRole("approver") || reverse.isPending} onClick={() => reverseAllocation(a.allocation_id)}>
+                      Reverse
+                    </button>
                   )}
                 </li>
               ))}
+              {d.decisions.length === 0 && d.allocations.length === 0 && <li className="muted">Nothing recorded yet.</li>}
             </ul>
           </div>
         </div>

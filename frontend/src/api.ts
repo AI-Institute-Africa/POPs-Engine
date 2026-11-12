@@ -1,5 +1,7 @@
 // Thin typed client for the POPs Engine API. The server is authoritative for every permission.
 
+import { ORG_NAME, PERSONAS, PERSONA_LIST, type Persona, type PersonaKey } from "./personas";
+
 export const API = import.meta.env.VITE_API_BASE ?? "/api";
 
 export type Gate = { name: string; passed: boolean; detail: string };
@@ -173,28 +175,52 @@ export function setSession(tok: string | null, role?: string) {
   }
 }
 
-// Validate has no login screen. In dev the API exposes POST /auth/dev-login, so we
-// quietly pick up an admin token on first load and the pages simply work.
-// Dev only (the server refuses /auth/dev-login in production). Open the console with
-// `?as=approver` or `?as=approver:second@example.com` to try a different role or a second approver.
+// Validate has no login screen. In dev the API exposes POST /auth/dev-login, so we quietly sign
+// in as a persona (see personas.ts) and the pages simply work. Switch with the persona menu,
+// `?persona=reviewer`, or `?as=approver:second@example.com` for a second approver.
+// Dev only (the server refuses /auth/dev-login in production).
+const PERSONA_KEY = "pops-persona";
+
 function devIdentity(): { role: string; email: string } {
-  const as = new URLSearchParams(window.location.search).get("as");
+  const params = new URLSearchParams(window.location.search);
+  const as = params.get("as");
   if (as) {
     const [role, email] = as.split(":");
     if (role in RANK) return { role, email: email || `${role}@local.dev` };
   }
-  return { role: "admin", email: "validate@local.dev" };
+  const asked = params.get("persona");
+  const key = (asked && asked in PERSONAS ? asked : store()?.getItem(PERSONA_KEY)) || "admin";
+  const p = PERSONAS[key as PersonaKey] ?? PERSONAS.admin;
+  return { role: p.role, email: p.email };
+}
+
+export function currentPersona(): Persona {
+  const key = store()?.getItem(PERSONA_KEY) ?? "admin";
+  return PERSONAS[key as PersonaKey] ?? PERSONAS.admin;
+}
+
+export function switchPersona(key: PersonaKey, to?: string) {
+  store()?.setItem(PERSONA_KEY, key);
+  setSession(null);
+  window.location.assign(to ?? window.location.pathname);
 }
 
 export async function ensureSession(): Promise<boolean> {
-  const asRequested = new URLSearchParams(window.location.search).has("as");
-  if (token() && !asRequested) return true;
+  const params = new URLSearchParams(window.location.search);
+  const forced = params.has("as") || params.has("persona");
+  if (token() && !forced) return true;
   try {
-    const r = await post<{ access_token: string; role: string }>("/auth/dev-login", {
-      ...devIdentity(),
-      org_name: "Cognify",
-    });
+    const id = devIdentity();
+    const r = await post<{ access_token: string; role: string }>("/auth/dev-login", { ...id, org_name: ORG_NAME });
     setSession(r.access_token, r.role);
+    const persona = PERSONA_LIST.find((p) => p.email === id.email);
+    if (persona) store()?.setItem(PERSONA_KEY, persona.key);
+    if (forced) {
+      params.delete("as");
+      params.delete("persona");
+      const q = params.toString();
+      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
+    }
     return true;
   } catch {
     return false; // API offline or dev-login disabled — pages will show server errors as-is
