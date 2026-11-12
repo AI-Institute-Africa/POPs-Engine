@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     # legibility previews run the readers (the vision model costs money) before any
     # claim exists
     rate_limit_previews_per_minute: int = 20
+    # the standalone image-to-text converter runs a reader too
+    rate_limit_text_conversions_per_minute: int = 20
 
     # global kill switch for rules-based auto-approval; overrides every organisation's policy
     auto_approve_disabled: bool = False

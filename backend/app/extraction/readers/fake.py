@@ -22,6 +22,16 @@ def _chunk(raw: bytes, key: str) -> dict:
     return json.loads(text) if text else {}
 
 
+def fixture_text(raw: bytes) -> str:
+    """Plain-text fixture carried in the `pops-text` tEXt chunk (tests and demos only)."""
+    try:
+        info = Image.open(io.BytesIO(raw)).info
+    except Exception:  # noqa: BLE001
+        return ""
+    text = info.get("pops-text")
+    return text.strip() if isinstance(text, str) else ""
+
+
 def _readings(data: dict, default_conf: float) -> dict[str, FieldReading]:
     out = {}
     for name, val in data.items():
@@ -42,6 +52,9 @@ class FakeVLMReader:
     def read(self, image: Image.Image, raw: bytes) -> dict[str, FieldReading]:
         return _readings(_chunk(raw, "pops-vlm"), 0.8)
 
+    def transcribe(self, image: Image.Image, raw: bytes = b"") -> tuple[str, float | None]:
+        return fixture_text(raw), 0.99
+
 
 class FakeOCRReader:
     name = "fake_ocr"
@@ -51,3 +64,6 @@ class FakeOCRReader:
     def read(self, image: Image.Image, raw: bytes) -> dict[str, FieldReading]:
         data = _chunk(raw, "pops-ocr") or _chunk(raw, "pops-vlm")
         return _readings(data, 0.9)
+
+    def transcribe(self, image: Image.Image, raw: bytes = b"") -> tuple[str, float | None]:
+        return fixture_text(raw), 0.99

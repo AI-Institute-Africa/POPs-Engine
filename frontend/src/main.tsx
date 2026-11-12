@@ -7,6 +7,7 @@ import { I18nProvider, LANG_LABELS, useI18n, type Lang } from "./i18n";
 import { ToastProvider } from "./toast";
 import { useTheme } from "./theme";
 import Scan from "./pages/Scan";
+import ImageToText from "./pages/ImageToText";
 import Guardrails from "./pages/Guardrails";
 import Fraud from "./pages/Fraud";
 import Alerts from "./pages/Alerts";
@@ -92,6 +93,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <NavLink to="/" end>
             {t("nav.scan")}
           </NavLink>
+          <NavLink to="/image-to-text">{t("nav.imageToText")}</NavLink>
           <QueueLink />
           <FraudLink />
           <NavLink to="/credits">Credits</NavLink>
@@ -125,6 +127,7 @@ void ensureSession().finally(() =>
               <Shell>
                 <Routes>
                   <Route path="/" element={<Scan />} />
+                  <Route path="/image-to-text" element={<ImageToText />} />
                   <Route path="/queue" element={<Queue />} />
                   <Route path="/claims/:id" element={<ClaimReview />} />
                   <Route path="/credits" element={<Credits />} />

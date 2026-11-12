@@ -60,6 +60,9 @@ from app.core.security import (
 from app.credits.statements import ImportError_, import_statement, profiles
 from app.extraction import preprocess
 from app.extraction.service import build_readers, extract
+from app.extraction.transcription import TranscriptionUnavailable
+from app.extraction.transcription import transcribe as transcribe_file
+from app.guardrails.rules import active_rules, plan_readers
 from app.intake.files import RejectedFile, prepare
 from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
@@ -168,6 +171,23 @@ def _limit_previews(p: Principal) -> None:
         raise HTTPException(
             429,
             {"code": "RATE_LIMITED", "message": "too many checks; slow down"},
+            headers={"Retry-After": str(exc.retry_after)},
+        ) from exc
+
+
+def _limit_text_conversions(p: Principal) -> None:
+    try:
+        ratelimit.check(
+            "image_text",
+            str(p.user_id),
+            get_settings().rate_limit_text_conversions_per_minute,
+            60,
+        )
+    except ratelimit.RateLimited as exc:
+        obs.UPLOADS_REJECTED.labels("RATE_LIMIT_IMAGE_TEXT").inc()
+        raise HTTPException(
+            429,
+            {"code": "RATE_LIMITED", "message": "too many conversions; slow down"},
             headers={"Retry-After": str(exc.retry_after)},
         ) from exc
 
@@ -432,6 +452,84 @@ async def preview_claim_files(
     return {
         "readable": all(item["readable"] for item in files_out),
         "files": files_out,
+    }
+
+
+@router.post("/image-to-text", tags=["claims"])
+async def image_to_text(
+    db: DB,
+    p: Any_,
+    file: Annotated[UploadFile, File()],
+) -> dict:
+    """Turn one uploaded image or document into plain text.
+
+    This is a convenience reader for the console, not part of a claim: nothing is stored and
+    the text is never used to approve, reject or allocate a payment. Every upload still goes
+    through the malware scan and the same file validation as evidence.
+    """
+    _limit_text_conversions(p)
+    settings = get_settings()
+    data = await file.read(settings.max_upload_bytes + 1)
+    try:
+        scan(data)
+        prepared = prepare(data, settings.max_upload_bytes)
+    except InfectedFile as exc:
+        obs.UPLOADS_REJECTED.labels("MALWARE_DETECTED").inc()
+        raise HTTPException(
+            422, {"code": "MALWARE_DETECTED", "message": "the file failed the malware scan"}
+        ) from exc
+    except ScannerUnavailable as exc:
+        obs.UPLOADS_REJECTED.labels("SCANNER_UNAVAILABLE").inc()
+        raise HTTPException(
+            503,
+            {
+                "code": "SCANNER_UNAVAILABLE",
+                "message": "upload could not be scanned; try again shortly",
+            },
+            headers={"Retry-After": "30"},
+        ) from exc
+    except RejectedFile as exc:
+        raise HTTPException(422, {"code": exc.code, "message": str(exc)}) from exc
+
+    # The converter may fall back to the vision model, so it obeys the same guardrails as a
+    # claim (kill switch, external-processing block, model allowlist) for this organisation.
+    rules = active_rules(db, p.org_id)
+    plan = plan_readers(rules, settings.ollama_url, settings.ollama_model)
+    try:
+        result = transcribe_file(prepared, data, vlm_allowed=plan.vlm_allowed)
+    except TranscriptionUnavailable as exc:
+        raise HTTPException(
+            503, {"code": "TEXT_READER_UNAVAILABLE", "message": str(exc)}
+        ) from exc
+
+    policy = load_policy(db, p.org_id)
+    quality_issues = []
+    for page in prepared.pages:
+        quality_issues.extend(
+            preprocess.assess(page).problems(
+                policy.config.min_image_side_px, policy.config.min_sharpness
+            )
+        )
+    return {
+        "name": file.filename or "Attachment",
+        "content_type": prepared.content_type,
+        "page_count": len(prepared.pages),
+        "width": prepared.image.width,
+        "height": prepared.image.height,
+        "text": result.text,
+        "character_count": len(result.text),
+        "pages": [
+            {
+                "page": page.page,
+                "text": page.text,
+                "reader": page.reader,
+                "confidence": page.confidence,
+                "lines": page.lines,
+            }
+            for page in result.pages
+        ],
+        "reader_errors": list(result.failures.values()),
+        "quality_issues": sorted(set(quality_issues)),
     }
 
 

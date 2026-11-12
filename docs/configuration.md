@@ -56,6 +56,7 @@ Tokens are kept in `sessionStorage`, never `localStorage`.
 | `POPS_RATE_LIMIT_UPLOADS_PER_MINUTE` | 30 | Per authenticated caller. |
 | `POPS_RATE_LIMIT_CLAIMS_PER_CLAIMANT_PER_DAY` | 20 | Per learner/payer reference within an organisation. Limits are kept in Redis. |
 | `POPS_RATE_LIMIT_PREVIEWS_PER_MINUTE` | 20 | Per authenticated caller, for `POST /claims/preview` (it runs the readers before any claim exists). |
+| `POPS_RATE_LIMIT_TEXT_CONVERSIONS_PER_MINUTE` | 20 | Per authenticated caller, for the standalone `POST /image-to-text` converter (see [`image-to-text.md`](image-to-text.md)). |
 | `POPS_AUTO_APPROVE_DISABLED` | `false` | Global kill switch for rules-based auto-approval; overrides every policy (see [`auto-approval.md`](auto-approval.md)). |
 | `POPS_MAX_UPLOAD_BYTES` | 10 MB | Per file. A claim may carry up to 5 files (repeat the `file` form field) and/or a pasted `text` field of up to 20,000 characters. |
 
