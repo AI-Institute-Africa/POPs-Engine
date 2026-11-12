@@ -30,6 +30,7 @@ from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.security import Principal
 from app.fraud import risk
+from app.kyc import service as kyc_service
 from app.ledger import service as ledger
 from app.models import (
     Allocation,
@@ -66,6 +67,9 @@ class Inputs:
     currency: str | None
     outstanding_minor: int
     credit_available_minor: int
+    # the payer holds a valid KYC verification (app/kyc); only consulted when the policy
+    # requires it (`kyc_required_for_auto_approve`)
+    kyc_verified: bool = False
 
 
 def rule_failures(cfg: PolicyConfig, i: Inputs, *, kill_switch: bool = False) -> list[str]:
@@ -92,6 +96,8 @@ def rule_failures(cfg: PolicyConfig, i: Inputs, *, kill_switch: bool = False) ->
         out.append("FRAUD_ALERT_OPEN")
     if i.human_started:
         out.append("HUMAN_ALREADY_STARTED")
+    if cfg.kyc_required_for_auto_approve and not i.kyc_verified:
+        out.append("KYC_NOT_VERIFIED")  # no valid identity check on file: a person decides
     if i.amount_minor is None or not i.currency:
         out.append("AMOUNT_UNKNOWN")
     else:
@@ -143,6 +149,11 @@ def maybe_auto_approve(session: Session, claim: Claim) -> bool:
         currency=facts.currency or obligation.currency,
         outstanding_minor=ledger.balance(session, obligation).outstanding_minor,
         credit_available_minor=ledger.credit_available(session, credit),
+        kyc_verified=(
+            kyc_service.is_verified(session, claim.org_id, "payer", claim.claimant_ref)
+            if policy.config.kyc_required_for_auto_approve
+            else False
+        ),
     )
     failures = rule_failures(
         policy.config, inputs, kill_switch=get_settings().auto_approve_disabled

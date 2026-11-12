@@ -8,9 +8,9 @@ WORKDIR /app
 COPY pyproject.toml ./
 ARG INSTALL_DONUT=0
 RUN if [ "$INSTALL_DONUT" = "1" ]; then \
-      pip install --no-cache-dir '.[training]'; \
+      pip install --no-cache-dir '.[training,kyc]'; \
     else \
-      pip install --no-cache-dir .; \
+      pip install --no-cache-dir '.[kyc]'; \
     fi
 COPY . .
 RUN pip install --no-cache-dir --no-deps . && useradd -r -u 1001 pops \

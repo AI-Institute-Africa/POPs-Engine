@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
 import { api, Credit, download, hasRole, money, Obligation, post } from "../api";
+import { humanize } from "../labels";
 import { useToast } from "../toast";
+import { Chip, EmptyState, Loading, PageHeader } from "../ui";
+import "./review.css";
 
 type ImportResult = {
   import_id: string;
@@ -58,7 +61,7 @@ function ManualCredit() {
   return (
     <div className="card">
       <h2>Record a received payment</h2>
-      <p className="muted small">
+      <p className="rv-help">
         For money you saw arrive (merchant portal, bank app) that is not in an imported statement yet.
         It is kept as an attested credit and can be matched to a payer's claim or allocated below.
         {!hasRole("approver") && " Recording needs the approver role under the default policy."}
@@ -105,7 +108,7 @@ function ExportCard() {
   return (
     <div className="card">
       <h2>Export allocations</h2>
-      <p className="muted small">
+      <p className="rv-help">
         One row per allocation or reversal (a reversal is a negative row, so a column total is the net amount
         paid). Dates are UTC and inclusive. Leave them empty for everything.
       </p>
@@ -200,15 +203,62 @@ export default function Credits() {
     onSuccess: refresh,
   });
 
+  const un = unclaimed.data;
   return (
-    <section>
-      <ManualCredit />
-      <ExportCard />
+    <section className="rv">
+      <PageHeader
+        title="Bank credits"
+        sub="The bank and merchant side of every payment. Import statements, record money you saw arrive, and allocate credits that have no claim yet."
+      />
 
       <div className="card">
-        <h2>Import statement</h2>
+        <h2>Unclaimed credits</h2>
+        <p className="rv-help">
+          Money received with no claim pointing at it. Payment codes in the narrative suggest the invoice.
+          Allocate it to an invoice here when the payer will not send a proof; if a claim is already waiting on the
+          invoice, confirm it from the review queue instead.
+        </p>
+        {unclaimed.isLoading && <Loading lines={3} />}
+        {unclaimed.error && <p className="error">{(unclaimed.error as Error).message}</p>}
+        {un?.length === 0 && (
+          <div className="rv-inline-empty">Nothing unclaimed. Every credit is matched to a claim or an invoice.</div>
+        )}
+        {!!un?.length && (
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th className="num">Amount</th><th className="num">Available</th><th>Reference</th><th>Narrative</th><th>Suggested invoice</th><th /></tr></thead>
+              <tbody>
+                {un.map((u) => (
+                  <Fragment key={u.credit.credit_id}>
+                    <tr>
+                      <td>{new Date(u.credit.occurred_at).toLocaleDateString()}</td>
+                      <td className="num">{money(u.credit.amount_minor, u.credit.currency)}</td>
+                      <td className="num">{money(u.credit.available_minor, u.credit.currency)}</td>
+                      <td><code>{u.credit.provider_txn_id}</code></td>
+                      <td>{u.credit.narrative}</td>
+                      <td>{u.suggested_obligations.map((o) => `${o.learner_ref} (${o.payment_code})`).join(", ") || "—"}</td>
+                      <td>
+                        <button className="ghost small" disabled={!hasRole("approver")} title={hasRole("approver") ? "" : "Needs the approver role under the default policy"} onClick={() => setOpen(open === u.credit.credit_id ? null : u.credit.credit_id)}>
+                          {open === u.credit.credit_id ? "Close" : "Allocate…"}
+                        </button>
+                      </td>
+                    </tr>
+                    {open === u.credit.credit_id && (
+                      <AllocateRow u={u} obligations={obligations.data ?? []} onDone={() => { setOpen(null); refresh(); }} />
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <h2>Import a statement</h2>
+        <p className="rv-help">Upload a bank or merchant CSV. New credits are added and waiting claims are matched automatically.</p>
         <form className="inline" onSubmit={(e) => { e.preventDefault(); imp.mutate(); }}>
-          <input type="file" accept=".csv,text/csv" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" accept=".csv,text/csv" onChange={(e) => setFile(e.target.files?.[0] ?? null)} aria-label="Statement file" />
           <label>Account alias <input value={alias} onChange={(e) => setAlias(e.target.value)} /></label>
           <select value={profile} onChange={(e) => setProfile(e.target.value)} aria-label="Statement profile">
             <option value="generic">Generic bank CSV</option>
@@ -226,65 +276,45 @@ export default function Credits() {
         )}
       </div>
 
-      <div className="card">
-        <h2>Unclaimed credits</h2>
-        <p className="muted small">
-          Money received with no claim pointing at it. Payment codes in the narrative suggest the invoice.
-          Allocate it to an invoice here when the payer will not send a proof; if a claim is already waiting on the
-          invoice, confirm it from the review queue instead.
-        </p>
-        <table>
-          <thead><tr><th>Date</th><th>Amount</th><th>Available</th><th>Reference</th><th>Narrative</th><th>Suggested</th><th /></tr></thead>
-          <tbody>
-            {unclaimed.data?.length === 0 && <tr><td colSpan={7} className="muted">Nothing unclaimed.</td></tr>}
-            {unclaimed.data?.map((u) => (
-              <Fragment key={u.credit.credit_id}>
-                <tr>
-                  <td>{new Date(u.credit.occurred_at).toLocaleDateString()}</td>
-                  <td>{money(u.credit.amount_minor, u.credit.currency)}</td>
-                  <td>{money(u.credit.available_minor, u.credit.currency)}</td>
-                  <td>{u.credit.provider_txn_id}</td>
-                  <td>{u.credit.narrative}</td>
-                  <td>{u.suggested_obligations.map((o) => `${o.learner_ref} (${o.payment_code})`).join(", ") || "—"}</td>
-                  <td>
-                    <button className="ghost small" disabled={!hasRole("approver")} title={hasRole("approver") ? "" : "Needs the approver role under the default policy"} onClick={() => setOpen(open === u.credit.credit_id ? null : u.credit.credit_id)}>
-                      {open === u.credit.credit_id ? "Close" : "Allocate…"}
-                    </button>
-                  </td>
-                </tr>
-                {open === u.credit.credit_id && (
-                  <AllocateRow u={u} obligations={obligations.data ?? []} onDone={() => { setOpen(null); refresh(); }} />
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ManualCredit />
 
       <div className="card">
-        <div className="toolbar">
+        <div className="rv-card-head">
           <h2>All credits</h2>
-          <label><input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> only with unallocated balance</label>
+          <label style={{ flexDirection: "row", alignItems: "center", margin: 0, minHeight: 36 }}>
+            <input type="checkbox" style={{ width: "auto" }} checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} /> only with unallocated balance
+          </label>
         </div>
-        <table>
-          <thead><tr><th>Date</th><th>Source</th><th>Provider</th><th>Reference</th><th>Amount</th><th>Available</th><th>Status</th><th>Account</th><th>Payer</th></tr></thead>
-          <tbody>
-            {credits.data?.map((c) => (
-              <tr key={c.credit_id}>
-                <td>{new Date(c.occurred_at).toLocaleString()}</td>
-                <td>{c.source}</td>
-                <td>{c.provider}</td>
-                <td>{c.provider_txn_id}</td>
-                <td>{money(c.amount_minor, c.currency)}</td>
-                <td>{money(c.available_minor, c.currency)}</td>
-                <td>{c.status}</td>
-                <td>{c.beneficiary}</td>
-                <td>{c.payer}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {credits.isLoading && <Loading lines={4} />}
+        {credits.error && <p className="error">{(credits.error as Error).message}</p>}
+        {credits.data?.length === 0 && (
+          <EmptyState icon="🏦" title="No credits yet">Import a statement or record a payment above. Run a story from Home to fill this.</EmptyState>
+        )}
+        {!!credits.data?.length && (
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Source</th><th>Provider</th><th>Reference</th><th className="num">Amount</th><th className="num">Available</th><th>Status</th><th>Account</th><th>Payer</th></tr></thead>
+              <tbody>
+                {credits.data.map((c) => (
+                  <tr key={c.credit_id}>
+                    <td>{new Date(c.occurred_at).toLocaleString()}</td>
+                    <td>{humanize(c.source)}</td>
+                    <td>{c.provider}</td>
+                    <td><code>{c.provider_txn_id}</code></td>
+                    <td className="num">{money(c.amount_minor, c.currency)}</td>
+                    <td className="num">{money(c.available_minor, c.currency)}</td>
+                    <td><Chip tone={c.status === "success" ? "ok" : "warn"} title={c.status === "success" ? "A successful payment that can be matched" : "Not a successful payment, so it cannot be matched"}>{c.status === "success" ? "Received" : humanize(c.status)}</Chip></td>
+                    <td>{c.beneficiary}</td>
+                    <td>{c.payer}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      <ExportCard />
     </section>
   );
 }

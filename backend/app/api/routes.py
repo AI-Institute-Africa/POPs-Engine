@@ -67,6 +67,7 @@ from app.intake.files import RejectedFile, prepare
 from app.intake.scan import InfectedFile, ScannerUnavailable, scan
 from app.intake.service import create_claim, resubmit
 from app.intake.storage import get_storage
+from app.kyc.gate import require_cleared
 from app.ledger import service as ledger
 from app.ledger.admin import AllocationError, allocate_credit
 from app.ledger.export import TooManyRows, export_csv
@@ -100,7 +101,7 @@ router = APIRouter()
 DB = Annotated[Session, Depends(get_session)]
 Any_ = Annotated[Principal, Depends(current_principal)]
 Reviewer = Annotated[Principal, Depends(require(Role.REVIEWER))]
-Approver = Annotated[Principal, Depends(require(Role.APPROVER))]
+Approver = Annotated[Principal, Depends(require_cleared(Role.APPROVER))]
 Admin = Annotated[Principal, Depends(require(Role.ADMIN))]
 
 
@@ -224,11 +225,12 @@ def dev_login(body: DevLoginIn, db: DB) -> TokenOut:
     if not get_settings().is_dev:
         raise HTTPException(404)
     role = Role(body.role)
+    org_name = body.org_name or get_settings().dev_org_name
     user = db.scalars(select(User).where(User.email == body.email)).first()
     if user is None:
-        org = db.scalars(select(Organisation).where(Organisation.name == body.org_name)).first()
+        org = db.scalars(select(Organisation).where(Organisation.name == org_name)).first()
         if org is None:
-            org = Organisation(name=body.org_name)
+            org = Organisation(name=org_name)
             db.add(org)
             db.flush()
         user = User(org_id=org.org_id, email=body.email, role=role.value)

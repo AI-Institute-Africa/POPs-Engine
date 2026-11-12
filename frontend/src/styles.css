@@ -68,24 +68,7 @@ h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: 
 p { margin: 0 0 10px; }
 ul { margin: 0; padding-left: 18px; }
 
-.shell { min-height: 100vh; display: flex; flex-direction: column; }
-
-/* ── Header ─────────────────────────────────────────── */
-header {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  padding: 10px 20px;
-  min-height: 60px;
-  flex-wrap: wrap;
-  row-gap: 6px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
+/* Brand mark (the app shell itself lives in ui.css) */
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
 .logo {
   width: 34px;
@@ -109,26 +92,6 @@ header {
   border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
   border-radius: 999px;
   padding: 1px 8px;
-}
-header nav { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; min-width: 0; }
-header nav a {
-  text-decoration: none;
-  color: var(--muted);
-  font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 8px;
-}
-header nav a:hover { color: var(--text); background: var(--bg); }
-header nav a.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
-
-main { padding: 24px 20px; max-width: 1180px; margin: 0 auto; width: 100%; flex: 1; }
-footer {
-  padding: 14px 20px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-  border-top: 1px solid var(--line);
-  background: var(--panel);
 }
 
 /* ── Building blocks ────────────────────────────────── */
@@ -200,7 +163,6 @@ tbody tr:last-child td { border-bottom: none; }
 .stack > .card:last-child { margin-bottom: 0; }
 @media (max-width: 900px) {
   .split.even, .scan-split { grid-template-columns: 1fr; }
-  main { padding: 16px; }
   .pill { display: none; }
 }
 
@@ -512,7 +474,6 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 .card.risk-card.risk-high { border-color: var(--bad); background: var(--panel); color: inherit; }
 .card.risk-card.risk-medium { border-color: var(--warn); background: var(--panel); color: inherit; }
 .card.risk-card.risk-low { background: var(--panel); color: inherit; }
-header nav a .count { margin-left: 6px; background: var(--bad); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 11px; font-weight: 700; }
 ul.signals { margin: 6px 0; padding-left: 0; list-style: none; }
 ul.signals li { padding: 4px 0; border-bottom: 1px solid var(--line); }
 ul.signals .weight { display: inline-block; min-width: 34px; font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); }
@@ -526,12 +487,11 @@ ul.signals .weight { display: inline-block; min-width: 34px; font-family: ui-mon
 @media (max-width: 700px) { .alert-body { flex-direction: column; } .thumbs { flex-direction: row; width: auto; } .thumbs img { width: 120px; } }
 
 code.key { display: inline-block; padding: 2px 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; word-break: break-all; }
-header nav { flex-wrap: wrap; }
 
 /* --- reviewer console (queue, claim review, credits) --------------------------------------- */
 .split:not(.even):not(.scan-split) { grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.1fr); }
 @media (max-width: 900px) { .split:not(.even):not(.scan-split) { grid-template-columns: 1fr; } }
-.viewer { position: sticky; top: 64px; }
+.viewer { position: sticky; top: 72px; }
 .frame { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
 .frame img { display: block; width: 100%; height: auto; }
 .box { position: absolute; border: 2px solid var(--ok); border-radius: 3px; pointer-events: none; }

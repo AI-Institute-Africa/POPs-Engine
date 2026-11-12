@@ -228,3 +228,4 @@ frontend/dist/
 .mypy_cache/
 .ruff_cache/
 *.tsbuildinfo
+.venv-demo

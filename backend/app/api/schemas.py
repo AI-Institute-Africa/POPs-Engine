@@ -14,7 +14,7 @@ class Out(BaseModel):
 class DevLoginIn(BaseModel):
     email: str
     role: str = "reviewer"
-    org_name: str = "Cognify"
+    org_name: str | None = None  # default: POPS_DEV_ORG_NAME
 
 
 class TokenOut(BaseModel):

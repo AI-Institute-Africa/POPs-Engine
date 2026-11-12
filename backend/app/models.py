@@ -458,6 +458,110 @@ class ProvisionalGrant(Base):
     )
 
 
+class KycState(StrEnum):
+    SUBMITTED = "SUBMITTED"
+    PROCESSING = "PROCESSING"
+    NEEDS_INFORMATION = "NEEDS_INFORMATION"  # capture unusable: the subject resubmits
+    NEEDS_REVIEW = "NEEDS_REVIEW"  # a person decides
+    VERIFIED = "VERIFIED"
+    REJECTED = "REJECTED"
+    EXPIRED = "EXPIRED"
+
+
+class KycSubject(StrEnum):
+    PAYER = "payer"  # a learner/payer submitting proofs of payment
+    STAFF = "staff"  # a reviewer/approver/admin being onboarded
+    ORG = "org"  # an organisation's authorised representative
+
+
+class KycVerification(Base):
+    """One identity-verification attempt for a subject (app/kyc).
+
+    The readers and the face matcher only produce facts (`fields`, `checks`, the scores). The state
+    is decided by deterministic rules (app/kyc/auto.py) or by a named reviewer, and every change is
+    an append-only `KycDecision`. Nothing here touches the money ledger.
+    """
+
+    __tablename__ = "kyc_verifications"
+    kyc_id: Mapped[uuid.UUID] = _pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    subject_type: Mapped[str] = mapped_column(String(10), nullable=False)
+    # payer: the learner_ref / claimant_ref; staff: the user id; org: the organisation id
+    subject_ref: Mapped[str] = mapped_column(String(120), nullable=False)
+    state: Mapped[str] = mapped_column(String(20), nullable=False, default=KycState.SUBMITTED)
+    submitted_by: Mapped[str] = mapped_column(String(80), nullable=False)
+    doc_type: Mapped[str | None] = mapped_column(String(20))
+    issuing_country: Mapped[str | None] = mapped_column(String(3))
+    # keyed hash of country + document number: finds the same ID used by two subjects without
+    # keeping a searchable copy of the number
+    doc_number_hash: Mapped[str | None] = mapped_column(String(64))
+    fields: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    checks: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
+    reason_codes: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    ocr_agreement: Mapped[float | None] = mapped_column(Float)
+    mrz_valid: Mapped[bool | None] = mapped_column()
+    face_score: Mapped[float | None] = mapped_column(Float)
+    liveness_score: Mapped[float | None] = mapped_column(Float)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    pipeline_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_pipeline_error: Mapped[str | None] = mapped_column(Text)
+    correlation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=_uuid)
+    created_at: Mapped[datetime] = _created()
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    __table_args__ = (
+        Index("ix_kyc_org_state", "org_id", "state"),
+        Index("ix_kyc_subject", "org_id", "subject_type", "subject_ref"),
+        Index("ix_kyc_doc_hash", "org_id", "doc_number_hash"),
+    )
+
+
+class KycEvidence(Base):
+    """An uploaded image: the ID (front/back/passport page) or the selfie.
+
+    The bytes are deleted when the retention window ends; the row stays, with `purged_at` set, so
+    the audit trail still shows what was held and for how long.
+    """
+
+    __tablename__ = "kyc_evidence"
+    evidence_id: Mapped[uuid.UUID] = _pk()
+    kyc_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("kyc_verifications.kyc_id"), nullable=False
+    )
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    role: Mapped[str] = mapped_column(String(10), nullable=False)  # front | back | selfie
+    object_key: Mapped[str] = mapped_column(String(300), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    phash_int: Mapped[int | None] = mapped_column(BigInteger)
+    received_at: Mapped[datetime] = _created()
+    purged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (Index("ix_kyc_evidence_kyc", "kyc_id"),)
+
+
+class KycDecision(Base):
+    """Append-only record of every KYC outcome (rule, reviewer or audit), like `Decision`."""
+
+    __tablename__ = "kyc_decisions"
+    decision_id: Mapped[uuid.UUID] = _pk()
+    kyc_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("kyc_verifications.kyc_id"), nullable=False
+    )
+    org_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisations.org_id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(40), nullable=False)
+    reason_codes: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    policy_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    actor_type: Mapped[str] = mapped_column(String(10), nullable=False)  # rule | reviewer | audit
+    actor_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created()
+    __table_args__ = (Index("ix_kyc_decisions_kyc", "kyc_id", "created_at"),)
+
+
 class FraudAlert(Base):
     """A claim the risk engine thinks may be fake, escalated to an admin.
 

@@ -42,6 +42,7 @@ def test_defaults_are_production_and_refuse_unsafe_boot(monkeypatch):
 def test_safe_production_config_boots(monkeypatch):
     monkeypatch.delenv("POPS_ENV")
     monkeypatch.delenv("POPS_VLM_BACKEND")
+    monkeypatch.delenv("POPS_KYC_FACE_BACKEND")
     monkeypatch.delenv("POPS_PIPELINE_MODE")
     s = Settings(_env_file=None, jwt_secret="x" * 40, clamav_host="clamav")
     validate_for_startup(s)

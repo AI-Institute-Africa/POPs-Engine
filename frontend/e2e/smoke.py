@@ -19,6 +19,8 @@ with sync_playwright() as p:
 
     # no login screen: the app silently picks up a dev session
     page.goto(f"{base}/")
+    expect(page.get_by_role("heading", name="Know that a payment, or a person, is real")).to_be_visible()
+    page.get_by_role("link", name="Verify a payment").click()
     expect(page.get_by_role("heading", name="Verify a payment")).to_be_visible()
     expect(page.get_by_role("button", name="Take a photo")).to_be_visible()
     expect(page.get_by_role("button", name="Upload file").first).to_be_visible()
@@ -36,7 +38,7 @@ with sync_playwright() as p:
 
     # alerts: the merchant phone's SMS became a credit; the OTP was ignored
     page.get_by_role("link", name="Alerts").click()
-    expect(page.get_by_role("heading", name="Payment alert sources")).to_be_visible()
+    expect(page.get_by_role("heading", name="Payment alerts")).to_be_visible()
     expect(page.locator("tbody tr", has_text="credited").first).to_be_visible()
     expect(page.locator("tbody tr", has_text="ignored").first).to_be_visible()
     page.screenshot(path=f"{out}/4-alerts.png", full_page=True)
@@ -63,7 +65,7 @@ with sync_playwright() as p:
     # review queue: open a claim whose money has matched, type the last four characters, confirm
     page.get_by_role("link", name="Review queue").click()
     expect(page.get_by_role("heading", name="Review queue")).to_be_visible()
-    matched = page.locator("tbody tr", has_text="FINANCIALLY CONFIRMED").first
+    matched = page.locator("tbody tr", has_text="Money confirmed").first
     expect(matched).to_be_visible()
     page.screenshot(path=f"{out}/6-queue.png", full_page=True)
     matched.get_by_role("link").first.click()
@@ -113,7 +115,7 @@ with sync_playwright() as p:
     page.goto(f"{base}/auto")
     expect(page.get_by_role("heading", name="Automatic approvals")).to_be_visible()
     page.goto(f"{base}/exposure?as=admin")
-    expect(page.get_by_role("heading", name="Provisional access")).to_be_visible()
+    expect(page.get_by_role("heading", name="Exposure", exact=True)).to_be_visible()
     page.screenshot(path=f"{out}/9-exposure.png", full_page=True)
     browser.close()
 print("smoke ok")

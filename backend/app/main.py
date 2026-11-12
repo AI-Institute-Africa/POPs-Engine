@@ -5,6 +5,7 @@ from app.api.alerts import router as alerts_router
 from app.api.fraud import router as fraud_router
 from app.api.guardrails import router as guardrails_router
 from app.api.internal import router as internal_router
+from app.api.kyc import router as kyc_router
 from app.api.provisional import router as provisional_router
 from app.api.routes import router
 from app.api.whatsapp import router as whatsapp_router
@@ -36,7 +37,12 @@ def create_app() -> FastAPI:
     app.include_router(provisional_router)
     app.include_router(alerts_router)
     app.include_router(whatsapp_router)
+    app.include_router(kyc_router)
     app.include_router(internal_router)
+    if settings.demo and settings.is_dev:
+        from app.demo.api import router as demo_router
+
+        app.include_router(demo_router)
 
     @app.get("/health", tags=["ops"])
     def health() -> dict:

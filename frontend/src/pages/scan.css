@@ -1,0 +1,62 @@
+/* Validate — payer flow (/verify). Variables only; ui.css owns the shared pieces. */
+.scan-split > * { min-width: 0; }
+.scan .card { margin-bottom: 14px; }
+
+/* 3-step progress */
+.scan-stepper { list-style: none; margin: 0 0 16px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.scan-stepper li { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); font-weight: 600; font-size: 13px; min-width: 0; }
+.scan-stepper .num, .scan-step-title .num { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0; font-size: 12px; font-weight: 700; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+.scan-stepper li.current { color: var(--text); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.scan-stepper li.current .num { background: var(--grad); border-color: transparent; color: #fff; }
+.scan-stepper li.done { color: var(--text); }
+.scan-stepper li.done .num { background: var(--ok); border-color: var(--ok); color: var(--panel); }
+.scan-stepper .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.scan-step-title { display: flex; align-items: center; gap: 10px; font-size: 16px; margin-bottom: 12px; }
+.scan-step-title .num { background: var(--grad); border-color: transparent; color: #fff; }
+.scan-result-title { margin: 2px 2px 10px; }
+
+/* sample picker */
+.scan-sample h3 { margin-bottom: 4px; }
+.scan-sample .sample-row { margin-bottom: 4px; }
+.scan-sample .sample-row button.on { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.scan-sample .learn { margin-top: 8px; margin-bottom: 0; }
+
+/* proof */
+.scan .dropzone > p.muted.small { margin: 12px 0 0; }
+.scan .dropzone .scan-drop-empty { text-align: center; padding: 6px 0 2px; }
+.scan .file-row { flex-wrap: wrap; }
+.scan .file-row .grow { min-width: 0; flex: 1 1 160px; overflow-wrap: anywhere; }
+.file-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.scan .image-check .verified { background: var(--ok-bg); }
+.scan .capture:focus-visible, .scan .recent:focus-visible { outline-offset: 1px; }
+
+/* form */
+.scan form label { display: block; margin-bottom: 10px; font-weight: 500; }
+.scan form label > input, .scan form label > textarea { display: block; width: 100%; margin-top: 4px; }
+.scan .inline-pair label { margin-bottom: 4px; }
+.scan-submit { width: 100%; margin-top: 4px; }
+.scan-why { margin: 8px 0 0; }
+
+/* result */
+.scan-chips { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.scan .result .messages li { font-size: 14px; }
+.scan-result-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 8px; }
+.scan-staff { margin-top: 12px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; }
+.scan-staff summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+.scan .empty-state { margin-bottom: 14px; }
+
+@media (max-width: 560px) {
+  .scan-stepper { gap: 6px; }
+  .scan-stepper li { padding: 8px; gap: 6px; font-size: 12px; }
+  .scan-stepper .num { width: 18px; height: 18px; font-size: 11px; }
+  .scan .card { padding: 14px; }
+  .scan .dropzone.filled { padding: 14px; }
+  .scan .capture-row { gap: 8px; }
+  .scan .capture { flex-direction: row; justify-content: flex-start; text-align: left; gap: 10px; flex-wrap: wrap; padding: 10px 12px; }
+  .scan .capture .glyph { margin: 0; }
+  .scan .capture .small { flex-basis: 100%; padding-left: 30px; margin-top: -8px; }
+  .scan .recent { flex-wrap: wrap; gap: 2px 10px; }
+  .scan .result-head { flex-direction: column; }
+  .scan-chips { justify-content: flex-start; }
+}

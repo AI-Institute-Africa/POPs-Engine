@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="POPS_", env_file=".env", extra="ignore")
 
     env: Literal["dev", "test", "prod"] = "prod"
+    # the organisation POST /auth/dev-login uses when the caller names none (dev and test only), so
+    # the console and the seed scripts land in the same organisation
+    dev_org_name: str = "Cognify"
+    # standalone demo (`python -m app.demo`): mounts /demo (scenarios, samples, reset) and
+    # simulated readers. Never for production: startup refuses it.
+    demo: bool = False
     database_url: str = "postgresql+psycopg://postgres@127.0.0.1:5432/pops"
     redis_url: str = "redis://127.0.0.1:6379/0"
 
@@ -64,6 +70,17 @@ class Settings(BaseSettings):
     auto_approve_disabled: bool = False
     # global kill switch for AI temporary approval; overrides every organisation's policy
     ai_temp_approve_disabled: bool = False
+
+    # global kill switch for KYC auto-verification (app/kyc/auto.py); overrides every policy
+    kyc_auto_disabled: bool = False
+    # face matching for KYC: onnx (needs POPS_KYC_FACE_MODEL_PATH) | fake (tests) | demo | none.
+    # With none, or a missing model, nothing is auto-verified: a person decides (fail closed).
+    kyc_face_backend: Literal["onnx", "fake", "demo", "none"] = "onnx"
+    kyc_face_model_path: str = "./var/models/face-embedding.onnx"
+    # face detector: a YuNet ONNX model (OpenCV Zoo); on OpenCV 4 the bundled Haar cascade is
+    # used when this file is absent
+    kyc_face_detector_path: str = "./var/models/face-detection-yunet.onnx"
+    rate_limit_kyc_per_subject_per_day: int = 5
 
     # extraction readers: ollama | donut | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"
@@ -149,6 +166,10 @@ def validate_for_startup(s: Settings) -> None:
         problems.append("POPS_PROVISIONING_KEY must be 32+ characters when set")
     if s.vlm_backend == "fake":
         problems.append("POPS_VLM_BACKEND=fake is for tests and demos only")
+    if s.demo:
+        problems.append("POPS_DEMO=true is for the standalone demo only")
+    if s.kyc_face_backend in ("fake", "demo"):
+        problems.append(f"POPS_KYC_FACE_BACKEND={s.kyc_face_backend} is for tests and demos only")
     if not s.clamav_host:
         problems.append("POPS_CLAMAV_HOST is required: uploads must be malware-scanned")
     if s.pipeline_mode == "inline":

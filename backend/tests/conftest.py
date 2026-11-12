@@ -6,6 +6,7 @@ from collections.abc import Iterator
 os.environ.setdefault("POPS_ENV", "test")
 os.environ.setdefault("POPS_DATABASE_URL", "postgresql+psycopg://postgres@127.0.0.1:5432/pops_test")
 os.environ["POPS_VLM_BACKEND"] = "fake"
+os.environ["POPS_KYC_FACE_BACKEND"] = "fake"
 os.environ["POPS_PIPELINE_MODE"] = "inline"
 os.environ["POPS_STORAGE_BACKEND"] = "local"
 os.environ["POPS_STORAGE_LOCAL_DIR"] = tempfile.mkdtemp(prefix="pops-evidence-")

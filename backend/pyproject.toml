@@ -30,6 +30,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "hypothesis>=6.100", "ruff>=0.5", "mypy>=1.10", "playwright>=1.48"]
+kyc = ["onnxruntime>=1.18"]
+demo = ["pixeltable-pgserver>=0.7"]
 training = ["transformers[torch]>=4.40", "torch>=2.3", "sentencepiece>=0.2"]
 observability = [
   "sentry-sdk>=2.0",
@@ -56,6 +58,13 @@ ignore = ["S101", "B008"]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S"]
 "migrations/*" = ["E501", "S608"]
+# synthetic art and scripted stories: long data lines, and random is only used to draw pictures
+"app/demo/*" = ["E501", "S311"]
+
+# the demo's picture drawing mixes numpy, OpenCV and Pillow stubs that disagree; it is not product code
+[[tool.mypy.overrides]]
+module = "app.demo.art"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
