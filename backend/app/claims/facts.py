@@ -10,6 +10,7 @@ from app.extraction import templates
 from app.extraction.agreement import FinalField
 from app.models import Claim, ExtractedField, Obligation, VerificationRun
 from app.normalise.fields import date_candidates, normalise_reference
+from app.policy.engine import load_policy
 from app.reconcile.matching import ClaimFacts
 
 # reasons derived from extracted fields; recomputed whenever a reviewer corrects a field
@@ -17,6 +18,7 @@ FACT_FLAGS = {
     "TYPED_AMOUNT_DISAGREES",
     "TYPED_REFERENCE_DISAGREES",
     "EXTRACTION_UNCONFIRMED",
+    "MANY_LOW_CONFIDENCE_FIELDS",
     "MISSING_AMOUNT",
     "MISSING_REFERENCE",
     "RECEIPT_STATUS_NOT_SUCCESS",
@@ -87,6 +89,14 @@ def guardrail_fields(session: Session, claim: Claim) -> dict[str, FinalField]:
     return out
 
 
+def too_many_low_confidence(fields: dict[str, "FieldView"], limit: int | None) -> bool:
+    """True when more read fields than `limit` are unagreed. Corrected fields do not count."""
+    if limit is None:
+        return False
+    shaky = sum(1 for f in fields.values() if f.value and not f.agreed and not f.corrected)
+    return shaky > limit
+
+
 def build_facts(
     session: Session, claim: Claim, obligation: Obligation
 ) -> tuple[ClaimFacts, list[str]]:
@@ -119,6 +129,11 @@ def build_facts(
         if f and f.value and not f.agreed:
             flags.append("EXTRACTION_UNCONFIRMED")
             break
+
+    if too_many_low_confidence(
+        fields, load_policy(session, claim.org_id).config.max_low_confidence_fields
+    ):
+        flags.append("MANY_LOW_CONFIDENCE_FIELDS")
 
     # "missing" means nobody could read it; a disputed reading is a review case, not missing
     if amount is None and not (fields.get("amount") and fields["amount"].value):

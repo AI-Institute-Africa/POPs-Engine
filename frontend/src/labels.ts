@@ -42,6 +42,7 @@ export const REASONS: Record<string, string> = {
   DUPLICATE_NEAR_FILE: "A near-identical image was already submitted.",
   DUPLICATE_REFERENCE: "This transaction reference was already used.",
   REFERENCE_ALREADY_CONSUMED: "This transaction has already been credited to an invoice.",
+  MANY_LOW_CONFIDENCE_FIELDS: "Several fields were unagreed or hard to read, over the policy limit.",
   CAPTURE_BLURRY: "The photo is too blurry to read.",
   CAPTURE_TOO_SMALL: "The photo is too small to read.",
   CAPTURE_GLARE: "There is glare on the document.",

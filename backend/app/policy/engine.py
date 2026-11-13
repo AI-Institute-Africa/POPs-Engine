@@ -111,6 +111,9 @@ class PolicyConfig(BaseModel):
         default_factory=lambda: ["amount", "transaction_id", "date", "beneficiary"]
     )
     single_reader_min_confidence: float = 0.97
+    # route to a person when more than this many read fields are unagreed (None = rule off).
+    # Catches a receipt where each field alone is passable but many are shaky.
+    max_low_confidence_fields: int | None = Field(default=None, ge=0, le=20)
     # fraud risk (app/fraud/risk.py): weights per signal, merged over DEFAULT_FRAUD_WEIGHTS
     fraud_weights: dict[str, int] = Field(default_factory=dict)
     fraud_high_score: int = 60  # suspected fake: admin alert, confirmation blocked

@@ -60,3 +60,8 @@
   .scan .result-head { flex-direction: column; }
   .scan-chips { justify-content: flex-start; }
 }
+
+.crop-preview { max-height: 45vh; overflow: hidden; display: grid; place-items: center; background: var(--panel); border-radius: 8px; margin: 8px 0; }
+.crop-preview img { max-width: 100%; max-height: 45vh; }
+.crop-row { display: flex; align-items: center; gap: 8px; text-transform: capitalize; }
+.crop-row input { flex: 1; }

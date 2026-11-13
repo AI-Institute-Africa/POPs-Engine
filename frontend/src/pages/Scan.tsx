@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { api, hasRole, money, pingBackend, post, type Claim, type Obligation } from "../api";
 import { demoInfo, preparePayment, sampleFile } from "../demo";
 import { useI18n } from "../i18n";
-import { rotateImage } from "../lib/imageEdit";
+import { cropImage, NO_TRIM, rotateImage, type Trim } from "../lib/imageEdit";
+import { Dialog } from "../components/Dialog";
 import { validateFiles } from "../lib/validateFiles";
 import { Link } from "react-router-dom";
 import { useToast } from "../toast";
@@ -390,6 +391,21 @@ export default function Scan() {
     }
   };
 
+  const [cropOpen, setCropOpen] = useState(false);
+  const [trim, setTrim] = useState<Trim>(NO_TRIM);
+  const applyCrop = async () => {
+    const first = files[0];
+    if (!first) return;
+    try {
+      const cropped = await cropImage(first, trim);
+      setCropOpen(false);
+      setTrim(NO_TRIM);
+      pick([cropped, ...files.slice(1)], true);
+    } catch {
+      setFormError("Couldn't crop that photo. Retake it instead.");
+    }
+  };
+
   const clearFile = () => {
     fileSelectionVersion.current += 1;
     autoVerify.current = false;
@@ -455,6 +471,25 @@ export default function Scan() {
   const current: 1 | 2 | 3 = hasResult ? 3 : !proofReady ? 1 : 2;
 
   return (
+    <>
+      {cropOpen && previewUrl && (
+        <Dialog title="Crop the photo" onClose={() => setCropOpen(false)}>
+          <p className="small muted">Trim away the background so the receipt fills the picture. Keep the amount, date and reference in view.</p>
+          <div className="crop-preview">
+            <img src={previewUrl} alt="Photo to crop" style={{ clipPath: `inset(${trim.top}% ${trim.right}% ${trim.bottom}% ${trim.left}%)` }} />
+          </div>
+          {(["top", "right", "bottom", "left"] as const).map((edge) => (
+            <label key={edge} className="small crop-row">
+              {edge}
+              <input type="range" min={0} max={45} step={1} value={trim[edge]} onChange={(e) => setTrim({ ...trim, [edge]: Number(e.target.value) })} />
+            </label>
+          ))}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setCropOpen(false)}>Cancel</button>
+            <button type="button" onClick={() => void applyCrop()}>Use this crop</button>
+          </div>
+        </Dialog>
+      )}
     <section className="scan">
       <OfflineBanner />
       <PageHeader title={t("hero.title")} sub={t("hero.sub")} />
@@ -538,6 +573,11 @@ export default function Scan() {
                   {file.type.startsWith("image/") && file.type !== "image/heic" && (
                     <button type="button" className="ghost small" onClick={() => void rotateFirst()}>
                       ⟳ Rotate
+                    </button>
+                  )}
+                  {previewUrl && file.type !== "image/heic" && (
+                    <button type="button" className="ghost small" onClick={() => { setTrim(NO_TRIM); setCropOpen(true); }}>
+                      ✂ Crop
                     </button>
                   )}
                   <button type="button" className="ghost small" onClick={() => { replaceUploadRef.current = true; uploadRef.current?.click(); }}>
@@ -806,5 +846,6 @@ export default function Scan() {
         </div>
       </div>
     </section>
+    </>
   );
 }
