@@ -29,6 +29,8 @@ class TesseractReader:
     def __init__(self) -> None:
         if shutil.which("tesseract") is None:
             raise ReaderUnavailable("tesseract binary not installed")
+        # text recovered by `read`, so the pipeline can check that critical values are grounded
+        self.texts: list[str] = []
 
     @property
     def version(self) -> str:
@@ -61,6 +63,7 @@ class TesseractReader:
 
     def read(self, image: Image.Image, raw: bytes) -> dict[str, FieldReading]:
         words, text, (w, h) = self.words(image)
+        self.texts.append(text)
         out = {}
         for name, value in templates.parse_text(text).items():
             hits = _locate(words, value)
