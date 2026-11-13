@@ -204,3 +204,40 @@
 .rv-compare { width: 100%; border-collapse: collapse; }
 .rv-compare th, .rv-compare td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; }
 .rv-compare .num { font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }
+
+/* viewer toolbar: buttons together, sliders compact and labelled */
+.viewer-tools { align-items: flex-end; gap: 6px 12px; }
+.viewer-tools label { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 12px; color: var(--muted); }
+.viewer-tools input[type="range"] { width: 96px; }
+@media (max-width: 720px) {
+  .rv-keys { display: none; }
+  .rv-facts { grid-template-columns: 1fr 1fr; }
+  .decision-bar { gap: 8px; }
+  .decision-bar .db-sum { flex-basis: 100%; }
+}
+@media (hover: none) { .rv-keys { display: none; } }
+
+/* narrow screens: each queue row becomes a card instead of a sideways-scrolling table */
+@media (max-width: 720px) {
+  table.rv-cards thead { display: none; }
+  table.rv-cards, table.rv-cards tbody { display: block; }
+  table.rv-cards tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  table.rv-cards td { display: block; padding: 0; border: 0; text-align: left; min-width: 0; }
+  table.rv-cards td::before { content: attr(data-label); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 2px; }
+  table.rv-cards td.rv-why { grid-column: 1 / -1; }
+  table.rv-cards td.num { text-align: left; }
+}
+
+@media (max-width: 720px) {
+  .table-wrap table.rv-cards { min-width: 0; width: 100%; }
+  table.rv-cards tr { width: 100%; }
+  table.rv-cards td, table.rv-cards .nowrap { white-space: normal; overflow-wrap: anywhere; }
+}
+
+/* wide screens: reasons and the suggested next step sit side by side, so the receipt is
+   on screen sooner */
+@media (min-width: 1000px) {
+  .rv-summary { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; }
+  .rv-summary > .rv-sum-top, .rv-summary > .rv-facts { grid-column: 1 / -1; }
+  .rv-summary > .rv-sum-why, .rv-summary > .rv-next { margin-top: 0; align-self: start; }
+}

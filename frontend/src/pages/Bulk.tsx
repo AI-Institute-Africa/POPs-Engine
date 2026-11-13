@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, hasRole, money, post, type Credit } from "../api";
 import { parseBulk } from "../lib/bulkCsv";
@@ -35,6 +35,7 @@ export default function Bulk() {
   const [creditId, setCreditId] = useState("");
   const [text, setText] = useState("");
   const [last4, setLast4] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
   const [runId, setRunId] = useState(() => crypto.randomUUID());
   const parsed = useMemo(() => (text.trim() ? parseBulk(text) : null), [text]);
   const credit = credits.data?.find((c) => c.credit_id === creditId);
@@ -87,10 +88,10 @@ export default function Bulk() {
         <p className="rv-help">One invoice per line: payment code, amount (optional), note (optional). Commas, semicolons and tabs all work, with or without a header row. Up to 500 rows.</p>
         <textarea rows={8} value={text} onChange={(e) => { setText(e.target.value); plan.reset(); apply.reset(); }} placeholder={"code,amount,note\nCG-H4CC093,40.00,Tendai Moyo"} aria-label="Allocation list" />
         <div className="inline">
-          <label className="btn ghost small">
+          <button type="button" className="secondary small" onClick={() => fileRef.current?.click()}>
             Load a CSV file
-            <input type="file" accept=".csv,.tsv,.txt,text/csv" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setText(await f.text()); plan.reset(); apply.reset(); } e.currentTarget.value = ""; }} />
-          </label>
+          </button>
+          <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,text/csv" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setText(await f.text()); plan.reset(); apply.reset(); } e.currentTarget.value = ""; }} />
           {parsed && <span className="muted small">{parsed.rows.length} row{parsed.rows.length === 1 ? "" : "s"} read</span>}
         </div>
         {parsed?.errors.map((e) => <p key={e} className="error small">{e}</p>)}
@@ -100,6 +101,11 @@ export default function Bulk() {
           {plan.isPending ? "Checking…" : "Preview"}
         </button>
         {credit && <span className="muted small"> {money(credit.available_minor, credit.currency)} available on this credit</span>}
+        {!plan.isPending && (!creditId || !rowsOk) && (
+          <p className="muted small" style={{ marginBottom: 0 }}>
+            {!creditId ? "Choose a credit first." : !parsed ? "Add your list to continue." : parsed.errors.length ? "Fix the lines marked above to continue." : "Add at least one row."}
+          </p>
+        )}
       </div>
 
       {err && <p className="error" role="alert">{err.message}</p>}

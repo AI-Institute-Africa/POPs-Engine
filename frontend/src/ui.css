@@ -212,3 +212,11 @@ tbody tr:hover td { background: color-mix(in srgb, var(--accent) 4%, var(--panel
 .checks li { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
 .checks .mk { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0; margin-top: 1px; }
 .mk.ok { background: var(--ok); } .mk.bad { background: var(--bad); } .mk.na { background: var(--muted); }
+
+/* phones: the page already has its own heading, so give the controls the room */
+@media (max-width: 560px) {
+  .topbar { gap: 6px; }
+  .topbar .crumb { display: none; }
+  .topbar .lang-switch { max-width: 96px; }
+  .persona-btn .small, .persona-btn .persona-name { display: none; }
+}

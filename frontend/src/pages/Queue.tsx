@@ -138,7 +138,7 @@ export default function Queue() {
       {!!rows?.length && (
         <div className="card rv-flush">
           <div className="table-wrap">
-            <table>
+            <table className="rv-cards">
               <thead>
                 <tr>
                   <th>Waiting</th>
@@ -157,7 +157,7 @@ export default function Queue() {
                     className="rv-click"
                     onClick={(e) => { if (!(e.target as HTMLElement).closest("a,button")) nav(`/claims/${c.claim_id}`); }}
                   >
-                    <td>
+                    <td data-label="Waiting">
                       <Link className="rv-age" to={`/claims/${c.claim_id}`} title={new Date(c.created_at).toLocaleString()}>
                         {agoText(c.created_at)}
                       </Link>
@@ -167,15 +167,15 @@ export default function Queue() {
                         </Chip>
                       )}
                     </td>
-                    <td><StateChip state={c.state} /></td>
-                    <td className="nowrap">
+                    <td data-label="Status"><StateChip state={c.state} /></td>
+                    <td className="nowrap" data-label="Claimant">
                       {c.claimant_ref}
                       <span className="rv-sub">{c.channel}</span>
                     </td>
-                    <td className="num">{money(c.declared_amount_minor, c.declared_currency)}</td>
-                    <td><EvidenceChip tier={c.evidence_tier} compact /></td>
-                    <td><span className="rv-chips"><TierBadge tier={c.approval_tier} /><RiskBadge level={c.risk_level} score={c.risk_score} /></span></td>
-                    <td className="rv-why">
+                    <td className="num" data-label="Declared">{money(c.declared_amount_minor, c.declared_currency)}</td>
+                    <td data-label="Evidence"><EvidenceChip tier={c.evidence_tier} compact /></td>
+                    <td data-label="Level and risk"><span className="rv-chips"><TierBadge tier={c.approval_tier} /><RiskBadge level={c.risk_level} score={c.risk_score} /></span></td>
+                    <td className="rv-why" data-label="Why it is here">
                       {c.reason_codes.length === 0 ? (
                         <span className="muted">No problems recorded</span>
                       ) : (
