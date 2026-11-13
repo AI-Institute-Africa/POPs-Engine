@@ -17,6 +17,9 @@ from app.api.schemas import (
     AllocationOut,
     AuditVerdictIn,
     BalanceOut,
+    BulkAllocateIn,
+    BulkAllocateOut,
+    BulkRowOut,
     CandidateOut,
     ClaimOut,
     ConfirmIn,
@@ -57,6 +60,7 @@ from app.core.security import (
     sign_evidence,
     verify_evidence_signature,
 )
+from app.credits import bulk
 from app.credits.statements import ImportError_, import_statement, profiles
 from app.extraction import preprocess
 from app.extraction.service import build_readers, extract
@@ -877,6 +881,54 @@ def allocate_unclaimed_credit(
         needs_second_approval=result.needs_second_approval,
         outstanding_minor=result.outstanding_minor,
         payment_status=result.payment_status,
+    )
+
+
+@router.post("/credits/{credit_id}/allocate/bulk", response_model=BulkAllocateOut, tags=["credits"])
+def allocate_credit_in_bulk(
+    credit_id: uuid.UUID, body: BulkAllocateIn, db: DB, p: Reviewer
+) -> BulkAllocateOut:
+    """Preview or apply one credit split across many invoices (same controls as one allocation)."""
+    rows = [bulk.RowIn(r.payment_code, r.obligation_id, r.amount_minor, r.note) for r in body.rows]
+    try:
+        if body.preview:
+            plans = bulk.preview(db, p, credit_id, rows)
+            return BulkAllocateOut(
+                preview=True,
+                rows=[
+                    BulkRowOut(
+                        index=x.index,
+                        status=x.status,
+                        detail=x.reason,
+                        obligation_id=x.obligation_id,
+                        amount_minor=x.amount_minor,
+                    )
+                    for x in plans
+                ],
+            )
+        if not body.txn_last4:
+            raise AllocationError(
+                "LAST4_REQUIRED", "type the last characters of the transaction id to apply"
+            )
+        results, aborted = bulk.apply(db, p, credit_id, body.run_id, body.txn_last4, rows)
+    except AllocationError as exc:
+        db.rollback()
+        raise HTTPException(exc.status, {"code": exc.code, "message": str(exc)}) from exc
+    if any(r.status == "allocated" for r in results):
+        dispatch_rematch(p.org_id)
+    return BulkAllocateOut(
+        preview=False,
+        aborted=aborted,
+        rows=[
+            BulkRowOut(
+                index=r.index,
+                status=r.status,
+                detail=r.detail,
+                amount_minor=r.amount_minor,
+                allocation_id=r.allocation_id,
+            )
+            for r in results
+        ],
     )
 
 

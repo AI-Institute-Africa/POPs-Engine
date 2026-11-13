@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models import ObligationType
 
@@ -118,6 +118,43 @@ class AllocateIn(BaseModel):
     txn_last4: str = Field(min_length=1, max_length=12)
     note: str | None = None
     request_id: uuid.UUID | None = Field(None, description="send the same id when retrying")
+
+
+class BulkRowIn(BaseModel):
+    payment_code: str | None = Field(None, max_length=16)
+    obligation_id: uuid.UUID | None = None
+    amount_minor: int | None = Field(None, gt=0, description="default: as much as is allowed")
+    note: str | None = Field(None, max_length=500)
+
+    @model_validator(mode="after")
+    def _one_target(self) -> "BulkRowIn":
+        if not self.payment_code and not self.obligation_id:
+            raise ValueError("give a payment_code or an obligation_id")
+        return self
+
+
+class BulkAllocateIn(BaseModel):
+    """Split one credit across many invoices. `run_id` makes a retry resume, never repeat."""
+
+    run_id: uuid.UUID
+    txn_last4: str | None = Field(None, min_length=1, max_length=12)
+    preview: bool = True
+    rows: list[BulkRowIn] = Field(min_length=1, max_length=500)
+
+
+class BulkRowOut(BaseModel):
+    index: int
+    status: str
+    detail: str | None = None
+    obligation_id: uuid.UUID | None = None
+    amount_minor: int | None = None
+    allocation_id: uuid.UUID | None = None
+
+
+class BulkAllocateOut(BaseModel):
+    preview: bool
+    aborted: bool = False
+    rows: list[BulkRowOut]
 
 
 class ImportOut(BaseModel):
