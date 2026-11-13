@@ -199,8 +199,10 @@ def test_money_never_arrived_after_statement_coverage(client):
     ob = _obligation(client, sub)
     claim = _submit(client, sub, ob, make_receipt(ecocash_fields(), meta={"Software": "Canva"}))
     assert _internal(client, claim["claim_id"])["risk_level"] == "medium"
-    # statements now cover a week after the receipt's date, with no matching payment
-    _import(client, rev, [_stmt_row(txn="OTHER-1", amount="15.00", date=dmy("10:00", 7))])
+    # statements now cover well past the receipt's date, with no matching payment. The receipt date
+    # reads two ways when its day is 12 or less (12/11 is also 11 Dec), and the later reading is
+    # the one that counts, so cover more than a year to hold on any day the suite runs.
+    _import(client, rev, [_stmt_row(txn="OTHER-1", amount="15.00", date=dmy("10:00", 400))])
     c = _internal(client, claim["claim_id"])
     assert "NO_CREDIT_FOUND" in c["reason_codes"]
     assert {"NO_CREDIT_AFTER_STATEMENT", "EDITING_SOFTWARE"} <= _codes(c)
