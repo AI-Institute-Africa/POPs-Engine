@@ -5,6 +5,7 @@ import { API, api, Candidate, Claim, Field, hasRole, money, post, ReviewDetail }
 import { humanize, stateInfo } from "../labels";
 import { useToast } from "../toast";
 import { Dialog } from "../components/Dialog";
+import { compareRows, lowConfidenceCount, type CompareStatus } from "../lib/comparison";
 import { REJECT_CONSEQUENCES, REJECT_PAYER_MESSAGE, REQUEST_INFO_NOTE } from "../lib/payerMessages";
 import { cssFilter, DEFAULT_VIEW, isDefault, rotateBy, setLevel, zoomBy } from "../lib/viewer";
 import { Chip, Loading, Reasons, StateChip } from "../ui";
@@ -127,6 +128,51 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
   );
 }
 
+const CMP_TONE: Record<CompareStatus, "ok" | "bad" | "warn" | "neutral" | "info"> = {
+  match: "ok",
+  mismatch: "bad",
+  missing: "warn",
+  not_compared: "neutral",
+  note: "info",
+};
+const CMP_LABEL: Record<CompareStatus, string> = {
+  match: "Match",
+  mismatch: "Mismatch",
+  missing: "Not read",
+  not_compared: "Not compared",
+  note: "Check",
+};
+
+function Comparison({ detail, selected }: { detail: ReviewDetail; selected: number }) {
+  const credit = detail.candidates[selected]?.credit ?? null;
+  const { rows, notPerformed } = compareRows(detail.fields, detail.claim, credit);
+  return (
+    <div className="card">
+      <h3>Receipt against the record</h3>
+      <p className="rv-help">A mismatch is a reason to look closer, never a verdict. “Not compared” means that check was not done.</p>
+      <table className="rv-compare">
+        <thead><tr><th>Value</th><th>On the receipt</th><th>Expected</th><th /></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key}>
+              <td>{r.label}</td>
+              <td className="num">{r.observed ?? "—"}</td>
+              <td className="num">{r.expected ?? "—"}</td>
+              <td><Chip tone={CMP_TONE[r.status]} title={r.detail}>{CMP_LABEL[r.status]}</Chip></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {notPerformed.length > 0 && (
+        <details>
+          <summary className="small">Checks not performed ({notPerformed.length})</summary>
+          <ul className="small muted">{notPerformed.map((n) => <li key={n}>{n}</li>)}</ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
 function Fields({ detail, onHover, claimId }: { detail: ReviewDetail; onHover: (n: string | null) => void; claimId: string }) {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<string | null>(null);
@@ -143,7 +189,14 @@ function Fields({ detail, onHover, claimId }: { detail: ReviewDetail; onHover: (
   detail.fields.forEach((f) => latest.set(f.name, f));
   return (
     <div className="card">
-      <h3>What was read from the receipt</h3>
+      <h3>
+        What was read from the receipt{" "}
+        {lowConfidenceCount([...latest.values()]) > 0 && (
+          <Chip tone="warn" title="Fields the readers disagreed on or were unsure about">
+            {lowConfidenceCount([...latest.values()])} to check
+          </Chip>
+        )}
+      </h3>
       <p className="rv-help">Hover a row to highlight where it was found on the image. Fix anything the readers got wrong; the claim is re-checked.</p>
       <div className="rv-fields">
         {[...latest.values()].map((f) => (
@@ -398,6 +451,7 @@ export default function ClaimReview() {
               )}
             </div>
           )}
+          <Comparison detail={d} selected={selected} />
           <Fields detail={d} onHover={setHover} claimId={id} />
           <div className="card">
             <h3>Credits that could match</h3>

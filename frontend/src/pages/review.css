@@ -200,3 +200,7 @@
 .policy-risks li { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); }
 .policy-risks .risk-danger { background: var(--bad-bg); border-color: var(--bad); }
 .policy-risks .risk-warning { background: var(--warn-bg); border-color: var(--warn); }
+
+.rv-compare { width: 100%; border-collapse: collapse; }
+.rv-compare th, .rv-compare td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; font-size: 13px; }
+.rv-compare .num { font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }

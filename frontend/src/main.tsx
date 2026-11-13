@@ -11,6 +11,7 @@ import { useTheme } from "./theme";
 import { Avatar } from "./ui";
 import Home from "./pages/Home";
 import Scan from "./pages/Scan";
+import Bulk from "./pages/Bulk";
 import Track from "./pages/Track";
 import ImageToText from "./pages/ImageToText";
 import Guardrails from "./pages/Guardrails";
@@ -278,6 +279,7 @@ void ensureSession()
                     <Route path="/claims/:id" element={<ClaimReview />} />
                     <Route path="/track/:id" element={<Track />} />
                     <Route path="/credits" element={<Credits />} />
+                    <Route path="/credits/bulk" element={<Bulk />} />
                     <Route path="/obligations" element={<Obligations />} />
                     <Route path="/exposure" element={<Exposure />} />
                     <Route path="/auto" element={<AutoApproved />} />
