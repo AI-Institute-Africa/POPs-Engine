@@ -4,10 +4,15 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { API, api, Candidate, Claim, Field, hasRole, money, post, ReviewDetail } from "../api";
 import { humanize, stateInfo } from "../labels";
 import { useToast } from "../toast";
+import { Dialog } from "../components/Dialog";
+import { REJECT_CONSEQUENCES, REJECT_PAYER_MESSAGE, REQUEST_INFO_NOTE } from "../lib/payerMessages";
+import { cssFilter, DEFAULT_VIEW, isDefault, rotateBy, setLevel, zoomBy } from "../lib/viewer";
 import { Chip, Loading, Reasons, StateChip } from "../ui";
 import { agoText, EvidenceChip, TierBadge } from "./Queue";
 import { RiskBadge, SignalList } from "./Fraud";
 import "./review.css";
+
+const REVIEWABLE = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"];
 
 const REJECT_REASONS = [
   "PAYMENT_NOT_RECEIVED",
@@ -27,15 +32,53 @@ function displayValue(f: Field): string {
 }
 
 function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string | null }) {
-  const ev = detail.evidence[0];
+  const [idx, setIdx] = useState(0);
+  const [view, setView] = useState(DEFAULT_VIEW);
+  const [tab, setTab] = useState<"image" | "json">("image");
+  const ev = detail.evidence[idx] ?? detail.evidence[0];
   if (!ev) return <p className="muted">No evidence file.</p>;
   const latest = new Map<string, Field>();
   detail.fields.forEach((f) => latest.set(f.name, f));
+  // the engine does not say which proof a field came from, so boxes are drawn on the first only
+  const showBoxes = idx === 0;
   return (
     <div className="viewer">
-      <div className="frame">
-        <img src={`${API}${ev.preview_url}`} alt="Submitted proof of payment" />
-        {[...latest.values()]
+      {detail.evidence.length > 1 && (
+        <div className="rv-proofs" role="tablist" aria-label="Proofs submitted">
+          {detail.evidence.map((e, i) => (
+            <button key={e.evidence_id} type="button" role="tab" aria-selected={i === idx} className="rv-tab" onClick={() => setIdx(i)}>
+              Proof {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="viewer-tools" role="toolbar" aria-label="Image tools">
+        <button type="button" className="ghost small" onClick={() => setView(zoomBy(view, 0.25))} aria-label="Zoom in">＋</button>
+        <button type="button" className="ghost small" onClick={() => setView(zoomBy(view, -0.25))} aria-label="Zoom out">－</button>
+        <button type="button" className="ghost small" onClick={() => setView(rotateBy(view, 90))} aria-label="Rotate">⟳</button>
+        <label className="small">Brightness
+          <input type="range" min={0.5} max={2.5} step={0.1} value={view.brightness} onChange={(e) => setView(setLevel(view, "brightness", Number(e.target.value)))} />
+        </label>
+        <label className="small">Contrast
+          <input type="range" min={0.5} max={2.5} step={0.1} value={view.contrast} onChange={(e) => setView(setLevel(view, "contrast", Number(e.target.value)))} />
+        </label>
+        {!isDefault(view) && <button type="button" className="ghost small" onClick={() => setView(DEFAULT_VIEW)}>Reset</button>}
+        <button type="button" className="ghost small" onClick={() => setTab(tab === "image" ? "json" : "image")}>
+          {tab === "image" ? "Raw data" : "Image"}
+        </button>
+      </div>
+      {tab === "json" ? (
+        <div>
+          <pre className="rv-json">{JSON.stringify({ evidence: ev, fields: [...latest.values()] }, null, 2)}</pre>
+          <button type="button" className="ghost small" onClick={() => void navigator.clipboard?.writeText([...latest.values()].map((f) => `${f.name}: ${f.raw_value ?? ""}`).join("\n"))}>
+            Copy read text
+          </button>
+        </div>
+      ) : (
+      <div className="viewer-scroll">
+      <div className="frame" style={{ transform: `scale(${view.zoom}) rotate(${view.rotate}deg)`, transformOrigin: "center top" }}>
+        <img src={`${API}${ev.preview_url}`} alt={`Submitted proof of payment ${idx + 1}`} style={{ filter: cssFilter(view) }} />
+        {showBoxes && [...latest.values()]
           .filter((f) => f.region)
           .map((f) => (
             <div
@@ -50,7 +93,7 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
               title={`${f.name}: ${displayValue(f)}`}
             />
           ))}
-        {detail.tamper?.regions.map((r, i) => (
+        {showBoxes && detail.tamper?.regions.map((r, i) => (
           <div
             key={`tamper-${i}`}
             className="box tamper"
@@ -64,6 +107,9 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
           />
         ))}
       </div>
+      </div>
+      )}
+      {!showBoxes && <p className="muted small">Field boxes are shown on Proof 1 only; the engine does not record which proof each value came from.</p>}
       {detail.tamper && (
         <p className="muted small">
           Manipulation risk score <strong>{detail.tamper.score.toFixed(2)}</strong>
@@ -205,6 +251,9 @@ export default function ClaimReview() {
   const [note, setNote] = useState("");
   const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0]);
   const [infoMsg, setInfoMsg] = useState("");
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [reverseFor, setReverseFor] = useState<string | null>(null);
+  const [reverseReason, setReverseReason] = useState("");
   const toast = useToast();
   const last4Ref = useRef<HTMLInputElement>(null);
 
@@ -228,7 +277,7 @@ export default function ClaimReview() {
   });
   const reject = useMutation({
     mutationFn: () => post(`/review/claims/${id}/reject`, { reason: rejectReason, note: note || null }),
-    onSuccess: () => done("Rejected"),
+    onSuccess: () => { setRejectOpen(false); done("Rejected"); },
   });
   const requestInfo = useMutation({
     mutationFn: () => post(`/review/claims/${id}/request-info`, { message: infoMsg }),
@@ -237,12 +286,8 @@ export default function ClaimReview() {
   const reverse = useMutation({
     mutationFn: (v: { allocationId: string; reason: string }) =>
       post(`/allocations/${v.allocationId}/reverse`, { reason: v.reason }),
-    onSuccess: () => done("Allocation reversed"),
+    onSuccess: () => { setReverseFor(null); setReverseReason(""); done("Allocation reversed"); },
   });
-  const reverseAllocation = (allocationId: string) => {
-    const reason = window.prompt("Why is this allocation being reversed?");
-    if (reason && reason.trim().length >= 3) reverse.mutate({ allocationId, reason: reason.trim() });
-  };
 
   const nextId = queue.data?.find((c) => c.claim_id !== id)?.claim_id;
   useEffect(() => {
@@ -250,6 +295,7 @@ export default function ClaimReview() {
       if ((e.target as HTMLElement).tagName.match(/INPUT|TEXTAREA|SELECT/)) return;
       if (e.key === "n" && nextId) nav(`/claims/${nextId}`);
       else if (e.key === "c") { e.preventDefault(); last4Ref.current?.focus(); }
+      else if (e.key === "r" && q.data && REVIEWABLE.includes(q.data.claim.state)) { e.preventDefault(); setRejectOpen(true); }
       else if (/^[1-9]$/.test(e.key) && q.data && Number(e.key) <= q.data.candidates.length) setSelected(Number(e.key) - 1);
     }
     window.addEventListener("keydown", onKey);
@@ -261,7 +307,7 @@ export default function ClaimReview() {
   if (q.error) return <section className="rv"><p className="error">{(q.error as Error).message}</p></section>;
   const d = q.data!;
   const c = d.claim;
-  const reviewable = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"].includes(c.state);
+  const reviewable = REVIEWABLE.includes(c.state);
   const err = (confirm.error ?? reject.error ?? requestInfo.error ?? reverse.error) as Error | null;
 
   const step = nextStep(d, selected, reviewable);
@@ -278,7 +324,7 @@ export default function ClaimReview() {
       <div className="rv-topbar">
         <Link to="/queue">← Review queue</Link>
         <span className="rv-keys">
-          Shortcuts: 1-9 pick a credit · c to confirm · n for the next claim
+          Shortcuts: 1-9 pick a credit · c to confirm · r to reject · n for the next claim
           {nextId && <> · <Link to={`/claims/${nextId}`}>Next claim →</Link></>}
         </span>
       </div>
@@ -395,16 +441,16 @@ export default function ClaimReview() {
                 <div className="rv-action danger">
                   <h4>Reject</h4>
                   <p className="rv-help">Declines this claim. The reason you pick goes in the audit trail.</p>
-                  <form className="inline" onSubmit={(e) => { e.preventDefault(); reject.mutate(); }}>
+                  <div className="inline">
                     <select value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} aria-label="Reject reason">
                       {REJECT_REASONS.map((r) => <option key={r} value={r}>{humanize(r)}</option>)}
                     </select>
-                    <button className="danger">Reject</button>
-                  </form>
+                    <button type="button" className="danger" onClick={() => setRejectOpen(true)}>Reject…</button>
+                  </div>
                 </div>
                 <div className="rv-action">
                   <h4>Ask the payer for more</h4>
-                  <p className="rv-help">For a blurry photo or a missing detail. Your message is sent to the payer.</p>
+                  <p className="rv-help">For a blurry photo or a missing detail. {REQUEST_INFO_NOTE}</p>
                   <form className="inline" onSubmit={(e) => { e.preventDefault(); requestInfo.mutate(); }}>
                     <input value={infoMsg} onChange={(e) => setInfoMsg(e.target.value)} placeholder="Message to payer" aria-label="Message to payer" />
                     <button className="ghost" disabled={infoMsg.length < 3}>Request info</button>
@@ -431,7 +477,7 @@ export default function ClaimReview() {
                   </div>
                   <div className="when">{new Date(a.created_at).toLocaleString()}</div>
                   {a.kind === "allocation" && !d.allocations.some((r) => r.reverses === a.allocation_id) && (
-                    <button className="ghost small" style={{ marginTop: 6 }} disabled={!hasRole("approver") || reverse.isPending} onClick={() => reverseAllocation(a.allocation_id)}>
+                    <button className="ghost small" style={{ marginTop: 6 }} disabled={!hasRole("approver") || reverse.isPending} onClick={() => { setReverseFor(a.allocation_id); setReverseReason(""); }}>
                       Reverse
                     </button>
                   )}
@@ -442,6 +488,49 @@ export default function ClaimReview() {
           </div>
         </div>
       </div>
+      {reviewable && (
+        <div className="decision-bar" role="region" aria-label="Decision bar">
+          <span className="db-sum">
+            {d.candidates[selected]
+              ? `Credit ${selected + 1}: ${money(d.candidates[selected].credit.amount_minor, d.candidates[selected].credit.currency)}${d.candidates[selected].passed ? "" : " (fails a check)"}`
+              : "No credit selected"}
+          </span>
+          <button type="button" onClick={() => { goDecision(); setTimeout(() => last4Ref.current?.focus(), 350); }}>Confirm…</button>
+          <button type="button" className="danger" onClick={() => setRejectOpen(true)}>Reject…</button>
+          {nextId && <Link className="btn secondary" to={`/claims/${nextId}`}>Next claim →</Link>}
+        </div>
+      )}
+
+      {rejectOpen && (
+        <Dialog title="Reject this claim?" onClose={() => setRejectOpen(false)}>
+          <p>Reason (audit trail only): <strong>{humanize(rejectReason)}</strong></p>
+          <label className="small">Note (optional)
+            <input value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <p className="small"><strong>The payer will be told:</strong></p>
+          <blockquote className="payer-msg">{REJECT_PAYER_MESSAGE}</blockquote>
+          <ul className="small">{REJECT_CONSEQUENCES.map((x) => <li key={x}>{x}</li>)}</ul>
+          {reject.error && <p className="error">{(reject.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setRejectOpen(false)}>Cancel</button>
+            <button type="button" className="danger" disabled={reject.isPending} onClick={() => reject.mutate()}>Reject claim</button>
+          </div>
+        </Dialog>
+      )}
+
+      {reverseFor && (
+        <Dialog title="Reverse this allocation?" onClose={() => setReverseFor(null)}>
+          <p className="small">This puts the money back: the invoice shows as unpaid again and the credit becomes available. It is recorded in the audit trail. Approvers only.</p>
+          <label className="small">Reason (required)
+            <input value={reverseReason} onChange={(e) => setReverseReason(e.target.value)} autoFocus />
+          </label>
+          {reverse.error && <p className="error">{(reverse.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setReverseFor(null)}>Cancel</button>
+            <button type="button" className="danger" disabled={reverseReason.trim().length < 3 || reverse.isPending} onClick={() => reverse.mutate({ allocationId: reverseFor, reason: reverseReason.trim() })}>Reverse allocation</button>
+          </div>
+        </Dialog>
+      )}
     </section>
   );
 }

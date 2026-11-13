@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, Claim, money } from "../api";
 import { reasonText, type Tone } from "../labels";
 import { Chip, EmptyState, Loading, PageHeader, StateChip } from "../ui";
+import { bucketOf, slaOf, type Bucket } from "../lib/triage";
 import { RiskBadge } from "./Fraud";
 import "./review.css";
 
@@ -62,6 +63,7 @@ export default function Queue() {
   const nav = useNavigate();
   const [state, setState] = useState("");
   const [channel, setChannel] = useState("");
+  const [bucket, setBucket] = useState<Bucket>("needs_review");
   const params = new URLSearchParams();
   if (state) params.set("state", state);
   if (channel.trim()) params.set("channel", channel.trim());
@@ -71,7 +73,12 @@ export default function Queue() {
     refetchInterval: 15000,
   });
   const filtered = !!state || !!channel.trim();
-  const rows = q.data;
+  const all = q.data;
+  const counts = {
+    needs_review: all?.filter((c) => bucketOf(c) === "needs_review").length ?? 0,
+    flagged: all?.filter((c) => bucketOf(c) === "flagged").length ?? 0,
+  };
+  const rows = all?.filter((c) => bucketOf(c) === bucket);
 
   return (
     <section className="rv">
@@ -79,6 +86,15 @@ export default function Queue() {
         title="Review queue"
         sub="Claims waiting for a person. The oldest are first. Click a row to open the receipt, the matching bank credit and the decision."
       />
+      <div className="rv-tabs" role="tablist" aria-label="Triage">
+        <button type="button" role="tab" aria-selected={bucket === "needs_review"} className="rv-tab" onClick={() => setBucket("needs_review")}>
+          Needs review <span className="rv-tabcount">{counts.needs_review}</span>
+        </button>
+        <button type="button" role="tab" aria-selected={bucket === "flagged"} className="rv-tab flagged" onClick={() => setBucket("flagged")}>
+          Flagged / high risk <span className="rv-tabcount">{counts.flagged}</span>
+        </button>
+        <Link className="rv-tab" to="/auto">Auto-verified (audit) →</Link>
+      </div>
       <div className="rv-filters">
         <div className="rv-pills" role="group" aria-label="Show claims">
           {FILTERS.map(([v, label]) => (
@@ -145,6 +161,11 @@ export default function Queue() {
                       <Link className="rv-age" to={`/claims/${c.claim_id}`} title={new Date(c.created_at).toLocaleString()}>
                         {agoText(c.created_at)}
                       </Link>
+                      {slaOf(c.created_at, Date.now()).level > 0 && (
+                        <Chip tone={slaOf(c.created_at, Date.now()).tone} title="Waiting longer than the reminder thresholds">
+                          overdue
+                        </Chip>
+                      )}
                     </td>
                     <td><StateChip state={c.state} /></td>
                     <td className="nowrap">
