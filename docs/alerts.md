@@ -35,6 +35,21 @@ send. Have the app (or a scheduled task on the phone) call `POST /api/alerts/hea
 same header every few minutes. If a source is silent for `POPS_ALERT_SOURCE_STALE_MINUTES`
 (default 30), admins get one notification and the source shows as **silent**.
 
+## Signed requests (recommended)
+
+The source key is a bearer header, so a captured request can be replayed. A forwarder that can
+compute an HMAC should sign each request:
+
+```
+X-POPs-Timestamp: <unix seconds>
+X-POPs-Signature: hex(HMAC-SHA256(secret, "<timestamp>." + <raw request body>))
+secret = sha256_hex(<source key>)      # the server stores only this digest, never the key
+```
+
+A request more than 5 minutes from the server clock, or with a wrong signature, gets a 401. A
+signature that is present is always checked; set `POPS_ALERT_REQUIRE_SIGNATURE=true` to refuse
+unsigned requests altogether. The same alert delivered twice is still processed once.
+
 ## Email: alert mailbox
 
 Either:

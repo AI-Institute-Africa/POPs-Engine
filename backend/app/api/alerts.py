@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.alerts import service as alerts
+from app.alerts import signing
 from app.core import ratelimit
 from app.core.audit import audit
 from app.core.config import get_settings
@@ -47,6 +48,20 @@ def _source(db: Session, key: str | None, kind: str) -> AlertSource:
     return src
 
 
+def _check_signature(request: Request, src: AlertSource, body: bytes) -> None:
+    try:
+        signing.verify(
+            src.key_hash,
+            request.headers.get("x-pops-timestamp"),
+            request.headers.get("x-pops-signature"),
+            body,
+            datetime.now(UTC).timestamp(),
+            required=get_settings().alert_require_signature,
+        )
+    except signing.SignatureError as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
 def _first(d: dict[str, Any], *keys: str) -> str:
     for k in keys:
         v = d.get(k)
@@ -77,6 +92,8 @@ async def receive_sms(
     request: Request, db: DB, x_pops_source_key: Annotated[str | None, Header()] = None
 ) -> dict:
     src = _source(db, x_pops_source_key, "sms")
+    raw_body = await request.body()
+    _check_signature(request, src, raw_body)
     if "json" in request.headers.get("content-type", ""):
         payload = await request.json()
     else:
@@ -101,14 +118,18 @@ async def receive_email(
     raw = await request.body()
     if not raw or len(raw) > 5 * 1024 * 1024:
         raise HTTPException(422, "expected a raw email under 5 MB")
+    _check_signature(request, src, raw)
     return _after_credit(db, src, alerts.ingest_email(db, src, raw))
 
 
 @router.post("/heartbeat")
-def heartbeat(db: DB, x_pops_source_key: Annotated[str | None, Header()] = None) -> dict:
+def heartbeat(
+    request: Request, db: DB, x_pops_source_key: Annotated[str | None, Header()] = None
+) -> dict:
     src = alerts.authenticate(db, x_pops_source_key)
     if src is None:
         raise HTTPException(401, "unknown or inactive alert source key")
+    _check_signature(request, src, b"")
     src.last_seen_at = datetime.now(UTC)
     src.stale_notified_at = None
     db.commit()

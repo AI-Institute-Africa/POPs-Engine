@@ -294,3 +294,39 @@ def test_sms_forwarder_form_payloads(client):
     )
     assert r.json()["status"] == "credited"
     assert uuid.UUID(r.json()["credit_id"])
+
+
+def _signed(key: str, body: bytes, ts: int | None = None, sig: str | None = None) -> dict:
+    import time
+
+    from app.alerts import signing
+
+    stamp = int(time.time()) if ts is None else ts
+    return {
+        "X-POPs-Source-Key": key,
+        "Content-Type": "application/json",
+        "X-POPs-Timestamp": str(stamp),
+        "X-POPs-Signature": sig or signing.sign(signing.secret_for_key(key), stamp, body),
+    }
+
+
+def test_signed_sms_is_accepted_and_a_bad_signature_is_refused(client):
+    import json
+
+    src = _source(client)
+    body = json.dumps({"from": "EcoCash", "text": ECOCASH_SMS}).encode()
+    bad = client.post("/alerts/sms", headers=_signed(src["key"], body, sig="0" * 64), content=body)
+    assert bad.status_code == 401
+    stale = client.post("/alerts/sms", headers=_signed(src["key"], body, ts=1), content=body)
+    assert stale.status_code == 401
+    ok = client.post("/alerts/sms", headers=_signed(src["key"], body), content=body)
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["status"] == "credited"
+
+
+def test_unsigned_sms_is_refused_when_signatures_are_required(client, monkeypatch):
+    from app.core.config import get_settings
+
+    src = _source(client)
+    monkeypatch.setattr(get_settings(), "alert_require_signature", True)
+    assert _sms(client, src["key"]).status_code == 401

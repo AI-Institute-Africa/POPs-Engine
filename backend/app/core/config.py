@@ -112,6 +112,9 @@ class Settings(BaseSettings):
     alert_imap_source_id: str | None = None  # the registered email alert source it feeds
     alert_source_stale_minutes: int = 30  # forwarder heartbeat expected at least this often
     rate_limit_alerts_per_minute: int = 120
+    # refuse alert requests that are not signed (X-POPs-Timestamp / X-POPs-Signature); a
+    # signature that is present is always verified. See docs/alerts.md.
+    alert_require_signature: bool = False
 
     # WhatsApp Business (Cloud API): payers send their POP to the business number
     whatsapp_verify_token: str | None = None  # the webhook "verify token" set in Meta's console
