@@ -8,7 +8,7 @@ the reviewer but marked unagreed.
 from dataclasses import dataclass
 
 from app.core.money import normalise_currency
-from app.extraction import templates
+from app.extraction import grounding, templates
 from app.extraction.schema import FIELD_NAMES, FieldReading
 from app.normalise.fields import (
     date_candidates,
@@ -71,8 +71,13 @@ def combine(
     readings: dict[str, tuple[str, dict[str, FieldReading]]],
     critical: list[str],
     single_reader_min_conf: float,
+    source_text: str = "",
 ) -> dict[str, FinalField]:
-    """readings: reader name -> (version, field readings). The first reader is primary."""
+    """readings: reader name -> (version, field readings). The first reader is primary.
+
+    source_text is the independently recovered document text (OCR output, PDF text layer). When
+    present, a critical amount or reference that only one reader reported must occur in it.
+    """
     order = list(readings)
 
     def currency_of(reader: str) -> str | None:
@@ -106,6 +111,10 @@ def combine(
             confidence = max(readings[r][1][name].confidence for r, _ in agreeing)
         elif name in critical and confidence >= single_reader_min_conf:
             agreed = True
+            if source_text.strip() and not grounding.is_grounded(
+                name, normed.get(chosen_reader), currency_of(chosen_reader), source_text
+            ):
+                agreed = False  # one confident reader, but the value is not in the document text
         elif name not in critical:
             agreed = normed.get(chosen_reader) is not None
         out[name] = FinalField(

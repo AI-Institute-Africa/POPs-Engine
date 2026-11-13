@@ -87,6 +87,8 @@ def extract(
     readings: dict[str, tuple[str, dict[str, FieldReading]]] = {}
     failures: dict[str, str] = {}
     for reader in readers:
+        if hasattr(reader, "texts"):
+            reader.texts.clear()  # grounding text must come from this document only
         try:
             if getattr(reader, "per_page", False) and len(pages) > 1:
                 result = _merge_pages([reader.read(p, raw) for p in pages], layout)
@@ -98,7 +100,8 @@ def extract(
     if text.strip():
         tl = TextLayerReader(text)
         readings[tl.name] = (tl.version, tl.read_text())
-    fields = combine(readings, critical, single_reader_min_conf) if readings else {}
+    source_text = "\n".join([text, *(t for r in readers for t in getattr(r, "texts", []))])
+    fields = combine(readings, critical, single_reader_min_conf, source_text) if readings else {}
     return ExtractionResult(
         fields=fields, versions={n: v for n, (v, _) in readings.items()}, failures=failures
     )

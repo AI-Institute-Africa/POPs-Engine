@@ -168,3 +168,14 @@ What admins receive:
   `pops_shadow_errors_total`.
 - `POPS_SENTRY_DSN` and `POPS_OTEL_ENDPOINT` switch on Sentry and OpenTelemetry tracing when the
   `observability` extra is installed (`pip install -e ".[observability]"`).
+
+## Console settings (frontend build)
+
+- `VITE_ALLOW_UNREVIEWED_TRANSLATIONS=true`: show the draft Shona and Ndebele strings. By default the
+  console shows English until a fluent reviewer sets `REVIEWED[lang]` to `true` in
+  `frontend/src/lib/i18nGate.ts`. A browser can also opt in with
+  `localStorage["validate-allow-draft-translations"]="1"`.
+
+## Alerts
+
+- `POPS_ALERT_REQUIRE_SIGNATURE` (default `false`): refuse unsigned alert requests. See `docs/alerts.md`.

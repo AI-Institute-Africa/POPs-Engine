@@ -17,6 +17,9 @@ from app.api.schemas import (
     AllocationOut,
     AuditVerdictIn,
     BalanceOut,
+    BulkAllocateIn,
+    BulkAllocateOut,
+    BulkRowOut,
     CandidateOut,
     ClaimOut,
     ConfirmIn,
@@ -33,6 +36,8 @@ from app.api.schemas import (
     ObligationIn,
     ObligationOut,
     RejectIn,
+    ReleaseHoldIn,
+    ReprocessIn,
     RequestInfoIn,
     ReverseIn,
     ReviewDetailOut,
@@ -57,6 +62,7 @@ from app.core.security import (
     sign_evidence,
     verify_evidence_signature,
 )
+from app.credits import bulk
 from app.credits.statements import ImportError_, import_statement, profiles
 from app.extraction import preprocess
 from app.extraction.service import build_readers, extract
@@ -880,6 +886,54 @@ def allocate_unclaimed_credit(
     )
 
 
+@router.post("/credits/{credit_id}/allocate/bulk", response_model=BulkAllocateOut, tags=["credits"])
+def allocate_credit_in_bulk(
+    credit_id: uuid.UUID, body: BulkAllocateIn, db: DB, p: Reviewer
+) -> BulkAllocateOut:
+    """Preview or apply one credit split across many invoices (same controls as one allocation)."""
+    rows = [bulk.RowIn(r.payment_code, r.obligation_id, r.amount_minor, r.note) for r in body.rows]
+    try:
+        if body.preview:
+            plans = bulk.preview(db, p, credit_id, rows)
+            return BulkAllocateOut(
+                preview=True,
+                rows=[
+                    BulkRowOut(
+                        index=x.index,
+                        status=x.status,
+                        detail=x.reason,
+                        obligation_id=x.obligation_id,
+                        amount_minor=x.amount_minor,
+                    )
+                    for x in plans
+                ],
+            )
+        if not body.txn_last4:
+            raise AllocationError(
+                "LAST4_REQUIRED", "type the last characters of the transaction id to apply"
+            )
+        results, aborted = bulk.apply(db, p, credit_id, body.run_id, body.txn_last4, rows)
+    except AllocationError as exc:
+        db.rollback()
+        raise HTTPException(exc.status, {"code": exc.code, "message": str(exc)}) from exc
+    if any(r.status == "allocated" for r in results):
+        dispatch_rematch(p.org_id)
+    return BulkAllocateOut(
+        preview=False,
+        aborted=aborted,
+        rows=[
+            BulkRowOut(
+                index=r.index,
+                status=r.status,
+                detail=r.detail,
+                amount_minor=r.amount_minor,
+                allocation_id=r.allocation_id,
+            )
+            for r in results
+        ],
+    )
+
+
 # --- review -----------------------------------------------------------------------------------
 
 
@@ -1047,6 +1101,63 @@ def request_info(claim_id: uuid.UUID, body: RequestInfoIn, db: DB, p: Reviewer) 
         raise _review_error(exc) from exc
     db.commit()
     return claim_out(claim, True)
+
+
+@router.post("/review/claims/{claim_id}/reprocess", response_model=ClaimOut, tags=["review"])
+def reprocess_claim(claim_id: uuid.UUID, body: ReprocessIn, db: DB, p: Reviewer) -> ClaimOut:
+    """Run the readers and rules again on the stored evidence; past runs stay as history."""
+    try:
+        claim = review.reprocess(db, p, claim_id, body.note, body.discard_corrections)
+    except review.ReviewError as exc:
+        db.rollback()
+        raise _review_error(exc) from exc
+    db.commit()
+    dispatch_pipeline(claim.claim_id)
+    db.refresh(claim)
+    return claim_out(claim, True)
+
+
+@router.post("/review/claims/{claim_id}/release-hold", response_model=ClaimOut, tags=["review"])
+def release_hold(claim_id: uuid.UUID, body: ReleaseHoldIn, db: DB, p: Reviewer) -> ClaimOut:
+    """Approvers release a possible duplicate to the normal queue, with a written reason."""
+    try:
+        claim = review.release_hold(db, p, claim_id, body.note)
+    except review.ReviewError as exc:
+        db.rollback()
+        raise _review_error(exc) from exc
+    db.commit()
+    return claim_out(claim, True)
+
+
+@router.get("/review/claims/{claim_id}/runs", tags=["review"])
+def verification_runs(claim_id: uuid.UUID, db: DB, p: Reviewer) -> list[dict]:
+    """Every pipeline run for a claim, newest first: what ran, what it concluded, what failed."""
+    claim = db.scalars(
+        select(Claim).where(Claim.claim_id == claim_id, Claim.org_id == p.org_id)
+    ).first()
+    if claim is None:
+        raise HTTPException(404, "claim not found")
+    runs = db.scalars(
+        select(VerificationRun)
+        .where(VerificationRun.claim_id == claim_id)
+        .order_by(VerificationRun.created_at.desc())
+    )
+    out = []
+    for r in runs:
+        extraction = next((c for c in r.checks if c.get("check") == "extraction"), {})
+        out.append(
+            {
+                "run_id": str(r.run_id),
+                "created_at": r.created_at.isoformat(),
+                "pipeline_version": r.pipeline_version,
+                "policy_version": r.policy_version,
+                "outcome": r.outcome,
+                "flags": r.flags,
+                "readers": extraction.get("readers", []),
+                "reader_failures": extraction.get("failures", {}),
+            }
+        )
+    return out
 
 
 @router.post("/review/claims/{claim_id}/fields", response_model=FieldOut, tags=["review"])

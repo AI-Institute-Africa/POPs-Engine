@@ -2,7 +2,19 @@
 // Any key missing in a language falls back to English. Admin pages stay in English.
 import { createContext, useContext, useState } from "react";
 
-export type Lang = "en" | "sn" | "nd";
+import { translate, translationActive, type Lang } from "./lib/i18nGate";
+
+export type { Lang };
+
+const ALLOW_KEY = "validate-allow-draft-translations";
+function allowDrafts(): boolean {
+  if (import.meta.env.VITE_ALLOW_UNREVIEWED_TRANSLATIONS === "true") return true;
+  try {
+    return localStorage.getItem(ALLOW_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 const KEY = "validate-lang";
 
@@ -110,7 +122,7 @@ const ND: Record<string, string> = {
   "footer.text": "Validate — imodeli engathengisi. Irekhodi aliyisibopho, aliyisiqiniseko.",
 };
 
-const EN: Record<string, string> = {
+export const EN: Record<string, string> = {
   "nav.scan": "Scan",
   "nav.imageToText": "Image to text",
   "nav.guardrails": "Guardrails",
@@ -160,12 +172,48 @@ const EN: Record<string, string> = {
   "tips.1": "Photograph the whole receipt — no cropped edges or glare.",
   "tips.2": "Put the transaction reference and amount in view.",
   "tips.3": "Upload the original file rather than a screenshot of a screenshot.",
+  "track.title": "Your payment",
+  "track.timeline": "Progress",
+  "track.notfound": "We couldn't find that payment.",
+  "track.back": "Check a payment",
+  "track.addproof": "Add what we need",
+  "track.newproof": "Send a new proof",
+  "step.uploaded": "Uploaded",
+  "step.checked": "Checked",
+  "step.read": "Read",
+  "step.matched": "Matched",
+  "step.reviewed": "Reviewed",
+  "step.decided": "Decided",
+  "panel.checking.title": "We're checking your proof",
+  "panel.checking.body": "This usually takes under a minute. You can leave this page open.",
+  "panel.waiting_money.title": "Waiting for the money to show up",
+  "panel.waiting_money.body": "We can read your receipt, but we confirm payments from the bank's side. We'll update this page when the payment arrives.",
+  "panel.under_review.title": "A person is checking your payment",
+  "panel.under_review.body": "Nothing else is needed from you. We'll update this page as soon as it is decided.",
+  "panel.needs_info.title": "We need a little more from you",
+  "panel.needs_info.body": "The proof wasn't clear enough to read. Send a sharper photo with the amount and reference in view.",
+  "panel.approved.title": "Your payment is approved",
+  "panel.approved.body": "Thank you. The payment has been recorded.",
+  "panel.part_paid.title": "Part of your payment is recorded",
+  "panel.part_paid.body": "The amount received is less than the amount due. The rest is still outstanding.",
+  "panel.rejected.title": "We couldn't confirm this payment",
+  "panel.rejected.body": "You can send a new proof, or contact the organisation if you think this is a mistake.",
+  "panel.reversed.title": "This payment was reversed",
+  "panel.reversed.body": "Contact the organisation if you were not expecting this.",
+  "prov.title": "Temporary access is on.",
+  "prov.body": "You have access while we wait for the money. It ends in",
+  "prov.urgent": "Send your proof now so it isn't interrupted.",
   "footer.text": "Validate — non-commercial demo. A receipt is a claim, not a confirmation.",
 };
 
-const DICTS: Record<Lang, Record<string, string>> = { en: EN, sn: SN, nd: ND };
+export const DICTS: Record<Lang, Record<string, string>> = { en: EN, sn: SN, nd: ND };
 
 export const LANG_LABELS: Record<Lang, string> = { en: "EN", sn: "Shona", nd: "Ndebele" };
+
+/** Label for the language switch: marks a language that is still showing English. */
+export function langLabel(l: Lang): string {
+  return translationActive(l, allowDrafts()) ? LANG_LABELS[l] : `${LANG_LABELS[l]} (draft: English shown)`;
+}
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (key: string) => string };
 
@@ -180,7 +228,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(KEY, l);
     setLangState(l);
   };
-  const t = (key: string) => DICTS[lang][key] ?? EN[key] ?? key;
+  const t = (key: string) => translate(lang, key, DICTS, allowDrafts());
   return <I18nCtx.Provider value={{ lang, setLang, t }}>{children}</I18nCtx.Provider>;
 }
 

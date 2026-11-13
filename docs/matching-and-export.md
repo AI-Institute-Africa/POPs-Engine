@@ -39,3 +39,51 @@ paid. Columns: `allocation_id`, `created_at_utc`, `kind`, `claim_id`, `obligatio
 - At most 100,000 rows per export; a larger range returns `413` asking for a narrower one.
 - Every export is audited (`allocations.exported`, with the row count and filters).
 - It only ever covers the caller's organisation.
+
+## Splitting one payment across many invoices (bulk allocation)
+
+For one lump payment, such as an employer paying for many learners. In the console: Credits, then
+"Split one payment across invoices".
+
+1. Pick the credit and paste or load a list: payment code, amount (optional), note (optional). Commas,
+   semicolons and tabs work, with or without a header row; up to 500 rows.
+2. **Preview** marks each row Ready, Check (no amount given, so the most allowed is used) or Fix
+   (unknown code, wrong currency, a claim already waiting, more than is left).
+3. **Apply** with the last 4 characters of the transaction id, looked up at the source.
+
+`POST /credits/{credit_id}/allocate/bulk` takes `{run_id, preview, txn_last4, rows[]}`. Every row goes
+through the same controls as a single allocation (typed last 4, separation of duties, a second approver
+above the limit, the ledger trigger), so a bulk run can never do what one allocation could not. The
+preview is never trusted: apply re-checks every row. A row's request id is derived from
+`run_id + row number + invoice + amount`, so re-sending the same run after a timeout allocates each row
+at most once and finishes the rest. A wrong last 4 or missing permission stops the whole run; any other
+row error is reported and the run continues.
+
+## Console additions
+
+- Payers: `/track/{claim_id}` shows a six-step timeline, what happens next, and the provisional-access
+  countdown. It never shows risk, tamper or duplicate detail. A rejection reads "We could not confirm your
+  payment" with no reason.
+- Reviewers: triage tabs (needs review, flagged), an overdue chip using the review SLA ladder, a sticky
+  decision bar, a reject dialog showing the exact message the payer will see, a reverse dialog, zoom,
+  rotate and brightness on the receipt, a proof switcher, and a receipt-against-record table whose rows
+  can say "Not compared" so it never implies a check that did not happen.
+- Admins: publishing a policy that switches something on or loosens it lists the consequences and needs an
+  "I understand" tick.
+
+## Reading a receipt again, and releasing a duplicate hold
+
+- **Read again** (`POST /review/claims/{id}/reprocess`, reviewer): runs the readers and rules again on the
+  saved evidence. Allowed only from `DOCUMENT_VERIFIED`, `AWAITING_FINANCIAL_CONFIRMATION` and
+  `PENDING_REVIEW`, so never once money is attached, a first approval is recorded or any allocation exists.
+  A new verification run starts, so reviewer field corrections would lapse: the call refuses with
+  `CORRECTIONS_WOULD_LAPSE` unless `discard_corrections` is true. The claim goes back through `RECEIVED` and
+  `PROCESSING`; a provisional grant stays active until the new outcome revokes or confirms it.
+- **Reading history** (`GET /review/claims/{id}/runs`): every run, newest first, with the readers that ran, any
+  reader that failed, the policy version and the flags it produced.
+- **Release hold** (`POST /review/claims/{id}/release-hold`, approver, written reason of 10+ characters):
+  moves a `DUPLICATE_HOLD` claim to `PENDING_REVIEW`. The duplicate reasons stay on the claim and the
+  confirmation hard gates and the consumed-reference registry still apply.
+
+The state machine gained one edge from each of those three states to `RECEIVED` (`REPROCESSABLE` in
+`app/claims/states.py`). Nothing else changed: a claim holding money cannot be reprocessed.

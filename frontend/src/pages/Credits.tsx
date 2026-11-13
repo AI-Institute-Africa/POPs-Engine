@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
 import { api, Credit, download, hasRole, money, Obligation, post } from "../api";
@@ -209,6 +210,7 @@ export default function Credits() {
       <PageHeader
         title="Bank credits"
         sub="The bank and merchant side of every payment. Import statements, record money you saw arrive, and allocate credits that have no claim yet."
+        actions={<Link className="btn secondary" to="/credits/bulk">Split one payment across invoices</Link>}
       />
 
       <div className="card">

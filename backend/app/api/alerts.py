@@ -15,13 +15,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.alerts import service as alerts
+from app.alerts import signing
 from app.core import ratelimit
 from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.security import Principal, Role, require
-from app.models import AlertMessage, AlertSource
-from app.normalise.fields import parse_datetime
+from app.models import AlertMessage, AlertSource, Credit
+from app.normalise.fields import normalise_reference, parse_datetime
 from app.workers.tasks import dispatch_rematch
 
 router = APIRouter(prefix="/alerts", tags=["payment alerts"])
@@ -45,6 +46,20 @@ def _source(db: Session, key: str | None, kind: str) -> AlertSource:
             429, "too many alerts", headers={"Retry-After": str(exc.retry_after)}
         ) from exc
     return src
+
+
+def _check_signature(request: Request, src: AlertSource, body: bytes) -> None:
+    try:
+        signing.verify(
+            src.key_hash,
+            request.headers.get("x-pops-timestamp"),
+            request.headers.get("x-pops-signature"),
+            body,
+            datetime.now(UTC).timestamp(),
+            required=get_settings().alert_require_signature,
+        )
+    except signing.SignatureError as exc:
+        raise HTTPException(401, str(exc)) from exc
 
 
 def _first(d: dict[str, Any], *keys: str) -> str:
@@ -77,6 +92,8 @@ async def receive_sms(
     request: Request, db: DB, x_pops_source_key: Annotated[str | None, Header()] = None
 ) -> dict:
     src = _source(db, x_pops_source_key, "sms")
+    raw_body = await request.body()
+    _check_signature(request, src, raw_body)
     if "json" in request.headers.get("content-type", ""):
         payload = await request.json()
     else:
@@ -101,14 +118,58 @@ async def receive_email(
     raw = await request.body()
     if not raw or len(raw) > 5 * 1024 * 1024:
         raise HTTPException(422, "expected a raw email under 5 MB")
+    _check_signature(request, src, raw)
     return _after_credit(db, src, alerts.ingest_email(db, src, raw))
 
 
+class SyncIn(BaseModel):
+    references: list[str] = Field(min_length=1, max_length=1000)
+
+
+@router.post("/sync")
+async def sync_references(
+    request: Request, db: DB, x_pops_source_key: Annotated[str | None, Header()] = None
+) -> dict:
+    """Which of these transaction references does the engine NOT have as a credit yet?
+
+    After a forwarder was down, the phone sends the references it saw; the answer is the ones to
+    re-send through /alerts/sms. Matching is exact on the normalised reference, never a substring.
+    """
+    src = _source(db, x_pops_source_key, "sms")
+    raw = await request.body()
+    _check_signature(request, src, raw)
+    try:
+        body = SyncIn.model_validate_json(raw)
+    except ValueError as exc:
+        raise HTTPException(422, 'expected {"references": [...]} with 1-1000 items') from exc
+    wanted: dict[str, str] = {}
+    for ref in body.references:
+        norm = normalise_reference(ref)
+        if norm:
+            wanted[norm] = ref
+    known = set(
+        db.scalars(
+            select(Credit.reference_norm).where(
+                Credit.org_id == src.org_id, Credit.reference_norm.in_(list(wanted))
+            )
+        )
+    )
+    src.last_seen_at = datetime.now(UTC)
+    db.commit()
+    return {
+        "missing": [orig for norm, orig in wanted.items() if norm not in known],
+        "known": len(known),
+    }
+
+
 @router.post("/heartbeat")
-def heartbeat(db: DB, x_pops_source_key: Annotated[str | None, Header()] = None) -> dict:
+def heartbeat(
+    request: Request, db: DB, x_pops_source_key: Annotated[str | None, Header()] = None
+) -> dict:
     src = alerts.authenticate(db, x_pops_source_key)
     if src is None:
         raise HTTPException(401, "unknown or inactive alert source key")
+    _check_signature(request, src, b"")
     src.last_seen_at = datetime.now(UTC)
     src.stale_notified_at = None
     db.commit()

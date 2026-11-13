@@ -3,6 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { api, hasRole, money, pingBackend, post, type Claim, type Obligation } from "../api";
 import { demoInfo, preparePayment, sampleFile } from "../demo";
 import { useI18n } from "../i18n";
+import { cropImage, NO_TRIM, rotateImage, type Trim } from "../lib/imageEdit";
+import { Dialog } from "../components/Dialog";
+import { validateFiles } from "../lib/validateFiles";
+import { Link } from "react-router-dom";
 import { useToast } from "../toast";
 import { EmptyState, Loading, PageHeader, Reasons, StateChip } from "../ui";
 import "./scan.css";
@@ -219,6 +223,9 @@ function ResultCard({ claim, code, onRetry }: { claim: Claim; code: string; onRe
 
       {done && (
         <div className="scan-result-actions">
+          <Link className="btn secondary" to={`/track/${claim.claim_id}`}>
+            Track this payment
+          </Link>
           {state === "NEEDS_INFORMATION" && (
             <button type="button" onClick={onRetry}>
               Upload a clearer copy
@@ -352,8 +359,9 @@ export default function Scan() {
   const pick = (list: ArrayLike<File> | null | undefined, replace = false) => {
     const picked = Array.from(list ?? []);
     if (!picked.length) return;
-    if (picked.some((f) => f.size > 20 * 1024 * 1024)) {
-      setFormError("That file is over 20 MB. Please upload a smaller photo or PDF.");
+    const checked = validateFiles(replace ? [] : files, picked, pasted);
+    if (checked.files.length === (replace ? 0 : files.length)) {
+      setFormError(checked.errors[0] ?? null); // nothing new was usable
       return;
     }
     setFormError(null);
@@ -363,12 +371,38 @@ export default function Scan() {
     setSampleId(null);
     readFiles.reset();
     fileSelectionVersion.current += 1;
-    const next = (replace ? picked : [...files, ...picked]).slice(0, 5);
-    if (!replace && files.length + picked.length > 5) setFormError("Up to 5 files per payment.");
+    const next = checked.files;
+    if (checked.errors.length) setFormError(checked.errors[0]);
     setFiles(next);
     if (replace || !files.length) {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(next[0].type.startsWith("image/") ? URL.createObjectURL(next[0]) : null);
+    }
+  };
+
+  const rotateFirst = async () => {
+    const first = files[0];
+    if (!first || !first.type.startsWith("image/") || first.type === "image/heic") return;
+    try {
+      const turned = await rotateImage(first);
+      pick([turned, ...files.slice(1)], true);
+    } catch {
+      setFormError("Couldn't rotate that photo. Retake it instead.");
+    }
+  };
+
+  const [cropOpen, setCropOpen] = useState(false);
+  const [trim, setTrim] = useState<Trim>(NO_TRIM);
+  const applyCrop = async () => {
+    const first = files[0];
+    if (!first) return;
+    try {
+      const cropped = await cropImage(first, trim);
+      setCropOpen(false);
+      setTrim(NO_TRIM);
+      pick([cropped, ...files.slice(1)], true);
+    } catch {
+      setFormError("Couldn't crop that photo. Retake it instead.");
     }
   };
 
@@ -437,6 +471,25 @@ export default function Scan() {
   const current: 1 | 2 | 3 = hasResult ? 3 : !proofReady ? 1 : 2;
 
   return (
+    <>
+      {cropOpen && previewUrl && (
+        <Dialog title="Crop the photo" onClose={() => setCropOpen(false)}>
+          <p className="small muted">Trim away the background so the receipt fills the picture. Keep the amount, date and reference in view.</p>
+          <div className="crop-preview">
+            <img src={previewUrl} alt="Photo to crop" style={{ clipPath: `inset(${trim.top}% ${trim.right}% ${trim.bottom}% ${trim.left}%)` }} />
+          </div>
+          {(["top", "right", "bottom", "left"] as const).map((edge) => (
+            <label key={edge} className="small crop-row">
+              {edge}
+              <input type="range" min={0} max={45} step={1} value={trim[edge]} onChange={(e) => setTrim({ ...trim, [edge]: Number(e.target.value) })} />
+            </label>
+          ))}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setCropOpen(false)}>Cancel</button>
+            <button type="button" onClick={() => void applyCrop()}>Use this crop</button>
+          </div>
+        </Dialog>
+      )}
     <section className="scan">
       <OfflineBanner />
       <PageHeader title={t("hero.title")} sub={t("hero.sub")} />
@@ -517,6 +570,16 @@ export default function Scan() {
                   >
                     ↻ Retake
                   </button>
+                  {file.type.startsWith("image/") && file.type !== "image/heic" && (
+                    <button type="button" className="ghost small" onClick={() => void rotateFirst()}>
+                      ⟳ Rotate
+                    </button>
+                  )}
+                  {previewUrl && file.type !== "image/heic" && (
+                    <button type="button" className="ghost small" onClick={() => { setTrim(NO_TRIM); setCropOpen(true); }}>
+                      ✂ Crop
+                    </button>
+                  )}
                   <button type="button" className="ghost small" onClick={() => { replaceUploadRef.current = true; uploadRef.current?.click(); }}>
                     Re-upload
                   </button>
@@ -783,5 +846,6 @@ export default function Scan() {
         </div>
       </div>
     </section>
+    </>
   );
 }

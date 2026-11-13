@@ -13,9 +13,9 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.claims.facts import build_facts
+from app.claims.facts import build_facts, current_fields
 from app.claims.service import record_decision, transition
-from app.claims.states import REVIEWABLE, TRANSITIONS
+from app.claims.states import REPROCESSABLE, REVIEWABLE, TRANSITIONS
 from app.core.audit import audit
 from app.core.security import Principal, Role
 from app.entitlements.outbox import enqueue_entitlement
@@ -29,6 +29,7 @@ from app.models import (
     ConsumedReference,
     Credit,
     Decision,
+    EvidenceTier,
     ExtractedField,
     FraudAlert,
     Obligation,
@@ -298,6 +299,94 @@ def request_info(session: Session, p: Principal, claim_id: uuid.UUID, message: s
         actor_id=p.actor,
         snapshot={},
         note=message,
+    )
+    return claim
+
+
+def reprocess(
+    session: Session, p: Principal, claim_id: uuid.UUID, note: str, discard_corrections: bool
+) -> Claim:
+    """Run the readers and rules again on the evidence already stored.
+
+    A new verification run starts, so earlier readings (and any reviewer corrections) lapse:
+    refused while corrections exist unless the reviewer says to discard them. Never allowed once
+    a first approval is recorded or any money is allocated to the claim.
+    """
+    claim = _load(session, p, claim_id)
+    if ClaimState(claim.state) not in REPROCESSABLE:
+        raise ReviewError("NOT_REPROCESSABLE", f"claim is {claim.state}")
+    if session.scalars(
+        select(Allocation.allocation_id).where(Allocation.claim_id == claim_id)
+    ).first():
+        raise ReviewError("HAS_ALLOCATION", "money is already allocated to this claim")
+    if claim.candidate_credit_id and _first_approval(session, claim, claim.candidate_credit_id):
+        raise ReviewError("APPROVAL_IN_PROGRESS", "a first approval is already recorded")
+    if not discard_corrections and any(
+        f.corrected for f in current_fields(session, claim).values()
+    ):
+        raise ReviewError(
+            "CORRECTIONS_WOULD_LAPSE",
+            "reviewer corrections would be discarded; confirm to discard them",
+        )
+    policy = load_policy(session, claim.org_id)
+    before = {"candidate_credit_id": str(claim.candidate_credit_id), "state": claim.state}
+    claim.candidate_credit_id = None
+    claim.evidence_tier = EvidenceTier.E0
+    transition(session, claim, ClaimState.RECEIVED, actor=p.actor, reasons=[])
+    audit(
+        session,
+        actor=p.actor,
+        action="claim.reprocess_requested",
+        entity_type="claim",
+        entity_id=claim.claim_id,
+        org_id=claim.org_id,
+        before=before,
+        after={"note": note, "discard_corrections": discard_corrections},
+        correlation_id=claim.correlation_id,
+    )
+    record_decision(
+        session,
+        claim,
+        outcome=ClaimState.RECEIVED,
+        reasons=["REPROCESS_REQUESTED"],
+        policy_version=policy.version,
+        actor_type="reviewer",
+        actor_id=p.actor,
+        snapshot={"previous": before},
+        note=note,
+    )
+    return claim
+
+
+def release_hold(session: Session, p: Principal, claim_id: uuid.UUID, note: str) -> Claim:
+    """An approver releases a possible duplicate to the normal review queue, with a reason.
+
+    The duplicate reasons stay on the claim so the reviewer still sees them; the hard gates and the
+    consumed-reference registry still stop the same money being credited twice.
+    """
+    if not p.at_least(Role.APPROVER):
+        raise ReviewError("FORBIDDEN", "releasing a duplicate hold needs the approver role", 403)
+    claim = _load(session, p, claim_id)
+    if claim.state != ClaimState.DUPLICATE_HOLD:
+        raise ReviewError("NOT_ON_HOLD", f"claim is {claim.state}")
+    policy = load_policy(session, claim.org_id)
+    transition(
+        session,
+        claim,
+        ClaimState.PENDING_REVIEW,
+        actor=p.actor,
+        reasons=list(dict.fromkeys([*claim.reason_codes, "DUPLICATE_HOLD_RELEASED"])),
+    )
+    record_decision(
+        session,
+        claim,
+        outcome=ClaimState.PENDING_REVIEW,
+        reasons=["DUPLICATE_HOLD_RELEASED"],
+        policy_version=policy.version,
+        actor_type="reviewer",
+        actor_id=p.actor,
+        snapshot={"reason_codes": claim.reason_codes},
+        note=note,
     )
     return claim
 

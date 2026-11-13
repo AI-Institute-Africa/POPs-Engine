@@ -4,10 +4,45 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { API, api, Candidate, Claim, Field, hasRole, money, post, ReviewDetail } from "../api";
 import { humanize, stateInfo } from "../labels";
 import { useToast } from "../toast";
+import { Dialog } from "../components/Dialog";
+import { compareRows, lowConfidenceCount, type CompareStatus } from "../lib/comparison";
+import { REJECT_CONSEQUENCES, REJECT_PAYER_MESSAGE, REQUEST_INFO_NOTE } from "../lib/payerMessages";
+import { cssFilter, DEFAULT_VIEW, isDefault, rotateBy, setLevel, zoomBy } from "../lib/viewer";
 import { Chip, Loading, Reasons, StateChip } from "../ui";
 import { agoText, EvidenceChip, TierBadge } from "./Queue";
 import { RiskBadge, SignalList } from "./Fraud";
 import "./review.css";
+
+const REVIEWABLE = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"];
+
+// Mirrors REPROCESSABLE in backend/app/claims/states.py.
+const REPROCESSABLE = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "PENDING_REVIEW"];
+
+type Run = { run_id: string; created_at: string; pipeline_version: string; policy_version: string; outcome: string; flags: string[]; readers: string[]; reader_failures: Record<string, string> };
+
+function RunHistory({ claimId }: { claimId: string }) {
+  const q = useQuery({ queryKey: ["runs", claimId], queryFn: () => api<Run[]>(`/review/claims/${claimId}/runs`) });
+  if (!q.data || q.data.length === 0) return null;
+  return (
+    <div className="card">
+      <h3>Reading history</h3>
+      <p className="rv-help">Each time the readers and rules ran. The newest run is the one in use.</p>
+      <ul className="rv-history">
+        {q.data.map((r, i) => (
+          <li key={r.run_id}>
+            <div className="what">{i === 0 ? "Latest run" : `Run ${q.data!.length - i}`}: {humanize(r.outcome)}</div>
+            <div className="when">{new Date(r.created_at).toLocaleString()} · pipeline {r.pipeline_version} · policy {r.policy_version}</div>
+            <div className="small muted">Readers: {r.readers.length ? r.readers.join(", ") : "none ran"}</div>
+            {Object.entries(r.reader_failures).map(([name, why]) => (
+              <div key={name} className="warn-text small">{name} could not run: {why}</div>
+            ))}
+            {r.flags.length > 0 && <Reasons codes={r.flags} />}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const REJECT_REASONS = [
   "PAYMENT_NOT_RECEIVED",
@@ -27,15 +62,53 @@ function displayValue(f: Field): string {
 }
 
 function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string | null }) {
-  const ev = detail.evidence[0];
+  const [idx, setIdx] = useState(0);
+  const [view, setView] = useState(DEFAULT_VIEW);
+  const [tab, setTab] = useState<"image" | "json">("image");
+  const ev = detail.evidence[idx] ?? detail.evidence[0];
   if (!ev) return <p className="muted">No evidence file.</p>;
   const latest = new Map<string, Field>();
   detail.fields.forEach((f) => latest.set(f.name, f));
+  // the engine does not say which proof a field came from, so boxes are drawn on the first only
+  const showBoxes = idx === 0;
   return (
     <div className="viewer">
-      <div className="frame">
-        <img src={`${API}${ev.preview_url}`} alt="Submitted proof of payment" />
-        {[...latest.values()]
+      {detail.evidence.length > 1 && (
+        <div className="rv-proofs" role="tablist" aria-label="Proofs submitted">
+          {detail.evidence.map((e, i) => (
+            <button key={e.evidence_id} type="button" role="tab" aria-selected={i === idx} className="rv-tab" onClick={() => setIdx(i)}>
+              Proof {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="viewer-tools" role="toolbar" aria-label="Image tools">
+        <button type="button" className="ghost small" onClick={() => setView(zoomBy(view, 0.25))} aria-label="Zoom in">＋</button>
+        <button type="button" className="ghost small" onClick={() => setView(zoomBy(view, -0.25))} aria-label="Zoom out">－</button>
+        <button type="button" className="ghost small" onClick={() => setView(rotateBy(view, 90))} aria-label="Rotate">⟳</button>
+        <label className="small">Brightness
+          <input type="range" min={0.5} max={2.5} step={0.1} value={view.brightness} onChange={(e) => setView(setLevel(view, "brightness", Number(e.target.value)))} />
+        </label>
+        <label className="small">Contrast
+          <input type="range" min={0.5} max={2.5} step={0.1} value={view.contrast} onChange={(e) => setView(setLevel(view, "contrast", Number(e.target.value)))} />
+        </label>
+        {!isDefault(view) && <button type="button" className="ghost small" onClick={() => setView(DEFAULT_VIEW)}>Reset</button>}
+        <button type="button" className="ghost small" onClick={() => setTab(tab === "image" ? "json" : "image")}>
+          {tab === "image" ? "Raw data" : "Image"}
+        </button>
+      </div>
+      {tab === "json" ? (
+        <div>
+          <pre className="rv-json">{JSON.stringify({ evidence: ev, fields: [...latest.values()] }, null, 2)}</pre>
+          <button type="button" className="ghost small" onClick={() => void navigator.clipboard?.writeText([...latest.values()].map((f) => `${f.name}: ${f.raw_value ?? ""}`).join("\n"))}>
+            Copy read text
+          </button>
+        </div>
+      ) : (
+      <div className="viewer-scroll">
+      <div className="frame" style={{ transform: `scale(${view.zoom}) rotate(${view.rotate}deg)`, transformOrigin: "center top" }}>
+        <img src={`${API}${ev.preview_url}`} alt={`Submitted proof of payment ${idx + 1}`} style={{ filter: cssFilter(view) }} />
+        {showBoxes && [...latest.values()]
           .filter((f) => f.region)
           .map((f) => (
             <div
@@ -50,7 +123,7 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
               title={`${f.name}: ${displayValue(f)}`}
             />
           ))}
-        {detail.tamper?.regions.map((r, i) => (
+        {showBoxes && detail.tamper?.regions.map((r, i) => (
           <div
             key={`tamper-${i}`}
             className="box tamper"
@@ -64,6 +137,9 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
           />
         ))}
       </div>
+      </div>
+      )}
+      {!showBoxes && <p className="muted small">Field boxes are shown on Proof 1 only; the engine does not record which proof each value came from.</p>}
       {detail.tamper && (
         <p className="muted small">
           Manipulation risk score <strong>{detail.tamper.score.toFixed(2)}</strong>
@@ -77,6 +153,51 @@ function EvidenceViewer({ detail, hover }: { detail: ReviewDetail; hover: string
         {ev.sha256.slice(0, 12)}… · {ev.content_type}
         {ev.meta.exif ? <> · EXIF: {JSON.stringify(ev.meta.exif)}</> : null}
       </div>
+    </div>
+  );
+}
+
+const CMP_TONE: Record<CompareStatus, "ok" | "bad" | "warn" | "neutral" | "info"> = {
+  match: "ok",
+  mismatch: "bad",
+  missing: "warn",
+  not_compared: "neutral",
+  note: "info",
+};
+const CMP_LABEL: Record<CompareStatus, string> = {
+  match: "Match",
+  mismatch: "Mismatch",
+  missing: "Not read",
+  not_compared: "Not compared",
+  note: "Check",
+};
+
+function Comparison({ detail, selected }: { detail: ReviewDetail; selected: number }) {
+  const credit = detail.candidates[selected]?.credit ?? null;
+  const { rows, notPerformed } = compareRows(detail.fields, detail.claim, credit);
+  return (
+    <div className="card">
+      <h3>Receipt against the record</h3>
+      <p className="rv-help">A mismatch is a reason to look closer, never a verdict. “Not compared” means that check was not done.</p>
+      <table className="rv-compare">
+        <thead><tr><th>Value</th><th>On the receipt</th><th>Expected</th><th /></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key}>
+              <td>{r.label}</td>
+              <td className="num">{r.observed ?? "—"}</td>
+              <td className="num">{r.expected ?? "—"}</td>
+              <td><Chip tone={CMP_TONE[r.status]} title={r.detail}>{CMP_LABEL[r.status]}</Chip></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {notPerformed.length > 0 && (
+        <details>
+          <summary className="small">Checks not performed ({notPerformed.length})</summary>
+          <ul className="small muted">{notPerformed.map((n) => <li key={n}>{n}</li>)}</ul>
+        </details>
+      )}
     </div>
   );
 }
@@ -97,7 +218,14 @@ function Fields({ detail, onHover, claimId }: { detail: ReviewDetail; onHover: (
   detail.fields.forEach((f) => latest.set(f.name, f));
   return (
     <div className="card">
-      <h3>What was read from the receipt</h3>
+      <h3>
+        What was read from the receipt{" "}
+        {lowConfidenceCount([...latest.values()]) > 0 && (
+          <Chip tone="warn" title="Fields the readers disagreed on or were unsure about">
+            {lowConfidenceCount([...latest.values()])} to check
+          </Chip>
+        )}
+      </h3>
       <p className="rv-help">Hover a row to highlight where it was found on the image. Fix anything the readers got wrong; the claim is re-checked.</p>
       <div className="rv-fields">
         {[...latest.values()].map((f) => (
@@ -205,6 +333,13 @@ export default function ClaimReview() {
   const [note, setNote] = useState("");
   const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0]);
   const [infoMsg, setInfoMsg] = useState("");
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [reprocessOpen, setReprocessOpen] = useState(false);
+  const [releaseOpen, setReleaseOpen] = useState(false);
+  const [discard, setDiscard] = useState(false);
+  const [holdNote, setHoldNote] = useState("");
+  const [reverseFor, setReverseFor] = useState<string | null>(null);
+  const [reverseReason, setReverseReason] = useState("");
   const toast = useToast();
   const last4Ref = useRef<HTMLInputElement>(null);
 
@@ -228,7 +363,15 @@ export default function ClaimReview() {
   });
   const reject = useMutation({
     mutationFn: () => post(`/review/claims/${id}/reject`, { reason: rejectReason, note: note || null }),
-    onSuccess: () => done("Rejected"),
+    onSuccess: () => { setRejectOpen(false); done("Rejected"); },
+  });
+  const reprocess = useMutation({
+    mutationFn: () => post(`/review/claims/${id}/reprocess`, { note: note || "Re-read requested", discard_corrections: discard }),
+    onSuccess: () => { setReprocessOpen(false); setDiscard(false); qc.invalidateQueries({ queryKey: ["runs", id] }); done("Reading again. This page updates when it finishes."); },
+  });
+  const release = useMutation({
+    mutationFn: () => post(`/review/claims/${id}/release-hold`, { note: holdNote }),
+    onSuccess: () => { setReleaseOpen(false); setHoldNote(""); done("Released to the review queue"); },
   });
   const requestInfo = useMutation({
     mutationFn: () => post(`/review/claims/${id}/request-info`, { message: infoMsg }),
@@ -237,12 +380,8 @@ export default function ClaimReview() {
   const reverse = useMutation({
     mutationFn: (v: { allocationId: string; reason: string }) =>
       post(`/allocations/${v.allocationId}/reverse`, { reason: v.reason }),
-    onSuccess: () => done("Allocation reversed"),
+    onSuccess: () => { setReverseFor(null); setReverseReason(""); done("Allocation reversed"); },
   });
-  const reverseAllocation = (allocationId: string) => {
-    const reason = window.prompt("Why is this allocation being reversed?");
-    if (reason && reason.trim().length >= 3) reverse.mutate({ allocationId, reason: reason.trim() });
-  };
 
   const nextId = queue.data?.find((c) => c.claim_id !== id)?.claim_id;
   useEffect(() => {
@@ -250,6 +389,7 @@ export default function ClaimReview() {
       if ((e.target as HTMLElement).tagName.match(/INPUT|TEXTAREA|SELECT/)) return;
       if (e.key === "n" && nextId) nav(`/claims/${nextId}`);
       else if (e.key === "c") { e.preventDefault(); last4Ref.current?.focus(); }
+      else if (e.key === "r" && q.data && REVIEWABLE.includes(q.data.claim.state)) { e.preventDefault(); setRejectOpen(true); }
       else if (/^[1-9]$/.test(e.key) && q.data && Number(e.key) <= q.data.candidates.length) setSelected(Number(e.key) - 1);
     }
     window.addEventListener("keydown", onKey);
@@ -261,8 +401,10 @@ export default function ClaimReview() {
   if (q.error) return <section className="rv"><p className="error">{(q.error as Error).message}</p></section>;
   const d = q.data!;
   const c = d.claim;
-  const reviewable = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"].includes(c.state);
+  const reviewable = REVIEWABLE.includes(c.state);
   const err = (confirm.error ?? reject.error ?? requestInfo.error ?? reverse.error) as Error | null;
+  const canReprocess = REPROCESSABLE.includes(c.state);
+  const onHold = c.state === "DUPLICATE_HOLD";
 
   const step = nextStep(d, selected, reviewable);
   const tone = stateInfo(c.state).tone;
@@ -278,7 +420,7 @@ export default function ClaimReview() {
       <div className="rv-topbar">
         <Link to="/queue">← Review queue</Link>
         <span className="rv-keys">
-          Shortcuts: 1-9 pick a credit · c to confirm · n for the next claim
+          Shortcuts: 1-9 pick a credit · c to confirm · r to reject · n for the next claim
           {nextId && <> · <Link to={`/claims/${nextId}`}>Next claim →</Link></>}
         </span>
       </div>
@@ -352,6 +494,7 @@ export default function ClaimReview() {
               )}
             </div>
           )}
+          <Comparison detail={d} selected={selected} />
           <Fields detail={d} onHover={setHover} claimId={id} />
           <div className="card">
             <h3>Credits that could match</h3>
@@ -395,24 +538,39 @@ export default function ClaimReview() {
                 <div className="rv-action danger">
                   <h4>Reject</h4>
                   <p className="rv-help">Declines this claim. The reason you pick goes in the audit trail.</p>
-                  <form className="inline" onSubmit={(e) => { e.preventDefault(); reject.mutate(); }}>
+                  <div className="inline">
                     <select value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} aria-label="Reject reason">
                       {REJECT_REASONS.map((r) => <option key={r} value={r}>{humanize(r)}</option>)}
                     </select>
-                    <button className="danger">Reject</button>
-                  </form>
+                    <button type="button" className="danger" onClick={() => setRejectOpen(true)}>Reject…</button>
+                  </div>
                 </div>
                 <div className="rv-action">
                   <h4>Ask the payer for more</h4>
-                  <p className="rv-help">For a blurry photo or a missing detail. Your message is sent to the payer.</p>
+                  <p className="rv-help">For a blurry photo or a missing detail. {REQUEST_INFO_NOTE}</p>
                   <form className="inline" onSubmit={(e) => { e.preventDefault(); requestInfo.mutate(); }}>
                     <input value={infoMsg} onChange={(e) => setInfoMsg(e.target.value)} placeholder="Message to payer" aria-label="Message to payer" />
                     <button className="ghost" disabled={infoMsg.length < 3}>Request info</button>
                   </form>
                 </div>
+                {canReprocess && (
+                  <div className="rv-action">
+                    <h4>Read it again</h4>
+                    <p className="rv-help">Runs the readers and rules again on the saved receipt, for example after a reader was down. The old reading stays in the history.</p>
+                    <button type="button" className="ghost" onClick={() => setReprocessOpen(true)}>Re-read…</button>
+                  </div>
+                )}
+                {onHold && hasRole("approver") && (
+                  <div className="rv-action">
+                    <h4>Release the duplicate hold</h4>
+                    <p className="rv-help">Only if you are sure this is not a repeat. It goes to the normal queue; the duplicate warnings stay visible.</p>
+                    <button type="button" className="ghost" onClick={() => setReleaseOpen(true)}>Release…</button>
+                  </div>
+                )}
               </div>
             </div>
           )}
+          <RunHistory claimId={id} />
           <div className="card">
             <h3>Audit trail</h3>
             <ul className="rv-history">
@@ -431,7 +589,7 @@ export default function ClaimReview() {
                   </div>
                   <div className="when">{new Date(a.created_at).toLocaleString()}</div>
                   {a.kind === "allocation" && !d.allocations.some((r) => r.reverses === a.allocation_id) && (
-                    <button className="ghost small" style={{ marginTop: 6 }} disabled={!hasRole("approver") || reverse.isPending} onClick={() => reverseAllocation(a.allocation_id)}>
+                    <button className="ghost small" style={{ marginTop: 6 }} disabled={!hasRole("approver") || reverse.isPending} onClick={() => { setReverseFor(a.allocation_id); setReverseReason(""); }}>
                       Reverse
                     </button>
                   )}
@@ -442,6 +600,80 @@ export default function ClaimReview() {
           </div>
         </div>
       </div>
+      {reviewable && (
+        <div className="decision-bar" role="region" aria-label="Decision bar">
+          <span className="db-sum">
+            {d.candidates[selected]
+              ? `Credit ${selected + 1}: ${money(d.candidates[selected].credit.amount_minor, d.candidates[selected].credit.currency)}${d.candidates[selected].passed ? "" : " (fails a check)"}`
+              : "No credit selected"}
+          </span>
+          <button type="button" onClick={() => { goDecision(); setTimeout(() => last4Ref.current?.focus(), 350); }}>Confirm…</button>
+          <button type="button" className="danger" onClick={() => setRejectOpen(true)}>Reject…</button>
+          {nextId && <Link className="btn secondary" to={`/claims/${nextId}`}>Next claim →</Link>}
+        </div>
+      )}
+
+      {rejectOpen && (
+        <Dialog title="Reject this claim?" onClose={() => setRejectOpen(false)}>
+          <p>Reason (audit trail only): <strong>{humanize(rejectReason)}</strong></p>
+          <label className="small">Note (optional)
+            <input value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <p className="small"><strong>The payer will be told:</strong></p>
+          <blockquote className="payer-msg">{REJECT_PAYER_MESSAGE}</blockquote>
+          <ul className="small">{REJECT_CONSEQUENCES.map((x) => <li key={x}>{x}</li>)}</ul>
+          {reject.error && <p className="error">{(reject.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setRejectOpen(false)}>Cancel</button>
+            <button type="button" className="danger" disabled={reject.isPending} onClick={() => reject.mutate()}>Reject claim</button>
+          </div>
+        </Dialog>
+      )}
+
+      {reprocessOpen && (
+        <Dialog title="Read this receipt again?" onClose={() => setReprocessOpen(false)}>
+          <p className="small">The readers and rules run again on the saved files. The claim returns to checking for a moment, then lands wherever the new reading puts it. This is recorded in the audit trail.</p>
+          <label className="small">Why (optional)
+            <input value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <label className="small">
+            <input type="checkbox" checked={discard} onChange={(e) => setDiscard(e.target.checked)} /> Discard my corrections to the fields (needed if you made any; a new reading replaces them)
+          </label>
+          {reprocess.error && <p className="error">{(reprocess.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setReprocessOpen(false)}>Cancel</button>
+            <button type="button" disabled={reprocess.isPending} onClick={() => reprocess.mutate()}>Read again</button>
+          </div>
+        </Dialog>
+      )}
+
+      {releaseOpen && (
+        <Dialog title="Release this duplicate hold?" onClose={() => setReleaseOpen(false)}>
+          <p className="small">The claim goes to the normal review queue. The money still cannot be credited twice: the confirmation checks and the used-reference registry still apply.</p>
+          <label className="small">Why this is not a repeat (at least 10 characters)
+            <input value={holdNote} onChange={(e) => setHoldNote(e.target.value)} autoFocus />
+          </label>
+          {release.error && <p className="error">{(release.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setReleaseOpen(false)}>Cancel</button>
+            <button type="button" disabled={holdNote.trim().length < 10 || release.isPending} onClick={() => release.mutate()}>Release hold</button>
+          </div>
+        </Dialog>
+      )}
+
+      {reverseFor && (
+        <Dialog title="Reverse this allocation?" onClose={() => setReverseFor(null)}>
+          <p className="small">This puts the money back: the invoice shows as unpaid again and the credit becomes available. It is recorded in the audit trail. Approvers only.</p>
+          <label className="small">Reason (required)
+            <input value={reverseReason} onChange={(e) => setReverseReason(e.target.value)} autoFocus />
+          </label>
+          {reverse.error && <p className="error">{(reverse.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setReverseFor(null)}>Cancel</button>
+            <button type="button" className="danger" disabled={reverseReason.trim().length < 3 || reverse.isPending} onClick={() => reverse.mutate({ allocationId: reverseFor, reason: reverseReason.trim() })}>Reverse allocation</button>
+          </div>
+        </Dialog>
+      )}
     </section>
   );
 }

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api, del, hasRole, post, type ShadowScorecard } from "../api";
+import { Dialog } from "../components/Dialog";
+import { describePolicyRisks, needsAcknowledgement, type Risk } from "../lib/policyRisks";
 import { useToast } from "../toast";
 
 type SystemRule = { id: string; name: string; description: string };
@@ -346,7 +348,15 @@ function PolicyPanel() {
       ),
     onError: (e) => toast("err", (e as Error).message),
   });
+  const [ackOpen, setAckOpen] = useState(false);
+  const [ack, setAck] = useState(false);
   const text = draft ?? JSON.stringify(current.data?.config ?? {}, null, 2);
+  let risks: Risk[] = [];
+  try {
+    if (draft !== null) risks = describePolicyRisks(current.data?.config ?? {}, JSON.parse(draft));
+  } catch {
+    /* invalid JSON is reported by the diff below */
+  }
   let diff: ReturnType<typeof policyDiff> = [];
   let diffError: string | null = null;
   if (draft !== null) {
@@ -401,7 +411,16 @@ function PolicyPanel() {
           </p>
         )}
       </div>
-      <form className="inline" onSubmit={(e) => { e.preventDefault(); publish.mutate(); }}>
+      {risks.length > 0 && (
+        <ul className="policy-risks" aria-label="What this change loosens">
+          {risks.map((r) => (
+            <li key={r.key} className={`risk-${r.severity}`}>
+              <strong>{r.severity === "danger" ? "Danger" : r.severity === "warning" ? "Careful" : "Note"}:</strong> {r.text}
+            </li>
+          ))}
+        </ul>
+      )}
+      <form className="inline" onSubmit={(e) => { e.preventDefault(); if (needsAcknowledgement(risks)) { setAck(false); setAckOpen(true); } else publish.mutate(); }}>
         {draft !== null ? (
           <>
             <input placeholder="New version name, e.g. 2026.11-pilot" value={version} onChange={(e) => setVersion(e.target.value)} />
@@ -414,6 +433,22 @@ function PolicyPanel() {
           </button>
         )}
       </form>
+      {ackOpen && (
+        <Dialog title="Publish a policy that loosens safeguards?" onClose={() => setAckOpen(false)}>
+          <ul className="policy-risks">
+            {risks.filter((r) => r.severity !== "info").map((r) => (
+              <li key={r.key} className={`risk-${r.severity}`}>{r.text}</li>
+            ))}
+          </ul>
+          <label className="small">
+            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} /> I understand these consequences and have authority to make this change.
+          </label>
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setAckOpen(false)}>Cancel</button>
+            <button type="button" className="danger" disabled={!ack || publish.isPending} onClick={() => { setAckOpen(false); publish.mutate(); }}>Publish anyway</button>
+          </div>
+        </Dialog>
+      )}
       {retire.error && <p className="error">{(retire.error as Error).message}</p>}
       <h3>History</h3>
       <table>
