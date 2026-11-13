@@ -330,3 +330,15 @@ def test_unsigned_sms_is_refused_when_signatures_are_required(client, monkeypatc
     src = _source(client)
     monkeypatch.setattr(get_settings(), "alert_require_signature", True)
     assert _sms(client, src["key"]).status_code == 401
+
+
+def test_sync_lists_references_the_engine_does_not_have(client):
+    src = _source(client)
+    assert _sms(client, src["key"]).json()["status"] == "credited"
+    r = client.post(
+        "/alerts/sync",
+        headers={"X-POPs-Source-Key": src["key"]},
+        json={"references": [TXN.lower(), "UNSEEN-REF-1"]},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json() == {"missing": ["UNSEEN-REF-1"], "known": 1}

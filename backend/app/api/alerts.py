@@ -21,8 +21,8 @@ from app.core.audit import audit
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.security import Principal, Role, require
-from app.models import AlertMessage, AlertSource
-from app.normalise.fields import parse_datetime
+from app.models import AlertMessage, AlertSource, Credit
+from app.normalise.fields import normalise_reference, parse_datetime
 from app.workers.tasks import dispatch_rematch
 
 router = APIRouter(prefix="/alerts", tags=["payment alerts"])
@@ -120,6 +120,46 @@ async def receive_email(
         raise HTTPException(422, "expected a raw email under 5 MB")
     _check_signature(request, src, raw)
     return _after_credit(db, src, alerts.ingest_email(db, src, raw))
+
+
+class SyncIn(BaseModel):
+    references: list[str] = Field(min_length=1, max_length=1000)
+
+
+@router.post("/sync")
+async def sync_references(
+    request: Request, db: DB, x_pops_source_key: Annotated[str | None, Header()] = None
+) -> dict:
+    """Which of these transaction references does the engine NOT have as a credit yet?
+
+    After a forwarder was down, the phone sends the references it saw; the answer is the ones to
+    re-send through /alerts/sms. Matching is exact on the normalised reference, never a substring.
+    """
+    src = _source(db, x_pops_source_key, "sms")
+    raw = await request.body()
+    _check_signature(request, src, raw)
+    try:
+        body = SyncIn.model_validate_json(raw)
+    except ValueError as exc:
+        raise HTTPException(422, 'expected {"references": [...]} with 1-1000 items') from exc
+    wanted: dict[str, str] = {}
+    for ref in body.references:
+        norm = normalise_reference(ref)
+        if norm:
+            wanted[norm] = ref
+    known = set(
+        db.scalars(
+            select(Credit.reference_norm).where(
+                Credit.org_id == src.org_id, Credit.reference_norm.in_(list(wanted))
+            )
+        )
+    )
+    src.last_seen_at = datetime.now(UTC)
+    db.commit()
+    return {
+        "missing": [orig for norm, orig in wanted.items() if norm not in known],
+        "known": len(known),
+    }
 
 
 @router.post("/heartbeat")

@@ -50,6 +50,13 @@ A request more than 5 minutes from the server clock, or with a wrong signature, 
 signature that is present is always checked; set `POPS_ALERT_REQUIRE_SIGNATURE=true` to refuse
 unsigned requests altogether. The same alert delivered twice is still processed once.
 
+## Recovering after the forwarder was down
+
+`POST /api/alerts/sync` with `{"references": ["<txn id>", ...]}` (up to 1000, same key and optional
+signature) returns `{"missing": [...], "known": n}`: the references the engine has no credit for. Re-send
+those messages through `/api/alerts/sms`. Matching is exact on the normalised reference, never a
+substring. A forwarder that scans its inbox after downtime can use this instead of replaying everything.
+
 ## Email: alert mailbox
 
 Either:
