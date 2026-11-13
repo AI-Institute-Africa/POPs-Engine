@@ -70,3 +70,20 @@ row error is reported and the run continues.
   can say "Not compared" so it never implies a check that did not happen.
 - Admins: publishing a policy that switches something on or loosens it lists the consequences and needs an
   "I understand" tick.
+
+## Reading a receipt again, and releasing a duplicate hold
+
+- **Read again** (`POST /review/claims/{id}/reprocess`, reviewer): runs the readers and rules again on the
+  saved evidence. Allowed only from `DOCUMENT_VERIFIED`, `AWAITING_FINANCIAL_CONFIRMATION` and
+  `PENDING_REVIEW`, so never once money is attached, a first approval is recorded or any allocation exists.
+  A new verification run starts, so reviewer field corrections would lapse: the call refuses with
+  `CORRECTIONS_WOULD_LAPSE` unless `discard_corrections` is true. The claim goes back through `RECEIVED` and
+  `PROCESSING`; a provisional grant stays active until the new outcome revokes or confirms it.
+- **Reading history** (`GET /review/claims/{id}/runs`): every run, newest first, with the readers that ran, any
+  reader that failed, the policy version and the flags it produced.
+- **Release hold** (`POST /review/claims/{id}/release-hold`, approver, written reason of 10+ characters):
+  moves a `DUPLICATE_HOLD` claim to `PENDING_REVIEW`. The duplicate reasons stay on the claim and the
+  confirmation hard gates and the consumed-reference registry still apply.
+
+The state machine gained one edge from each of those three states to `RECEIVED` (`REPROCESSABLE` in
+`app/claims/states.py`). Nothing else changed: a claim holding money cannot be reprocessed.

@@ -15,6 +15,35 @@ import "./review.css";
 
 const REVIEWABLE = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "FINANCIALLY_CONFIRMED", "PENDING_REVIEW", "DUPLICATE_HOLD"];
 
+// Mirrors REPROCESSABLE in backend/app/claims/states.py.
+const REPROCESSABLE = ["DOCUMENT_VERIFIED", "AWAITING_FINANCIAL_CONFIRMATION", "PENDING_REVIEW"];
+
+type Run = { run_id: string; created_at: string; pipeline_version: string; policy_version: string; outcome: string; flags: string[]; readers: string[]; reader_failures: Record<string, string> };
+
+function RunHistory({ claimId }: { claimId: string }) {
+  const q = useQuery({ queryKey: ["runs", claimId], queryFn: () => api<Run[]>(`/review/claims/${claimId}/runs`) });
+  if (!q.data || q.data.length === 0) return null;
+  return (
+    <div className="card">
+      <h3>Reading history</h3>
+      <p className="rv-help">Each time the readers and rules ran. The newest run is the one in use.</p>
+      <ul className="rv-history">
+        {q.data.map((r, i) => (
+          <li key={r.run_id}>
+            <div className="what">{i === 0 ? "Latest run" : `Run ${q.data!.length - i}`}: {humanize(r.outcome)}</div>
+            <div className="when">{new Date(r.created_at).toLocaleString()} · pipeline {r.pipeline_version} · policy {r.policy_version}</div>
+            <div className="small muted">Readers: {r.readers.length ? r.readers.join(", ") : "none ran"}</div>
+            {Object.entries(r.reader_failures).map(([name, why]) => (
+              <div key={name} className="warn-text small">{name} could not run: {why}</div>
+            ))}
+            {r.flags.length > 0 && <Reasons codes={r.flags} />}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 const REJECT_REASONS = [
   "PAYMENT_NOT_RECEIVED",
   "DUPLICATE_CONFIRMED",
@@ -305,6 +334,10 @@ export default function ClaimReview() {
   const [rejectReason, setRejectReason] = useState(REJECT_REASONS[0]);
   const [infoMsg, setInfoMsg] = useState("");
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [reprocessOpen, setReprocessOpen] = useState(false);
+  const [releaseOpen, setReleaseOpen] = useState(false);
+  const [discard, setDiscard] = useState(false);
+  const [holdNote, setHoldNote] = useState("");
   const [reverseFor, setReverseFor] = useState<string | null>(null);
   const [reverseReason, setReverseReason] = useState("");
   const toast = useToast();
@@ -331,6 +364,14 @@ export default function ClaimReview() {
   const reject = useMutation({
     mutationFn: () => post(`/review/claims/${id}/reject`, { reason: rejectReason, note: note || null }),
     onSuccess: () => { setRejectOpen(false); done("Rejected"); },
+  });
+  const reprocess = useMutation({
+    mutationFn: () => post(`/review/claims/${id}/reprocess`, { note: note || "Re-read requested", discard_corrections: discard }),
+    onSuccess: () => { setReprocessOpen(false); setDiscard(false); qc.invalidateQueries({ queryKey: ["runs", id] }); done("Reading again. This page updates when it finishes."); },
+  });
+  const release = useMutation({
+    mutationFn: () => post(`/review/claims/${id}/release-hold`, { note: holdNote }),
+    onSuccess: () => { setReleaseOpen(false); setHoldNote(""); done("Released to the review queue"); },
   });
   const requestInfo = useMutation({
     mutationFn: () => post(`/review/claims/${id}/request-info`, { message: infoMsg }),
@@ -362,6 +403,8 @@ export default function ClaimReview() {
   const c = d.claim;
   const reviewable = REVIEWABLE.includes(c.state);
   const err = (confirm.error ?? reject.error ?? requestInfo.error ?? reverse.error) as Error | null;
+  const canReprocess = REPROCESSABLE.includes(c.state);
+  const onHold = c.state === "DUPLICATE_HOLD";
 
   const step = nextStep(d, selected, reviewable);
   const tone = stateInfo(c.state).tone;
@@ -510,9 +553,24 @@ export default function ClaimReview() {
                     <button className="ghost" disabled={infoMsg.length < 3}>Request info</button>
                   </form>
                 </div>
+                {canReprocess && (
+                  <div className="rv-action">
+                    <h4>Read it again</h4>
+                    <p className="rv-help">Runs the readers and rules again on the saved receipt, for example after a reader was down. The old reading stays in the history.</p>
+                    <button type="button" className="ghost" onClick={() => setReprocessOpen(true)}>Re-read…</button>
+                  </div>
+                )}
+                {onHold && hasRole("approver") && (
+                  <div className="rv-action">
+                    <h4>Release the duplicate hold</h4>
+                    <p className="rv-help">Only if you are sure this is not a repeat. It goes to the normal queue; the duplicate warnings stay visible.</p>
+                    <button type="button" className="ghost" onClick={() => setReleaseOpen(true)}>Release…</button>
+                  </div>
+                )}
               </div>
             </div>
           )}
+          <RunHistory claimId={id} />
           <div className="card">
             <h3>Audit trail</h3>
             <ul className="rv-history">
@@ -568,6 +626,37 @@ export default function ClaimReview() {
           <div className="dialog-actions">
             <button type="button" className="ghost" onClick={() => setRejectOpen(false)}>Cancel</button>
             <button type="button" className="danger" disabled={reject.isPending} onClick={() => reject.mutate()}>Reject claim</button>
+          </div>
+        </Dialog>
+      )}
+
+      {reprocessOpen && (
+        <Dialog title="Read this receipt again?" onClose={() => setReprocessOpen(false)}>
+          <p className="small">The readers and rules run again on the saved files. The claim returns to checking for a moment, then lands wherever the new reading puts it. This is recorded in the audit trail.</p>
+          <label className="small">Why (optional)
+            <input value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <label className="small">
+            <input type="checkbox" checked={discard} onChange={(e) => setDiscard(e.target.checked)} /> Discard my corrections to the fields (needed if you made any; a new reading replaces them)
+          </label>
+          {reprocess.error && <p className="error">{(reprocess.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setReprocessOpen(false)}>Cancel</button>
+            <button type="button" disabled={reprocess.isPending} onClick={() => reprocess.mutate()}>Read again</button>
+          </div>
+        </Dialog>
+      )}
+
+      {releaseOpen && (
+        <Dialog title="Release this duplicate hold?" onClose={() => setReleaseOpen(false)}>
+          <p className="small">The claim goes to the normal review queue. The money still cannot be credited twice: the confirmation checks and the used-reference registry still apply.</p>
+          <label className="small">Why this is not a repeat (at least 10 characters)
+            <input value={holdNote} onChange={(e) => setHoldNote(e.target.value)} autoFocus />
+          </label>
+          {release.error && <p className="error">{(release.error as Error).message}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="ghost" onClick={() => setReleaseOpen(false)}>Cancel</button>
+            <button type="button" disabled={holdNote.trim().length < 10 || release.isPending} onClick={() => release.mutate()}>Release hold</button>
           </div>
         </Dialog>
       )}

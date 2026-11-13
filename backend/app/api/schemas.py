@@ -303,6 +303,15 @@ class RequestInfoIn(BaseModel):
     message: str = Field(min_length=3)
 
 
+class ReprocessIn(BaseModel):
+    note: str = Field(min_length=3, max_length=500)
+    discard_corrections: bool = False
+
+
+class ReleaseHoldIn(BaseModel):
+    note: str = Field(min_length=10, max_length=500, description="why this is not a duplicate")
+
+
 class CorrectFieldIn(BaseModel):
     name: str
     value: str

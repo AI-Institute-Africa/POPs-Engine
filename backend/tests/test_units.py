@@ -206,3 +206,23 @@ def test_shona_and_ndebele_month_names_parse():
     assert parse_datetime("21 Gumiguru 2026 14:32") == parse_datetime("21 October 2026 14:32")
     assert parse_datetime("3 uMabasa 2026") == parse_datetime("3 April 2026")
     assert parse_text("Paid USD 40.00 on 21 Gumiguru 2026")["date"] == "21 Gumiguru 2026"
+
+
+def test_reprocess_transitions_are_limited_to_states_without_money():
+    from app.claims.states import REPROCESSABLE
+
+    for s in REPROCESSABLE:
+        check_transition(s, ClaimState.RECEIVED)
+    for s in (
+        ClaimState.FINANCIALLY_CONFIRMED,
+        ClaimState.PARTIALLY_ALLOCATED,
+        ClaimState.APPROVED,
+        ClaimState.REJECTED,
+        ClaimState.DUPLICATE_HOLD,
+        ClaimState.REVERSED_OR_REFUNDED,
+    ):
+        with pytest.raises(InvalidTransition):
+            check_transition(s, ClaimState.RECEIVED)
+    # a reprocess still has to go through PROCESSING, never straight to a verdict
+    with pytest.raises(InvalidTransition):
+        check_transition(ClaimState.RECEIVED, ClaimState.APPROVED)

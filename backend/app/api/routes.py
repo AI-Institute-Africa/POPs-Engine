@@ -36,6 +36,8 @@ from app.api.schemas import (
     ObligationIn,
     ObligationOut,
     RejectIn,
+    ReleaseHoldIn,
+    ReprocessIn,
     RequestInfoIn,
     ReverseIn,
     ReviewDetailOut,
@@ -1099,6 +1101,63 @@ def request_info(claim_id: uuid.UUID, body: RequestInfoIn, db: DB, p: Reviewer) 
         raise _review_error(exc) from exc
     db.commit()
     return claim_out(claim, True)
+
+
+@router.post("/review/claims/{claim_id}/reprocess", response_model=ClaimOut, tags=["review"])
+def reprocess_claim(claim_id: uuid.UUID, body: ReprocessIn, db: DB, p: Reviewer) -> ClaimOut:
+    """Run the readers and rules again on the stored evidence; past runs stay as history."""
+    try:
+        claim = review.reprocess(db, p, claim_id, body.note, body.discard_corrections)
+    except review.ReviewError as exc:
+        db.rollback()
+        raise _review_error(exc) from exc
+    db.commit()
+    dispatch_pipeline(claim.claim_id)
+    db.refresh(claim)
+    return claim_out(claim, True)
+
+
+@router.post("/review/claims/{claim_id}/release-hold", response_model=ClaimOut, tags=["review"])
+def release_hold(claim_id: uuid.UUID, body: ReleaseHoldIn, db: DB, p: Reviewer) -> ClaimOut:
+    """Approvers release a possible duplicate to the normal queue, with a written reason."""
+    try:
+        claim = review.release_hold(db, p, claim_id, body.note)
+    except review.ReviewError as exc:
+        db.rollback()
+        raise _review_error(exc) from exc
+    db.commit()
+    return claim_out(claim, True)
+
+
+@router.get("/review/claims/{claim_id}/runs", tags=["review"])
+def verification_runs(claim_id: uuid.UUID, db: DB, p: Reviewer) -> list[dict]:
+    """Every pipeline run for a claim, newest first: what ran, what it concluded, what failed."""
+    claim = db.scalars(
+        select(Claim).where(Claim.claim_id == claim_id, Claim.org_id == p.org_id)
+    ).first()
+    if claim is None:
+        raise HTTPException(404, "claim not found")
+    runs = db.scalars(
+        select(VerificationRun)
+        .where(VerificationRun.claim_id == claim_id)
+        .order_by(VerificationRun.created_at.desc())
+    )
+    out = []
+    for r in runs:
+        extraction = next((c for c in r.checks if c.get("check") == "extraction"), {})
+        out.append(
+            {
+                "run_id": str(r.run_id),
+                "created_at": r.created_at.isoformat(),
+                "pipeline_version": r.pipeline_version,
+                "policy_version": r.policy_version,
+                "outcome": r.outcome,
+                "flags": r.flags,
+                "readers": extraction.get("readers", []),
+                "reader_failures": extraction.get("failures", {}),
+            }
+        )
+    return out
 
 
 @router.post("/review/claims/{claim_id}/fields", response_model=FieldOut, tags=["review"])

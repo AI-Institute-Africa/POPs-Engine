@@ -17,6 +17,7 @@ TRANSITIONS: dict[S, set[S]] = {
         S.AWAITING_FINANCIAL_CONFIRMATION,
         S.FINANCIALLY_CONFIRMED,
         S.PENDING_REVIEW,
+        S.RECEIVED,  # reviewer asked for the readers to run again
     },
     S.AWAITING_FINANCIAL_CONFIRMATION: {
         S.FINANCIALLY_CONFIRMED,
@@ -24,6 +25,7 @@ TRANSITIONS: dict[S, set[S]] = {
         S.NEEDS_INFORMATION,
         S.REJECTED,
         S.DUPLICATE_HOLD,
+        S.RECEIVED,  # reviewer asked for the readers to run again
     },
     S.FINANCIALLY_CONFIRMED: {
         S.APPROVED,
@@ -41,6 +43,7 @@ TRANSITIONS: dict[S, set[S]] = {
         S.DUPLICATE_HOLD,
         S.AWAITING_FINANCIAL_CONFIRMATION,
         S.FINANCIALLY_CONFIRMED,
+        S.RECEIVED,  # reviewer asked for the readers to run again
     },
     S.DUPLICATE_HOLD: {S.PENDING_REVIEW, S.REJECTED, S.APPROVED, S.PARTIALLY_ALLOCATED},
     S.PARTIALLY_ALLOCATED: {S.APPROVED, S.REVERSED_OR_REFUNDED},
@@ -48,6 +51,10 @@ TRANSITIONS: dict[S, set[S]] = {
     S.REJECTED: set(),
     S.REVERSED_OR_REFUNDED: set(),
 }
+
+# States from which a reviewer may ask for the pipeline to run again. Never a state that holds
+# money (FINANCIALLY_CONFIRMED and later) and never DUPLICATE_HOLD, which has its own release step.
+REPROCESSABLE = {S.DOCUMENT_VERIFIED, S.AWAITING_FINANCIAL_CONFIRMATION, S.PENDING_REVIEW}
 
 # States a reviewer can act on (confirm / reject / request info)
 REVIEWABLE = {
