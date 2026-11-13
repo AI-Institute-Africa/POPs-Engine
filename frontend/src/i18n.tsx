@@ -2,7 +2,19 @@
 // Any key missing in a language falls back to English. Admin pages stay in English.
 import { createContext, useContext, useState } from "react";
 
-export type Lang = "en" | "sn" | "nd";
+import { translate, translationActive, type Lang } from "./lib/i18nGate";
+
+export type { Lang };
+
+const ALLOW_KEY = "validate-allow-draft-translations";
+function allowDrafts(): boolean {
+  if (import.meta.env.VITE_ALLOW_UNREVIEWED_TRANSLATIONS === "true") return true;
+  try {
+    return localStorage.getItem(ALLOW_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 const KEY = "validate-lang";
 
@@ -110,7 +122,7 @@ const ND: Record<string, string> = {
   "footer.text": "Validate — imodeli engathengisi. Irekhodi aliyisibopho, aliyisiqiniseko.",
 };
 
-const EN: Record<string, string> = {
+export const EN: Record<string, string> = {
   "nav.scan": "Scan",
   "nav.imageToText": "Image to text",
   "nav.guardrails": "Guardrails",
@@ -194,9 +206,14 @@ const EN: Record<string, string> = {
   "footer.text": "Validate — non-commercial demo. A receipt is a claim, not a confirmation.",
 };
 
-const DICTS: Record<Lang, Record<string, string>> = { en: EN, sn: SN, nd: ND };
+export const DICTS: Record<Lang, Record<string, string>> = { en: EN, sn: SN, nd: ND };
 
 export const LANG_LABELS: Record<Lang, string> = { en: "EN", sn: "Shona", nd: "Ndebele" };
+
+/** Label for the language switch: marks a language that is still showing English. */
+export function langLabel(l: Lang): string {
+  return translationActive(l, allowDrafts()) ? LANG_LABELS[l] : `${LANG_LABELS[l]} (draft: English shown)`;
+}
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (key: string) => string };
 
@@ -211,7 +228,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(KEY, l);
     setLangState(l);
   };
-  const t = (key: string) => DICTS[lang][key] ?? EN[key] ?? key;
+  const t = (key: string) => translate(lang, key, DICTS, allowDrafts());
   return <I18nCtx.Provider value={{ lang, setLang, t }}>{children}</I18nCtx.Provider>;
 }
 

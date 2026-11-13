@@ -195,3 +195,8 @@
 .db-sum { flex: 1; font-variant-numeric: tabular-nums; }
 .payer-msg { margin: 6px 0 10px; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--panel); }
 .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+
+.policy-risks { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; }
+.policy-risks li { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); }
+.policy-risks .risk-danger { background: var(--bad-bg); border-color: var(--bad); }
+.policy-risks .risk-warning { background: var(--warn-bg); border-color: var(--warn); }

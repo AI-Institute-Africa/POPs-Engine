@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider, useMutation, useQuery } from "@tansta
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { api, currentPersona, hasRole, switchPersona, ensureSession } from "./api";
 import { demoInfo, loadDemo, resetDemo } from "./demo";
-import { I18nProvider, LANG_LABELS, useI18n, type Lang } from "./i18n";
+import { I18nProvider, LANG_LABELS, langLabel, useI18n, type Lang } from "./i18n";
 import { PERSONA_LIST } from "./personas";
 import { ToastProvider, useToast } from "./toast";
 import { useTheme } from "./theme";
@@ -36,7 +36,7 @@ function LangSwitch() {
     <select className="lang-switch" value={lang} onChange={(e) => setLang(e.target.value as Lang)} aria-label="Language">
       {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
         <option key={l} value={l}>
-          {LANG_LABELS[l]}
+          {langLabel(l)}
         </option>
       ))}
     </select>
