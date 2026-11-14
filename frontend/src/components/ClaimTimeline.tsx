@@ -8,7 +8,7 @@ export function ClaimTimeline({ state }: { state: string }) {
   const { t } = useI18n();
   const p = claimProgress(state);
   const list = (
-    <ol className="timeline" aria-label={t("track.timeline")}>
+    <ol className="claim-steps" aria-label={t("track.timeline")}>
       {p.steps.map((s) => (
         <li key={s.key} className={s.status} aria-current={s.status === "current" ? "step" : undefined}>
           <span className="tl-mark" aria-hidden>
@@ -21,7 +21,7 @@ export function ClaimTimeline({ state }: { state: string }) {
   );
   if (!p.final) return list;
   return (
-    <details className="timeline-collapsed">
+    <details className="claim-steps-collapsed">
       <summary>{t("track.timeline")}</summary>
       {list}
     </details>
