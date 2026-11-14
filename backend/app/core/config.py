@@ -82,6 +82,14 @@ class Settings(BaseSettings):
     kyc_face_detector_path: str = "./var/models/face-detection-yunet.onnx"
     rate_limit_kyc_per_subject_per_day: int = 5
 
+    # read-only provider lookups (app/lookups): evidence for a person, never a decision.
+    # off | shadow (record the result in the audit trail); both are advisory.
+    lookup_mode: Literal["off", "shadow"] = "off"
+    lookup_disabled: bool = False  # global kill switch
+    lookup_backend: Literal["fake", "browser"] = "fake"
+    lookup_allowed_domains: list[str] = []
+    lookup_timeout_seconds: int = 60
+
     # extraction readers: ollama | donut | fake ; ocr: tesseract | none
     vlm_backend: Literal["ollama", "donut", "fake"] = "ollama"
     # Shadow mode (blueprint phase 4): advisory AI proposals recorded beside claims and scored
@@ -171,6 +179,10 @@ def validate_for_startup(s: Settings) -> None:
         problems.append("POPS_VLM_BACKEND=fake is for tests and demos only")
     if s.demo:
         problems.append("POPS_DEMO=true is for the standalone demo only")
+    if s.lookup_mode != "off" and s.lookup_backend == "fake":
+        problems.append("POPS_LOOKUP_BACKEND=fake is for tests and demos only")
+    if s.lookup_mode != "off" and not s.lookup_allowed_domains:
+        problems.append("POPS_LOOKUP_ALLOWED_DOMAINS must list the provider domains")
     if s.kyc_face_backend in ("fake", "demo"):
         problems.append(f"POPS_KYC_FACE_BACKEND={s.kyc_face_backend} is for tests and demos only")
     if not s.clamav_host:

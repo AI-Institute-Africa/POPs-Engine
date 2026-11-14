@@ -32,6 +32,7 @@ dependencies = [
 dev = ["pytest>=8", "hypothesis>=6.100", "ruff>=0.5", "mypy>=1.10", "playwright>=1.48"]
 kyc = ["onnxruntime>=1.18"]
 demo = ["pixeltable-pgserver>=0.7"]
+agent = ["browser-use>=0.1"]
 training = ["transformers[torch]>=4.40", "torch>=2.3", "sentencepiece>=0.2"]
 observability = [
   "sentry-sdk>=2.0",
